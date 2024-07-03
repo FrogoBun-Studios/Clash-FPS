@@ -6,12 +6,20 @@ public class Player : NetworkBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private float speed = 50f;
     [SerializeField] private float friction = 0.1f;
+    [SerializeField] private Transform cameraHolder;
+    [SerializeField] private Card card;
 
     private void Start(){
-        Application.targetFrameRate = 120;
+        if(!IsOwner)
+            return;
 
-        if(IsOwner)
-            Chat.Singleton.Log("Player logged in");
+        Application.targetFrameRate = 120;
+        Chat.Singleton.Log("Player logged in");
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        
+        card = new WizardCard();
+        card.StartCard(transform);
     }
 
     private void Update()
@@ -19,19 +27,6 @@ public class Player : NetworkBehaviour
         if(!IsOwner)
             return;
 
-        Vector3 movementDir = new Vector3();
-
-        if(Input.GetKey(KeyCode.W))
-            movementDir.z = 1;
-        else if(Input.GetKey(KeyCode.S))
-            movementDir.z = -1;
-        if(Input.GetKey(KeyCode.D))
-            movementDir.x = 1;
-        else if(Input.GetKey(KeyCode.A))
-            movementDir.x = -1;
-
-        rb.linearVelocity = new Vector3(rb.linearVelocity.x * friction, rb.linearVelocity.y, rb.linearVelocity.z * friction);
-        rb.linearVelocity += transform.forward * movementDir/*.normalized*/.z * speed
-            + transform.right * movementDir/*.normalized*/.x * speed;
+        card.UpdateCard(transform, rb, friction, cameraHolder);
     }
 }
