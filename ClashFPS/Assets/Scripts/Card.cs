@@ -1,8 +1,9 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public abstract class Card
+public abstract class Card : NetworkBehaviour
 {
     protected float health;
     protected float damage;
@@ -17,14 +18,21 @@ public abstract class Card
     protected float attackTimer;
 
     public virtual void StartCard(Transform transform){
-        animator = GameObject.Instantiate(model, new Vector3(0, 0, 0), Quaternion.identity, transform).GetComponent<Animator>();
+        InstantiateModelServerRpc((int)OwnerClientId);
+        animator = transform.GetChild(transform.childCount - 1).GetComponent<Animator>();
 
         attackTimer = 1 / attackRate;
     }
 
-    public virtual void UpdateCard(Transform transform, Rigidbody rb, float friction, Transform cameraHolder){
+    [ServerRpc]
+    private void InstantiateModelServerRpc(int player){
+        GameObject model = Instantiate(this.model, new Vector3(0, 0, 0), Quaternion.identity, GameObject.Find("Player" + player).transform);
+        model.GetComponent<NetworkObject>().Spawn(true);
+    }
+
+    public virtual void UpdateCard(Transform transform, Rigidbody rb, float friction, Transform cameraFollow){
         Move(transform, rb, friction);
-        Look(transform, cameraHolder);
+        Look(transform, cameraFollow);
 
         attackTimer -= Time.deltaTime;
         if(Input.GetMouseButtonDown(0) && attackTimer <= 0){
@@ -51,11 +59,18 @@ public abstract class Card
 
         if(Math.Abs(rb.linearVelocity.x) > 0.1f || Math.Abs(rb.linearVelocity.z) > 0.1f)
             animator.SetBool("Moving", true);
+        else
+            animator.SetBool("Moving", false);
     }
 
-    protected virtual void Look(Transform transform, Transform cameraHolder){
-        transform.rotation = Quaternion.Euler(0, cameraHolder.rotation.eulerAngles.y + Input.GetAxis("Mouse X"), 0);
-        cameraHolder.rotation = Quaternion.Euler(Mathf.Clamp(cameraHolder.rotation.eulerAngles.x - Input.GetAxis("Mouse Y"), -90, 90), 0, 0);
+    protected virtual void Look(Transform transform, Transform cameraFollow){
+        transform.localEulerAngles = new Vector3(0, transform.rotation.eulerAngles.y + Input.GetAxis("Mouse X"), 0);
+
+        float xAngle = cameraFollow.rotation.eulerAngles.x;
+        if(xAngle >= 180)
+            xAngle -= 360;
+
+        cameraFollow.localEulerAngles = new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y"), -40, 75), 0, 0);
     }
 
     public virtual void Attack(){
@@ -75,7 +90,7 @@ public abstract class Card
         damage = newDamage;
     }
 
-    public virtual void setCardParams(float health, float damage, float speed, float JumpStrength, int jumps, int elixer, bool flying, float attackRate){
+    public virtual void setCardParams(float health, float damage, float speed, float JumpStrength, int jumps, int elixer, bool flying, float attackRate, string ModelName){
         this.health = health;
         this.damage = damage;
         this.speed = speed;
@@ -84,5 +99,8 @@ public abstract class Card
         this.elixer = elixer;
         this.flying = flying;
         this.attackRate = attackRate;
+        Chat.Singleton.Log($"{ModelName}/{ModelName}Model");
+        this.model = Resources.Load($"{ModelName}/{ModelName}Model") as GameObject;
+        Debug.Log(this.model);
     }
 }
