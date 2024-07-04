@@ -1,13 +1,14 @@
 using Unity.Netcode;
 using UnityEngine;
 using Unity.Cinemachine;
+using System;
 
 public class Player : NetworkBehaviour
 {
-    [SerializeField] private Rigidbody rb;
-    [SerializeField] private float friction;
-    [SerializeField] private Card card;
-    [SerializeField] private Transform cameraFollow;
+    public Rigidbody rb;
+    public float friction;
+    public Card card;
+    public Transform cameraFollow;
     private bool spawned = false;
 
     public override void OnNetworkSpawn(){
@@ -15,18 +16,24 @@ public class Player : NetworkBehaviour
             return;
 
         Application.targetFrameRate = 120;
-        Chat.Singleton.Log($"Player {OwnerClientId} logged in");
-        gameObject.name = "Player" + OwnerClientId;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
 
-        Chat.Singleton.Log($"Player {OwnerClientId} is Creating a card");
-        card = new WizardCard();
-        card.StartCard(transform);
-
+        Chat.Singleton.Log("before start rpc: " + OwnerClientId);
+        StartRpc(OwnerClientId);
+        Chat.Singleton.Log("after start rpc: " + OwnerClientId);
+        
         spawned = true;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void StartRpc(ulong playerId){
+        Chat.Singleton.Log($"Player {playerId} logged in");
+
+        card = gameObject.AddComponent<WizardCard>();
+        card.StartCard(OwnerClientId);
     }
 
     private void Update()
@@ -34,6 +41,11 @@ public class Player : NetworkBehaviour
         if(!IsOwner || !spawned)
             return;
 
-        card.UpdateCard(transform, rb, friction, cameraFollow);
+        card.UpdateCard();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void CreateModelRpc(ulong id){
+        card.CreateModel(id);
     }
 }

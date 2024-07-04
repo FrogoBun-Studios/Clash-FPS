@@ -1,13 +1,13 @@
 using System;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public abstract class Card : NetworkBehaviour
 {
     protected float health;
     protected float damage;
-    protected GameObject model;
+    protected GameObject ModelPrefab;
+    public Transform model;
     protected Animator animator;
     protected float speed;
     protected float JumpStrength;
@@ -17,22 +17,33 @@ public abstract class Card : NetworkBehaviour
     protected float attackRate;
     protected float attackTimer;
 
-    public virtual void StartCard(Transform transform){
-        InstantiateModelServerRpc((int)OwnerClientId);
-        animator = transform.GetChild(transform.childCount - 1).GetComponent<Animator>();
+    public virtual void StartCard(ulong id){
+        if(!IsOwner)
+            return;
+            
+        Chat.Singleton.Log($"Starting for {id}");
+        GetComponent<Player>().CreateModelRpc(id);
+        model = GameObject.Find($"Model{id}").transform;
+        animator = model.GetComponent<Animator>();
 
         attackTimer = 1 / attackRate;
     }
 
-    [ServerRpc]
-    private void InstantiateModelServerRpc(int player){
-        GameObject model = Instantiate(this.model, new Vector3(0, 0, 0), Quaternion.identity, GameObject.Find("Player" + player).transform);
+    public void CreateModel(ulong id){
+        Chat.Singleton.Log($"Creating model for {id}");
+        model = GameObject.Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, transform).transform;
         model.GetComponent<NetworkObject>().Spawn(true);
+
+        model.name = $"Model{id}";
     }
 
-    public virtual void UpdateCard(Transform transform, Rigidbody rb, float friction, Transform cameraFollow){
-        Move(transform, rb, friction);
-        Look(transform, cameraFollow);
+    public virtual void UpdateCard(){
+        Rigidbody rb = transform.GetComponent<Rigidbody>();
+        float friction = transform.GetComponent<Player>().friction;
+        Transform cameraFollow = transform.GetComponent<Player>().cameraFollow;
+
+        Move(rb, friction);
+        Look(cameraFollow);
 
         attackTimer -= Time.deltaTime;
         if(Input.GetMouseButtonDown(0) && attackTimer <= 0){
@@ -41,7 +52,7 @@ public abstract class Card : NetworkBehaviour
         }
     }
 
-    protected virtual void Move(Transform transform, Rigidbody rb, float friction){
+    protected virtual void Move(Rigidbody rb, float friction){
         Vector3 movementDir = new Vector3();
 
         if(Input.GetKey(KeyCode.W))
@@ -61,10 +72,13 @@ public abstract class Card : NetworkBehaviour
             animator.SetBool("Moving", true);
         else
             animator.SetBool("Moving", false);
+
+        model.position = transform.position;
     }
 
-    protected virtual void Look(Transform transform, Transform cameraFollow){
+    protected virtual void Look(Transform cameraFollow){
         transform.localEulerAngles = new Vector3(0, transform.rotation.eulerAngles.y + Input.GetAxis("Mouse X"), 0);
+        model.localEulerAngles = transform.localEulerAngles;
 
         float xAngle = cameraFollow.rotation.eulerAngles.x;
         if(xAngle >= 180)
@@ -99,8 +113,6 @@ public abstract class Card : NetworkBehaviour
         this.elixer = elixer;
         this.flying = flying;
         this.attackRate = attackRate;
-        Chat.Singleton.Log($"{ModelName}/{ModelName}Model");
-        this.model = Resources.Load($"{ModelName}/{ModelName}Model") as GameObject;
-        Debug.Log(this.model);
+        this.ModelPrefab = Resources.Load($"{ModelName}/{ModelName}Model") as GameObject;
     }
 }

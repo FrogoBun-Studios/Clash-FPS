@@ -1,9 +1,11 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class WizardCard : Card
 {
-    public override void StartCard(Transform transform)
+    public override void StartCard(ulong id)
     {
+        Chat.Singleton.Log("Setting params");
         setCardParams(
             health: 100f,
             damage: 50f,
@@ -15,6 +17,6 @@ public class WizardCard : Card
             attackRate: 1f,
             ModelName: "Wizard"
         );
-        base.StartCard(transform);
+        base.StartCard(id);
     }
 }
