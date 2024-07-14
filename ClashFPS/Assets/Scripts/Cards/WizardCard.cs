@@ -3,10 +3,11 @@ using UnityEngine;
 
 public class WizardCard : Card
 {
-    public override void StartCard(ulong id)
+    public override void StartCard(Transform player, bool IsOwner, ulong OwnerClientId, CardParams Params = new CardParams(), string ModelName = "")
     {
         Chat.Singleton.Log("Setting params");
-        setCardParams(
+        
+        base.StartCard(player, IsOwner, OwnerClientId, new CardParams(
             health: 100f,
             damage: 50f,
             speed: 0.5f,
@@ -14,9 +15,7 @@ public class WizardCard : Card
             jumps: 1,
             elixer: 5,
             flying: false,
-            attackRate: 1f,
-            ModelName: "Wizard"
-        );
-        base.StartCard(id);
+            attackRate: 1f
+        ), "Wizard");
     }
 }

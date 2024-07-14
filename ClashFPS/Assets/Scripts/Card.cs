@@ -1,55 +1,74 @@
-using System;
 using Unity.Netcode;
 using UnityEngine;
 
-public abstract class Card : NetworkBehaviour
+public abstract class Card
 {
-    protected float health;
-    protected float damage;
     protected GameObject ModelPrefab;
-    public Transform model;
-    protected Animator animator;
-    protected float speed;
-    protected float JumpStrength;
-    protected int jumps;
-    protected int elixer;
-    protected bool flying;
-    protected float attackRate;
-    protected float attackTimer;
+    protected Transform model;
+    // protected Animator animator;
+    protected Transform player;
+    protected Player PlayerScript;
+    protected bool IsOwner;
+    protected ulong OwnerClientId;
+    
+    protected CardParams Params;
 
-    public virtual void StartCard(ulong id){
+    protected float attackTimer;
+    protected bool AnimatorMoving = false;
+    protected bool AnimatorAttack = false;
+    protected bool AnimatorDeath = false;
+
+    public virtual void StartCard(Transform player, bool IsOwner, ulong OwnerClientId, CardParams Params = new CardParams(), string ModelName = ""){
+        Chat.Singleton.Log($"Starting card for {OwnerClientId}");
+
+        this.Params = Params;
+        this.ModelPrefab = Resources.Load($"{ModelName}/ModelPrefab") as GameObject;
+        this.player = player;
+        this.PlayerScript = player.GetComponent<Player>();
+        this.IsOwner = IsOwner;
+        this.OwnerClientId = OwnerClientId;
+
         if(!IsOwner)
             return;
-            
-        Chat.Singleton.Log($"Starting for {id}");
-        GetComponent<Player>().CreateModelRpc(id);
-        model = GameObject.Find($"Model{id}").transform;
-        animator = model.GetComponent<Animator>();
 
-        attackTimer = 1 / attackRate;
+        attackTimer = 1 / Params.attackRate;
     }
 
-    public void CreateModel(ulong id){
-        Chat.Singleton.Log($"Creating model for {id}");
-        model = GameObject.Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, transform).transform;
+    public void CreateModel(){
+        Chat.Singleton.Log($"Creating model for {OwnerClientId}");
+        model = GameObject.Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, player).transform;
         model.GetComponent<NetworkObject>().Spawn(true);
-
-        model.name = $"Model{id}";
     }
 
-    public virtual void UpdateCard(){
-        Rigidbody rb = transform.GetComponent<Rigidbody>();
-        float friction = transform.GetComponent<Player>().friction;
-        Transform cameraFollow = transform.GetComponent<Player>().cameraFollow;
+    public void SetModel(){
+        Chat.Singleton.Log($"Setting models for {OwnerClientId}");
 
+        int i = 0;
+        foreach(GameObject model in GameObject.FindGameObjectsWithTag("Model")){
+            model.name = $"Model{i}";
+            i++;
+        }
+
+        model = GameObject.Find($"Model{OwnerClientId}").transform;
+        // animator = model.GetComponent<Animator>();
+        PlayerScript.Spawned();
+    }
+
+    public virtual void UpdateCard(Rigidbody rb, float friction, Transform cameraFollow){
         Move(rb, friction);
         Look(cameraFollow);
 
         attackTimer -= Time.deltaTime;
         if(Input.GetMouseButtonDown(0) && attackTimer <= 0){
-            attackTimer = 1 / attackRate;
+            attackTimer = 1 / Params.attackRate;
             Attack();
         }
+
+        PlayerScript.updateModel();
+        PlayerScript.updateAnimator(AnimatorMoving, AnimatorAttack, AnimatorDeath);
+
+        AnimatorAttack = false;
+        AnimatorDeath = false;
     }
 
     protected virtual void Move(Rigidbody rb, float friction){
@@ -65,20 +84,15 @@ public abstract class Card : NetworkBehaviour
             movementDir.x = -1;
 
         rb.linearVelocity = new Vector3(rb.linearVelocity.x * friction, rb.linearVelocity.y, rb.linearVelocity.z * friction);
-        rb.linearVelocity += transform.forward * movementDir/*.normalized*/.z * speed
-                           + transform.right * movementDir/*.normalized*/.x * speed;
+        rb.linearVelocity += player.forward * movementDir/*.normalized*/.z * Params.speed
+                           + player.right * movementDir/*.normalized*/.x * Params.speed;
 
-        if(Math.Abs(rb.linearVelocity.x) > 0.1f || Math.Abs(rb.linearVelocity.z) > 0.1f)
-            animator.SetBool("Moving", true);
-        else
-            animator.SetBool("Moving", false);
-
-        model.position = transform.position;
+        // AnimatorMoving = Math.Abs(rb.linearVelocity.x) > 0.1f || Math.Abs(rb.linearVelocity.z) > 0.1f;
+        AnimatorMoving = movementDir != Vector3.zero;
     }
 
-    protected virtual void Look(Transform cameraFollow){
-        transform.localEulerAngles = new Vector3(0, transform.rotation.eulerAngles.y + Input.GetAxis("Mouse X"), 0);
-        model.localEulerAngles = transform.localEulerAngles;
+    protected void Look(Transform cameraFollow){
+        player.localEulerAngles = new Vector3(0, player.rotation.eulerAngles.y + Input.GetAxis("Mouse X"), 0);
 
         float xAngle = cameraFollow.rotation.eulerAngles.x;
         if(xAngle >= 180)
@@ -88,31 +102,19 @@ public abstract class Card : NetworkBehaviour
     }
 
     public virtual void Attack(){
-        animator.SetTrigger("Attack");
+        AnimatorAttack = true;
         Chat.Singleton.Log("Attacking");
     }
 
     public virtual void Damage(float amount){
-        health -= amount;
+        Params.health -= amount;
     }
 
     public virtual void Heal(float amount){
-        health += amount;
+        Params.health += amount;
     }
 
-    public virtual void changeDamage(float newDamage){
-        damage = newDamage;
-    }
-
-    public virtual void setCardParams(float health, float damage, float speed, float JumpStrength, int jumps, int elixer, bool flying, float attackRate, string ModelName){
-        this.health = health;
-        this.damage = damage;
-        this.speed = speed;
-        this.JumpStrength = JumpStrength;
-        this.jumps = jumps;
-        this.elixer = elixer;
-        this.flying = flying;
-        this.attackRate = attackRate;
-        this.ModelPrefab = Resources.Load($"{ModelName}/{ModelName}Model") as GameObject;
+    public void setDamage(float newDamage){
+        Params.damage = newDamage;
     }
 }

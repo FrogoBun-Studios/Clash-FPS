@@ -50,7 +50,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 87f2ad7fe1739024fb0a067abb9bf0a8, type: 3}
       propertyPath: m_Name
-      value: WizardModel
+      value: ModelPrefab
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 87f2ad7fe1739024fb0a067abb9bf0a8, type: 3}
+      propertyPath: m_TagString
+      value: Model
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 87f2ad7fe1739024fb0a067abb9bf0a8, type: 3}
       propertyPath: m_Controller
@@ -92,7 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1932007200
+  GlobalObjectIdHash: 2439043663
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
