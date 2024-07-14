@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ModelPrefab
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 105828854fbd860459425195f392caac, type: 3}
+      propertyPath: m_TagString
+      value: Model
+      objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: 105828854fbd860459425195f392caac, type: 3}
       propertyPath: m_Avatar
       value: 

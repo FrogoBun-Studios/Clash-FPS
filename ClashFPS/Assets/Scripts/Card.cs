@@ -19,8 +19,6 @@ public abstract class Card
     protected bool AnimatorDeath = false;
 
     public virtual void StartCard(Transform player, bool IsOwner, ulong OwnerClientId, CardParams Params = new CardParams(), string ModelName = ""){
-        Chat.Singleton.Log($"Starting card for {OwnerClientId}");
-
         this.Params = Params;
         this.ModelPrefab = Resources.Load($"{ModelName}/ModelPrefab") as GameObject;
         this.player = player;
@@ -35,14 +33,11 @@ public abstract class Card
     }
 
     public void CreateModel(){
-        Chat.Singleton.Log($"Creating model for {OwnerClientId}");
         model = GameObject.Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, player).transform;
         model.GetComponent<NetworkObject>().Spawn(true);
     }
 
     public void SetModel(){
-        Chat.Singleton.Log($"Setting models for {OwnerClientId}");
-
         int i = 0;
         foreach(GameObject model in GameObject.FindGameObjectsWithTag("Model")){
             model.name = $"Model{i}";

@@ -23,15 +23,13 @@ public class Player : NetworkBehaviour
 
         StartRpc(OwnerClientId);
         CreateModelRpc();
-        
-        // spawned = true;
     }
 
     [Rpc(SendTo.Everyone)]
     private void StartRpc(ulong playerId){
         Chat.Singleton.Log($"Player {playerId} logged in");
 
-        card = new WizardCard();
+        card = new ValkyrieCard();
         card.StartCard(transform, IsOwner, OwnerClientId);
     }
 
