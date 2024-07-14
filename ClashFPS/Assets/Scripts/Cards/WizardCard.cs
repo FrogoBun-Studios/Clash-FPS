@@ -8,7 +8,7 @@ public class WizardCard : Card
         base.StartCard(player, IsOwner, OwnerClientId, new CardParams(
             health: 100f,
             damage: 50f,
-            speed: 0.5f,
+            speed: 2f,
             JumpStrength: 10f,
             jumps: 1,
             elixer: 5,
