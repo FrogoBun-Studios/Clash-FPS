@@ -2008,7 +2008,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1472325412}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
@@ -2311,7 +2311,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '[System]: Sigma on the wall'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 19621b54a70a60a4bab3e600b737b617, type: 2}
   m_sharedMaterial: {fileID: 2144673768134403464, guid: 19621b54a70a60a4bab3e600b737b617, type: 2}

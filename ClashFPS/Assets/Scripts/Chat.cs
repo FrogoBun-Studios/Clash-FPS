@@ -12,7 +12,7 @@ public class Chat : MonoBehaviour
     [SerializeField] private int maxMessages;
     private float time;
     private List<string> ChatMessages = new List<string>();
-    private bool isShown = true;
+    private bool isShown = false;
 
     public static Chat Singleton { get; private set; }
 
