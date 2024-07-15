@@ -80,23 +80,23 @@ public class Player : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    private void updateAnimatorRpc(bool Moving, bool Attack, bool Death, float AttackBlend){
-        animator.SetBool("Moving", Moving);
-        animator.SetFloat("AttackBlend", AttackBlend);
+    private void updateAnimatorRpc(bool[] AnimatorParams){
+        animator.SetFloat("MovingBlend", AnimatorParams[0] ? 1 : 0);
+        animator.SetFloat("AttackBlend", AnimatorParams[1] ? 1 : 0);
+        animator.SetFloat("JumpBlend", AnimatorParams[2] ? 1 : 0);
 
-        if(Attack)
-            animator.SetTrigger("Attack");
+        animator.SetBool("Idle", !(AnimatorParams[0] || AnimatorParams[1] || AnimatorParams[2]));
 
-        if(Death)
+        if(AnimatorParams[3])
             animator.SetTrigger("Death");
     }
 
-    public void updateAnimator(bool Moving, bool Attack, bool Death, float AttackBlend){
-        updateAnimatorRpc(Moving, Attack, Death, AttackBlend);
+    public void updateAnimator(bool[] AnimatorParams){
+        updateAnimatorRpc(AnimatorParams);
     }
 
     private void OnDrawGizmos(){
-        Gizmos.DrawWireSphere(transform.position - transform.right * 0.75f - transform.up * 0.1f, 0.25f);
-        Gizmos.DrawWireSphere(transform.position + transform.right * 0.75f - transform.up * 0.1f, 0.25f);
+        Gizmos.DrawWireSphere(transform.position - transform.right * 0.75f, 0.05f);
+        Gizmos.DrawWireSphere(transform.position + transform.right * 0.75f, 0.05f);
     }
 }

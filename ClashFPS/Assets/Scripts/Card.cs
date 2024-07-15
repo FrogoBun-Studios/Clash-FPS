@@ -12,9 +12,8 @@ public abstract class Card
     protected CardParams Params;
 
     protected float attackTimer;
-    protected bool AnimatorMoving = false;
-    protected bool AnimatorAttack = false;
-    protected bool AnimatorDeath = false;
+    // Moving, Attack, Jump, Death
+    protected bool[] AnimatorParams = new bool[4];
     protected float AnimatorAttackBlend = 1;
     protected int jumpsLeft;
 
@@ -47,26 +46,31 @@ public abstract class Card
             attackTimer = 1 / Params.attackRate;
             Attack();
         }
+        
+        if(OnGround())
+            AnimatorParams[2] = false;
 
         if(Input.GetKeyDown(KeyCode.Space)){
-            // bool groundHit = Physics.Raycast(player.position + Vector3.down * 0f, Vector3.down, 0.2f);
-            bool groundHit = Physics.OverlapSphere(player.position - player.right * 0.75f - player.up * 0.1f, 0.25f).Length > 0
-                          || Physics.OverlapSphere(player.position + player.right * 0.75f - player.up * 0.1f, 0.25f).Length > 0;
-            if(groundHit)
+            if(OnGround())
                 jumpsLeft = Params.jumps;
 
             if(jumpsLeft > 0){
                 rb.AddForce(Params.JumpStrength * player.up, ForceMode.Impulse);
+                AnimatorParams[2] = true;
                 jumpsLeft--;
             }
         }
 
-
         PlayerScript.updateModel();
-        PlayerScript.updateAnimator(AnimatorMoving, AnimatorAttack, AnimatorDeath, AnimatorAttackBlend);
+        PlayerScript.updateAnimator(AnimatorParams);
 
-        AnimatorAttack = false;
-        AnimatorDeath = false;
+        AnimatorParams[1] = false;
+        AnimatorParams[3] = false;
+    }
+
+    protected bool OnGround(){
+        return Physics.OverlapSphere(player.position - player.right * 0.75f, 0.05f).Length > 0
+            || Physics.OverlapSphere(player.position + player.right * 0.75f, 0.05f).Length > 0;
     }
 
     protected virtual void Move(Rigidbody rb, float friction){
@@ -85,10 +89,7 @@ public abstract class Card
         rb.linearVelocity += player.forward * movementDir/*.normalized*/.z * Params.speed
                            + player.right * movementDir/*.normalized*/.x * Params.speed;
 
-        // AnimatorMoving = Math.Abs(rb.linearVelocity.x) > 0.1f || Math.Abs(rb.linearVelocity.z) > 0.1f;
-        AnimatorMoving = movementDir != Vector3.zero;
-        AnimatorAttackBlend = AnimatorMoving ? 0.5f : 1;
-
+        AnimatorParams[0] = movementDir != Vector3.zero;
     }
 
     protected void Look(Transform cameraFollow){
@@ -102,12 +103,15 @@ public abstract class Card
     }
 
     public virtual void Attack(){
-        AnimatorAttack = true;
+        AnimatorParams[1] = true;
         Chat.Singleton.Log("Attacking");
     }
 
     public virtual void Damage(float amount){
         Params.health -= amount;
+
+        if(Params.health <= 0)
+            AnimatorParams[3] = true;
     }
 
     public virtual void Heal(float amount){
