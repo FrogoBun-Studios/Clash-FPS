@@ -16,6 +16,7 @@ public abstract class Card
     protected bool AnimatorAttack = false;
     protected bool AnimatorDeath = false;
     protected float AnimatorAttackBlend = 1;
+    protected int jumpsLeft;
 
     public virtual void StartCard(Transform player, bool IsOwner, ulong OwnerClientId, CardParams Params = new CardParams(), string ModelName = ""){
         this.Params = Params;
@@ -24,6 +25,7 @@ public abstract class Card
         this.PlayerScript = player.GetComponent<Player>();
         this.IsOwner = IsOwner;
         this.OwnerClientId = OwnerClientId;
+        this.jumpsLeft = Params.jumps;
 
         if(!IsOwner)
             return;
@@ -45,6 +47,20 @@ public abstract class Card
             attackTimer = 1 / Params.attackRate;
             Attack();
         }
+
+        if(Input.GetKeyDown(KeyCode.Space)){
+            // bool groundHit = Physics.Raycast(player.position + Vector3.down * 0f, Vector3.down, 0.2f);
+            bool groundHit = Physics.OverlapSphere(player.position - player.right * 0.75f - player.up * 0.1f, 0.25f).Length > 0
+                          || Physics.OverlapSphere(player.position + player.right * 0.75f - player.up * 0.1f, 0.25f).Length > 0;
+            if(groundHit)
+                jumpsLeft = Params.jumps;
+
+            if(jumpsLeft > 0){
+                rb.AddForce(Params.JumpStrength * player.up, ForceMode.Impulse);
+                jumpsLeft--;
+            }
+        }
+
 
         PlayerScript.updateModel();
         PlayerScript.updateAnimator(AnimatorMoving, AnimatorAttack, AnimatorDeath, AnimatorAttackBlend);

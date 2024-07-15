@@ -12,9 +12,7 @@ public class RelayManager : MonoBehaviour
     private async void Start(){
         await UnityServices.InitializeAsync();
 
-        AuthenticationService.Instance.SignedIn += () => {
-            Chat.Singleton.Log($"{AuthenticationService.Instance.PlayerId} Signed in");
-        };
+        AuthenticationService.Instance.SignedIn += () => {};
 
         await AuthenticationService.Instance.SignInAnonymouslyAsync();
     }

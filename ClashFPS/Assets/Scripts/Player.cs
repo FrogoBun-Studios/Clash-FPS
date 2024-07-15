@@ -26,9 +26,9 @@ public class Player : NetworkBehaviour
         GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
 
         if(OwnerClientId == 0)
-            ChooseCardRpc(CardTypes.Wizard);
-        else
             ChooseCardRpc(CardTypes.Valkyrie);
+        else
+            ChooseCardRpc(CardTypes.Wizard);
     }
 
     [Rpc(SendTo.Everyone)]
@@ -93,5 +93,10 @@ public class Player : NetworkBehaviour
 
     public void updateAnimator(bool Moving, bool Attack, bool Death, float AttackBlend){
         updateAnimatorRpc(Moving, Attack, Death, AttackBlend);
+    }
+
+    private void OnDrawGizmos(){
+        Gizmos.DrawWireSphere(transform.position - transform.right * 0.75f - transform.up * 0.1f, 0.25f);
+        Gizmos.DrawWireSphere(transform.position + transform.right * 0.75f - transform.up * 0.1f, 0.25f);
     }
 }
