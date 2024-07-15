@@ -10,8 +10,12 @@ public class Player : NetworkBehaviour
 
     private Card card;
     private bool spawned = false;
+    private Transform model;
+    private Animator animator;
 
     public override void OnNetworkSpawn(){
+        Chat.Singleton.Log($"Player {OwnerClientId} logged in");
+
         if(!IsOwner)
             return;
 
@@ -21,16 +25,20 @@ public class Player : NetworkBehaviour
         Cursor.visible = false;
         GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
 
-        StartRpc(OwnerClientId);
-        CreateModelRpc();
+        if(OwnerClientId == 0)
+            ChooseCardRpc(CardTypes.Wizard);
+        else
+            ChooseCardRpc(CardTypes.Valkyrie);
     }
 
     [Rpc(SendTo.Everyone)]
-    private void StartRpc(ulong playerId){
-        Chat.Singleton.Log($"Player {playerId} logged in");
+    private void ChooseCardRpc(string cardName){
+        spawned = false;
 
-        card = new ValkyrieCard();
+        card = CardTypes.StringToCard(cardName);
         card.StartCard(transform, IsOwner, OwnerClientId);
+
+        CreateModelRpc();
     }
 
     private void Update()
@@ -49,13 +57,22 @@ public class Player : NetworkBehaviour
 
     [Rpc(SendTo.Everyone)]
     private void SetModelRpc(){
-        card.SetModel();
+        int i = 0;
+        foreach(GameObject model in GameObject.FindGameObjectsWithTag("Model")){
+            model.name = $"Model{i}";
+            i++;
+        }
+
+        model = GameObject.Find($"Model{OwnerClientId}").transform;
+        animator = model.GetComponent<Animator>();
+        
+        spawned = true;
     }
 
     [Rpc(SendTo.Server)]
     private void updateModelRpc(){
-        GameObject.Find($"Model{OwnerClientId}").transform.position = transform.position;
-        GameObject.Find($"Model{OwnerClientId}").transform.localEulerAngles = transform.localEulerAngles;
+        model.position = transform.position;
+        model.localEulerAngles = transform.localEulerAngles;
     }
 
     public void updateModel(){
@@ -63,21 +80,18 @@ public class Player : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    private void updateAnimatorRpc(bool Moving, bool Attack, bool Death){
-        GameObject.Find($"Model{OwnerClientId}").GetComponent<Animator>().SetBool("Moving", Moving);
+    private void updateAnimatorRpc(bool Moving, bool Attack, bool Death, float AttackBlend){
+        animator.SetBool("Moving", Moving);
+        animator.SetFloat("AttackBlend", AttackBlend);
 
         if(Attack)
-            GameObject.Find($"Model{OwnerClientId}").GetComponent<Animator>().SetTrigger("Attack");
+            animator.SetTrigger("Attack");
 
         if(Death)
-            GameObject.Find($"Model{OwnerClientId}").GetComponent<Animator>().SetTrigger("Death");
+            animator.SetTrigger("Death");
     }
 
-    public void updateAnimator(bool Moving, bool Attack, bool Death){
-        updateAnimatorRpc(Moving, Attack, Death);
-    }
-
-    public void Spawned(){
-        spawned = true;
+    public void updateAnimator(bool Moving, bool Attack, bool Death, float AttackBlend){
+        updateAnimatorRpc(Moving, Attack, Death, AttackBlend);
     }
 }

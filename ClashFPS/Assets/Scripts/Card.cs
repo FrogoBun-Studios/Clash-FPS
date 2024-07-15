@@ -4,8 +4,6 @@ using UnityEngine;
 public abstract class Card
 {
     protected GameObject ModelPrefab;
-    protected Transform model;
-    // protected Animator animator;
     protected Transform player;
     protected Player PlayerScript;
     protected bool IsOwner;
@@ -17,6 +15,7 @@ public abstract class Card
     protected bool AnimatorMoving = false;
     protected bool AnimatorAttack = false;
     protected bool AnimatorDeath = false;
+    protected float AnimatorAttackBlend = 1;
 
     public virtual void StartCard(Transform player, bool IsOwner, ulong OwnerClientId, CardParams Params = new CardParams(), string ModelName = ""){
         this.Params = Params;
@@ -33,20 +32,8 @@ public abstract class Card
     }
 
     public void CreateModel(){
-        model = GameObject.Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, player).transform;
+        Transform model = GameObject.Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, player).transform;
         model.GetComponent<NetworkObject>().Spawn(true);
-    }
-
-    public void SetModel(){
-        int i = 0;
-        foreach(GameObject model in GameObject.FindGameObjectsWithTag("Model")){
-            model.name = $"Model{i}";
-            i++;
-        }
-
-        model = GameObject.Find($"Model{OwnerClientId}").transform;
-        // animator = model.GetComponent<Animator>();
-        PlayerScript.Spawned();
     }
 
     public virtual void UpdateCard(Rigidbody rb, float friction, Transform cameraFollow){
@@ -60,7 +47,7 @@ public abstract class Card
         }
 
         PlayerScript.updateModel();
-        PlayerScript.updateAnimator(AnimatorMoving, AnimatorAttack, AnimatorDeath);
+        PlayerScript.updateAnimator(AnimatorMoving, AnimatorAttack, AnimatorDeath, AnimatorAttackBlend);
 
         AnimatorAttack = false;
         AnimatorDeath = false;
@@ -84,6 +71,8 @@ public abstract class Card
 
         // AnimatorMoving = Math.Abs(rb.linearVelocity.x) > 0.1f || Math.Abs(rb.linearVelocity.z) > 0.1f;
         AnimatorMoving = movementDir != Vector3.zero;
+        AnimatorAttackBlend = AnimatorMoving ? 0.5f : 1;
+
     }
 
     protected void Look(Transform cameraFollow){
