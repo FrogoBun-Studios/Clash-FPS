@@ -16,9 +16,7 @@ public class RelayManager : MonoBehaviour
             Chat.Singleton.Log($"{AuthenticationService.Instance.PlayerId} Signed in");
         };
 
-        try{
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
-        }catch{}
+        await AuthenticationService.Instance.SignInAnonymouslyAsync();
     }
 
     public async void CreateRelay(){
