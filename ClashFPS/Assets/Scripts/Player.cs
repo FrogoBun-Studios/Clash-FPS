@@ -11,8 +11,6 @@ public class Player : NetworkBehaviour
 
     private Card card;
     private bool spawned = false;
-    private Transform model;
-    private Animator animator;
 
     public override void OnNetworkSpawn(){
         Chat.Singleton.Log($"Player {OwnerClientId} logged in");
@@ -27,20 +25,39 @@ public class Player : NetworkBehaviour
         GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
 
         if(OwnerClientId == 0)
-            ChooseCardRpc(CardTypes.Valkyrie);
+            ChooseCard(CardTypes.Valkyrie);
         else
-            ChooseCardRpc(CardTypes.Wizard);
+            ChooseCard(CardTypes.Wizard);
+    }
+
+#region CardCreation
+    private void ChooseCard(string cardName){
+        spawned = false;
+
+        SpawnCardRpc(cardName);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void SpawnCardRpc(string cardName){
+        GameObject card = Instantiate(CardTypes.StringToCardPrefab(cardName));
+        card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+
+        SetCardRpc();
     }
 
     [Rpc(SendTo.Everyone)]
-    private void ChooseCardRpc(string cardName){
-        spawned = false;
+    private void SetCardRpc(){
+        int i = 0;
+        foreach(GameObject card in GameObject.FindGameObjectsWithTag("Card")){
+            card.name = $"Card{i}";
+            i++;
+        }
 
-        card = CardTypes.StringToCard(cardName);
-        card.StartCard(transform, IsOwner, OwnerClientId);
-
-        CreateModelRpc();
+        card = GameObject.Find($"Card{OwnerClientId}").transform.GetComponent<Card>();
+        
+        card.StartCard(transform);
     }
+#endregion
 
     private void Update()
     {
@@ -50,53 +67,8 @@ public class Player : NetworkBehaviour
         card.UpdateCard(rb, friction, cameraFollow);
     }
 
-    [Rpc(SendTo.Server)]
-    private void CreateModelRpc(){
-        card.CreateModel();
-        SetModelRpc();
-    }
-
-    [Rpc(SendTo.Everyone)]
-    private void SetModelRpc(){
-        int i = 0;
-        foreach(GameObject model in GameObject.FindGameObjectsWithTag("Model")){
-            model.name = $"Model{i}";
-            i++;
-        }
-
-        model = GameObject.Find($"Model{OwnerClientId}").transform;
-        animator = model.GetComponent<Animator>();
-        
+    public void Spawned(){
         spawned = true;
-    }
-
-    [Rpc(SendTo.Server)]
-    private void updateModelRpc(){
-        model.position = transform.position;
-        model.localEulerAngles = transform.localEulerAngles;
-    }
-
-    public void updateModel(){
-        updateModelRpc();
-    }
-
-    [Rpc(SendTo.Server)]
-    private void updateAnimatorRpc(bool[] AnimatorParams, float Speed){
-        animator.SetBool("Moving", AnimatorParams[0]);
-        animator.SetFloat("Speed", Speed);
-        
-        if(AnimatorParams[1])
-            animator.SetTrigger("Attack");
-
-        if(AnimatorParams[2])
-            animator.SetTrigger("Jump");
-
-        if(AnimatorParams[3])
-            animator.SetTrigger("Death");
-    }
-
-    public void updateAnimator(bool[] AnimatorParams, float Speed){
-        updateAnimatorRpc(AnimatorParams, Speed);
     }
 
     private void OnDrawGizmos(){
