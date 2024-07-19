@@ -1,11 +1,10 @@
-using Unity.Netcode;
 using UnityEngine;
 
 public class ValkyrieCard : Card
 {
-    public override void StartCard(Transform player, bool IsOwner, ulong OwnerClientId, CardParams Params = new CardParams(), string ModelName = "")
+    public override void StartCard(Transform player)
     {
-        base.StartCard(player, IsOwner, OwnerClientId, new CardParams(
+        base.StartCard(player, new CardParams(
             health: 300f,
             damage: 30f,
             speed: 0.75f,

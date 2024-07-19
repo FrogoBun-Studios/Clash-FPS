@@ -1,43 +1,37 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public abstract class Card
+public abstract class Card : NetworkBehaviour
 {
-    protected GameObject ModelPrefab;
-    protected Transform player;
-    protected Player PlayerScript;
-    protected bool IsOwner;
-    protected ulong OwnerClientId;
-    
+    private GameObject ModelPrefab;
+    private Transform player;
+    private Player PlayerScript;
+    private Transform model;
+    private Animator animator;
     protected CardParams Params;
-
+    
     protected float attackTimer;
-    // Moving, Attack, Jump, Death
-    protected bool[] AnimatorParams = new bool[4];
-    protected float AnimatorRunSpeed;
-    protected float AnimatorAttackBlend = 1;
     protected int jumpsLeft;
 
-    public virtual void StartCard(Transform player, bool IsOwner, ulong OwnerClientId, CardParams Params = new CardParams(), string ModelName = ""){
+    public virtual void StartCard(Transform player, CardParams Params, string ModelName){
         this.Params = Params;
         this.ModelPrefab = Resources.Load($"{ModelName}/ModelPrefab") as GameObject;
         this.player = player;
         this.PlayerScript = player.GetComponent<Player>();
-        this.IsOwner = IsOwner;
-        this.OwnerClientId = OwnerClientId;
         this.jumpsLeft = Params.jumps;
 
         if(!IsOwner)
             return;
 
+        CreateModelRpc();
+
         attackTimer = 1 / Params.attackRate;
     }
 
-    public void CreateModel(){
-        Transform model = GameObject.Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, player).transform;
-        model.GetComponent<NetworkObject>().Spawn(true);
-    }
+    public abstract void StartCard(Transform player);
 
+    
+#region Update
     public virtual void UpdateCard(Rigidbody rb, float friction, Transform cameraFollow){
         Move(rb, friction);
         Look(cameraFollow);
@@ -55,27 +49,13 @@ public abstract class Card
 
             if(jumpsLeft > 0){
                 rb.AddForce(Params.JumpStrength * player.up, ForceMode.Impulse);
-                AnimatorParams[2] = true;
+                animator.SetTrigger("Jump");
                 jumpsLeft--;
             }
         }
 
-        PlayerScript.updateModel();
-        PlayerScript.updateAnimator(AnimatorParams, AnimatorRunSpeed);
-
-        AnimatorParams[1] = false;
-        AnimatorParams[2] = false;
-        AnimatorParams[3] = false;
-    }
-
-    protected bool OnGround(){
-        return Physics.OverlapSphere(player.position - player.right * 0.75f, 0.05f).Length > 0
-            || Physics.OverlapSphere(player.position + player.right * 0.75f, 0.05f).Length > 0;
-    }
-
-    protected float MagnitudeInDirection(Vector3 v, Vector3 direction)
-    {
-        return Vector3.Dot(v, direction);
+        model.position = player.position;
+        model.localEulerAngles = player.localEulerAngles;
     }
 
     protected virtual void Move(Rigidbody rb, float friction){
@@ -94,12 +74,12 @@ public abstract class Card
         rb.linearVelocity += player.forward * movementDir/*.normalized*/.z * Params.speed
                            + player.right * movementDir/*.normalized*/.x * Params.speed;
 
-        AnimatorParams[0] = movementDir != Vector3.zero;
+        animator.SetBool("Moving", movementDir != Vector3.zero);
 
         if(Mathf.Abs(MagnitudeInDirection(rb.linearVelocity, player.transform.forward)) >= 0.2f)
-            AnimatorRunSpeed = MagnitudeInDirection(rb.linearVelocity, player.transform.forward) / 6.6f;
+            animator.SetFloat("Speed", MagnitudeInDirection(rb.linearVelocity, player.transform.forward) / 6.6f);
         else
-            AnimatorRunSpeed = Mathf.Abs(MagnitudeInDirection(rb.linearVelocity, player.transform.right)) >= 0.2f ? 1 : 0;
+            animator.SetFloat("Speed", Mathf.Abs(MagnitudeInDirection(rb.linearVelocity, player.transform.right)) >= 0.2f ? 1 : 0);
         
     }
 
@@ -112,9 +92,47 @@ public abstract class Card
 
         cameraFollow.localEulerAngles = new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y"), -40, 75), 0, 0);
     }
+#endregion
 
+#region Misc
+    protected bool OnGround(){
+        return Physics.OverlapSphere(player.position - player.right * 0.75f, 0.05f).Length > 0
+            || Physics.OverlapSphere(player.position + player.right * 0.75f, 0.05f).Length > 0;
+    }
+
+    protected float MagnitudeInDirection(Vector3 v, Vector3 direction)
+    {
+        return Vector3.Dot(v, direction);
+    }
+#endregion
+
+#region Rpcs
+    [Rpc(SendTo.Server)]
+    private void CreateModelRpc(){
+        GameObject model = Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, player);
+        model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+
+        SetModelRpc();
+    }
+
+    [Rpc(SendTo.Everyone)]
+    private void SetModelRpc(){
+        int i = 0;
+        foreach(GameObject model in GameObject.FindGameObjectsWithTag("Model")){
+            model.name = $"Model{i}";
+            i++;
+        }
+
+        model = GameObject.Find($"Model{OwnerClientId}").transform;
+        animator = model.GetComponent<Animator>();
+        
+        PlayerScript.Spawned();
+    }
+#endregion
+
+#region CardMethods
     public virtual void Attack(){
-        AnimatorParams[1] = true;
+        animator.SetTrigger("Attack");
         Chat.Singleton.Log("Attacking");
     }
 
@@ -122,7 +140,7 @@ public abstract class Card
         Params.health -= amount;
 
         if(Params.health <= 0)
-            AnimatorParams[3] = true;
+            animator.SetTrigger("Death");
     }
 
     public virtual void Heal(float amount){
@@ -132,4 +150,5 @@ public abstract class Card
     public void setDamage(float newDamage){
         Params.damage = newDamage;
     }
+#endregion
 }
