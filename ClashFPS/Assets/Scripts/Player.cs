@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 using Unity.Cinemachine;
+using System.Collections;
 
 public class Player : NetworkBehaviour
 {
@@ -80,19 +81,22 @@ public class Player : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    private void updateAnimatorRpc(bool[] AnimatorParams){
-        animator.SetFloat("MovingBlend", AnimatorParams[0] ? 1 : 0);
-        animator.SetFloat("AttackBlend", AnimatorParams[1] ? 1 : 0);
-        animator.SetFloat("JumpBlend", AnimatorParams[2] ? 1 : 0);
+    private void updateAnimatorRpc(bool[] AnimatorParams, float Speed){
+        animator.SetBool("Moving", AnimatorParams[0]);
+        animator.SetFloat("Speed", Speed);
+        
+        if(AnimatorParams[1])
+            animator.SetTrigger("Attack");
 
-        animator.SetBool("Idle", !(AnimatorParams[0] || AnimatorParams[1] || AnimatorParams[2]));
+        if(AnimatorParams[2])
+            animator.SetTrigger("Jump");
 
         if(AnimatorParams[3])
             animator.SetTrigger("Death");
     }
 
-    public void updateAnimator(bool[] AnimatorParams){
-        updateAnimatorRpc(AnimatorParams);
+    public void updateAnimator(bool[] AnimatorParams, float Speed){
+        updateAnimatorRpc(AnimatorParams, Speed);
     }
 
     private void OnDrawGizmos(){

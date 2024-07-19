@@ -14,6 +14,7 @@ public abstract class Card
     protected float attackTimer;
     // Moving, Attack, Jump, Death
     protected bool[] AnimatorParams = new bool[4];
+    protected float AnimatorRunSpeed;
     protected float AnimatorAttackBlend = 1;
     protected int jumpsLeft;
 
@@ -47,8 +48,6 @@ public abstract class Card
             Attack();
         }
         
-        if(OnGround())
-            AnimatorParams[2] = false;
 
         if(Input.GetKeyDown(KeyCode.Space)){
             if(OnGround())
@@ -62,15 +61,21 @@ public abstract class Card
         }
 
         PlayerScript.updateModel();
-        PlayerScript.updateAnimator(AnimatorParams);
+        PlayerScript.updateAnimator(AnimatorParams, AnimatorRunSpeed);
 
         AnimatorParams[1] = false;
+        AnimatorParams[2] = false;
         AnimatorParams[3] = false;
     }
 
     protected bool OnGround(){
         return Physics.OverlapSphere(player.position - player.right * 0.75f, 0.05f).Length > 0
             || Physics.OverlapSphere(player.position + player.right * 0.75f, 0.05f).Length > 0;
+    }
+
+    protected float MagnitudeInDirection(Vector3 v, Vector3 direction)
+    {
+        return Vector3.Dot(v, direction);
     }
 
     protected virtual void Move(Rigidbody rb, float friction){
@@ -90,6 +95,12 @@ public abstract class Card
                            + player.right * movementDir/*.normalized*/.x * Params.speed;
 
         AnimatorParams[0] = movementDir != Vector3.zero;
+
+        if(Mathf.Abs(MagnitudeInDirection(rb.linearVelocity, player.transform.forward)) >= 0.2f)
+            AnimatorRunSpeed = MagnitudeInDirection(rb.linearVelocity, player.transform.forward) / 6.6f;
+        else
+            AnimatorRunSpeed = Mathf.Abs(MagnitudeInDirection(rb.linearVelocity, player.transform.right)) >= 0.2f ? 1 : 0;
+        
     }
 
     protected void Look(Transform cameraFollow){
