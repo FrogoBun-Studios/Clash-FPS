@@ -12,7 +12,8 @@ public class WizardCard : Card
             jumps: 1,
             elixer: 5,
             flying: false,
-            attackRate: 1f
+            side: Side.Red,
+            AttackRate: 1f
         ), "Wizard");
     }
 }

@@ -1,19 +1,25 @@
 using Unity.Netcode;
 using UnityEngine;
 using Unity.Cinemachine;
-using System.Collections;
+using UnityEngine.UI;
+using TMPro;
 
 public class Player : NetworkBehaviour
 {
     [SerializeField] private Rigidbody rb;
     [SerializeField] private float friction;
     [SerializeField] private Transform cameraFollow;
+    [SerializeField] private Slider HealthSlider;
+    [SerializeField] private TextMeshProUGUI Name;
 
     private Card card;
     private bool spawned = false;
 
     public override void OnNetworkSpawn(){
         Chat.Singleton.Log($"Player {OwnerClientId} logged in");
+
+        Name.text = $"Player {OwnerClientId}";
+        HealthSlider.name = $"Slider{OwnerClientId}";
 
         if(!IsOwner)
             return;
@@ -24,10 +30,12 @@ public class Player : NetworkBehaviour
         Cursor.visible = false;
         GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
 
+        transform.position = new Vector3(0, 2, -34);
+
         if(OwnerClientId == 0)
-            ChooseCard(CardTypes.Wizard);
-        else
             ChooseCard(CardTypes.Valkyrie);
+        else
+            ChooseCard(CardTypes.Wizard);
     }
 
 #region CardCreation
@@ -54,8 +62,9 @@ public class Player : NetworkBehaviour
         }
 
         card = GameObject.Find($"Card{OwnerClientId}").transform.GetComponent<Card>();
-        
         card.StartCard(transform);
+        
+        card.SetSliderRpc($"Slider{OwnerClientId}");
     }
 #endregion
 
@@ -67,12 +76,11 @@ public class Player : NetworkBehaviour
         card.UpdateCard(rb, friction, cameraFollow);
     }
 
-    public void Spawned(){
-        spawned = true;
+    public Card GetCard(){
+        return card;
     }
 
-    private void OnDrawGizmos(){
-        Gizmos.DrawWireSphere(transform.position - transform.right * 0.75f, 0.05f);
-        Gizmos.DrawWireSphere(transform.position + transform.right * 0.75f, 0.05f);
+    public void Spawned(){
+        spawned = true;
     }
 }

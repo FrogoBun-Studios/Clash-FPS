@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class ValkyrieCard : Card
+public class ValkyrieCard : MeleeCard
 {
     public override void StartCard(Transform player)
     {
-        base.StartCard(player, new CardParams(
+        base.StartCard(player, new MeleeCardParams(
             health: 300f,
             damage: 30f,
             speed: 0.75f,
@@ -12,7 +12,9 @@ public class ValkyrieCard : Card
             jumps: 1,
             elixer: 4,
             flying: false,
-            attackRate: 1f
+            AttackRate: 1f,
+            side: Side.Blue,
+            AttackZone: new Bounds(Vector3.up * 2, new Vector3(4, 2, 4))
         ), "Valkyrie");
     }
 }

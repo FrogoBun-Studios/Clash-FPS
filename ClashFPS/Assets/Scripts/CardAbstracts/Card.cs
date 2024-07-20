@@ -1,14 +1,16 @@
+using UnityEngine.UI;
 using Unity.Netcode;
 using UnityEngine;
 
 public abstract class Card : NetworkBehaviour
 {
     private GameObject ModelPrefab;
-    private Transform player;
+    protected Transform player;
     private Player PlayerScript;
     private Transform model;
     private Animator animator;
     protected CardParams Params;
+    private Slider HealthSlider;
     
     protected float attackTimer;
     protected int jumpsLeft;
@@ -25,7 +27,7 @@ public abstract class Card : NetworkBehaviour
 
         CreateModelRpc();
 
-        attackTimer = 1 / Params.attackRate;
+        attackTimer = 1 / Params.AttackRate;
     }
 
     public abstract void StartCard(Transform player);
@@ -33,12 +35,15 @@ public abstract class Card : NetworkBehaviour
     
 #region Update
     public virtual void UpdateCard(Rigidbody rb, float friction, Transform cameraFollow){
+        if(Params.health <= 0)
+            return;
+
         Move(rb, friction);
         Look(cameraFollow);
 
         attackTimer -= Time.deltaTime;
         if(Input.GetMouseButtonDown(0) && attackTimer <= 0){
-            attackTimer = 1 / Params.attackRate;
+            attackTimer = 1 / Params.AttackRate;
             Attack();
         }
         
@@ -59,7 +64,7 @@ public abstract class Card : NetworkBehaviour
     }
 
     protected virtual void Move(Rigidbody rb, float friction){
-        Vector3 movementDir = new Vector3();
+        Vector3 movementDir = new Vector3();//new Vector3(MoveInput.action.ReadValue<Vector2>().x, 0, MoveInput.action.ReadValue<Vector2>().y);
 
         if(Input.GetKey(KeyCode.W))
             movementDir.z = 1;
@@ -100,13 +105,29 @@ public abstract class Card : NetworkBehaviour
             || Physics.OverlapSphere(player.position + player.right * 0.75f, 0.05f).Length > 0;
     }
 
+    // private void OnDrawGizmos(){
+    //     Gizmos.DrawWireSphere(player.position - player.right * 0.75f, 0.05f);
+    //     Gizmos.DrawWireSphere(player.position + player.right * 0.75f, 0.05f);
+    // }
+
     protected float MagnitudeInDirection(Vector3 v, Vector3 direction)
     {
         return Vector3.Dot(v, direction);
     }
+
+    [Rpc(SendTo.Everyone)]
+    public void SetSliderRpc(string name){
+        HealthSlider = GameObject.Find(name).GetComponent<Slider>();
+        HealthSlider.maxValue = Params.health;
+        HealthSlider.value = Params.health;
+    }
+
+    public Side GetSide(){
+        return Params.side;
+    }
 #endregion
 
-#region Rpcs
+#region ModelCreation
     [Rpc(SendTo.Server)]
     private void CreateModelRpc(){
         GameObject model = Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, player);
@@ -131,23 +152,36 @@ public abstract class Card : NetworkBehaviour
 #endregion
 
 #region CardMethods
-    public virtual void Attack(){
+    protected virtual void Attack(){
         animator.SetTrigger("Attack");
         Chat.Singleton.Log("Attacking");
     }
 
-    public virtual void Damage(float amount){
+    [Rpc(SendTo.Everyone)]
+    protected void AttackCastleRpc(string CastleName){
+        Castle c = GameObject.Find(CastleName).GetComponent<Castle>();
+
+        if(c.GetSide() != Params.side)
+            c.Damage(Params.damage);
+    }
+
+    [Rpc(SendTo.Everyone)]
+    public virtual void DamageRpc(float amount){
         Params.health -= amount;
+
+        HealthSlider.value = Params.health;
 
         if(Params.health <= 0)
             animator.SetTrigger("Death");
     }
 
-    public virtual void Heal(float amount){
+    [Rpc(SendTo.Everyone)]
+    public virtual void HealRpc(float amount){
         Params.health += amount;
     }
 
-    public void setDamage(float newDamage){
+    [Rpc(SendTo.Everyone)]
+    protected void SetDamageRpc(float newDamage){
         Params.damage = newDamage;
     }
 #endregion

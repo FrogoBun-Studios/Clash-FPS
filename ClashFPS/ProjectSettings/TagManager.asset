@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Model
   - Card
+  - Castle
   layers:
   - Default
   - TransparentFX

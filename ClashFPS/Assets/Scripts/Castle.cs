@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class Castle : MonoBehaviour
@@ -5,6 +6,7 @@ public class Castle : MonoBehaviour
     [SerializeField] private float Health = 1000f;
     [SerializeField] private GameObject DeathPrefab;
     [SerializeField] private bool IsKing = false;
+    [SerializeField] private Side side;
 
     public void Damage(float amount)
     {
@@ -14,5 +16,9 @@ public class Castle : MonoBehaviour
             Instantiate(DeathPrefab, transform.position + Vector3.down * (IsKing ? 9.3f : 4.8f), Quaternion.identity);
             Destroy(gameObject);
         }
+    }
+
+    public Side GetSide(){
+        return side;
     }
 }

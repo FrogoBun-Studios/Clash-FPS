@@ -1,4 +1,4 @@
-public struct CardParams
+public class CardParams
 {
     public float health;
     public float damage;
@@ -7,9 +7,10 @@ public struct CardParams
     public int jumps;
     public int elixer;
     public bool flying;
-    public float attackRate;
+    public float AttackRate;
+    public Side side;
 
-    public CardParams(float health, float damage, float speed, float JumpStrength, int jumps, int elixer, bool flying, float attackRate)
+    public CardParams(float health, float damage, float speed, float JumpStrength, int jumps, int elixer, bool flying, float AttackRate, Side side)
     {
         this.health = health;
         this.damage = damage;
@@ -18,6 +19,7 @@ public struct CardParams
         this.jumps = jumps;
         this.elixer = elixer;
         this.flying = flying;
-        this.attackRate = attackRate;
+        this.AttackRate = AttackRate;
+        this.side = side;
     }
 }
