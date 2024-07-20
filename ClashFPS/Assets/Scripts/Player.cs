@@ -25,9 +25,9 @@ public class Player : NetworkBehaviour
         GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
 
         if(OwnerClientId == 0)
-            ChooseCard(CardTypes.Valkyrie);
-        else
             ChooseCard(CardTypes.Wizard);
+        else
+            ChooseCard(CardTypes.Valkyrie);
     }
 
 #region CardCreation
