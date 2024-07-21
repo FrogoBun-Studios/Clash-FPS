@@ -21,7 +21,7 @@ public class RelayManager : MonoBehaviour
         try{
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(7); //for 8 players
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-            Chat.Singleton.Log($"Creating relay with code {joinCode}");
+            Chat.Singleton.Log($"Creating relay with code {joinCode.ToUpper()}");
 
             RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);
@@ -35,7 +35,7 @@ public class RelayManager : MonoBehaviour
 
     public async void JoinRelay(string joinCode){
         try{
-            Chat.Singleton.Log($"Joining relay with code {joinCode}");
+            Chat.Singleton.Log($"Joining relay with code {joinCode.ToUpper()}");
             JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
             RelayServerData relayServerData = new RelayServerData(allocation, "dtls");

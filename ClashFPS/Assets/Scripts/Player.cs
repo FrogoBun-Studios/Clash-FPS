@@ -24,6 +24,9 @@ public class Player : NetworkBehaviour
         if(!IsOwner)
             return;
 
+        Destroy(HealthSlider.gameObject);
+        Destroy(Name.gameObject);
+
         Application.targetFrameRate = 120;
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -82,5 +85,10 @@ public class Player : NetworkBehaviour
 
     public void Spawned(){
         spawned = true;
+    }
+
+    private void OnCollisionEnter(Collision collision){
+        if(IsOwner && collision.gameObject.CompareTag("WaterCols"))
+            card.DamageRpc(Mathf.Infinity);
     }
 }

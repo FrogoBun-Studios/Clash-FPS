@@ -1,6 +1,7 @@
 using UnityEngine.UI;
 using Unity.Netcode;
 using UnityEngine;
+using System.Collections;
 
 public abstract class Card : NetworkBehaviour
 {
@@ -85,7 +86,6 @@ public abstract class Card : NetworkBehaviour
             animator.SetFloat("Speed", MagnitudeInDirection(rb.linearVelocity, player.transform.forward) / 6.6f);
         else
             animator.SetFloat("Speed", Mathf.Abs(MagnitudeInDirection(rb.linearVelocity, player.transform.right)) >= 0.2f ? 1 : 0);
-        
     }
 
     protected void Look(Transform cameraFollow){
@@ -115,7 +115,7 @@ public abstract class Card : NetworkBehaviour
         return Vector3.Dot(v, direction);
     }
 
-    [Rpc(SendTo.Everyone)]
+    [Rpc(SendTo.NotOwner)]
     public void SetSliderRpc(string name){
         HealthSlider = GameObject.Find(name).GetComponent<Slider>();
         HealthSlider.maxValue = Params.health;
@@ -124,6 +124,20 @@ public abstract class Card : NetworkBehaviour
 
     public Side GetSide(){
         return Params.side;
+    }
+
+    protected IEnumerator UpdateSlider(float value){
+        if(IsOwner)
+            yield break;
+
+        float StepSize = 0.1f;
+        float dir = value > HealthSlider.value ? StepSize : -StepSize;
+        float wait = 0.1f / (Mathf.Abs(HealthSlider.value - value) / StepSize);
+
+        for(float v = HealthSlider.value; Mathf.Abs(value - v) > StepSize; v += dir){
+            HealthSlider.value = v;
+            yield return new WaitForSeconds(wait);
+        }
     }
 #endregion
 
@@ -169,7 +183,7 @@ public abstract class Card : NetworkBehaviour
     public virtual void DamageRpc(float amount){
         Params.health -= amount;
 
-        HealthSlider.value = Params.health;
+        StartCoroutine(UpdateSlider(Params.health));
 
         if(Params.health <= 0)
             animator.SetTrigger("Death");
@@ -178,6 +192,8 @@ public abstract class Card : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     public virtual void HealRpc(float amount){
         Params.health += amount;
+
+        StartCoroutine(UpdateSlider(Params.health));
     }
 
     [Rpc(SendTo.Everyone)]
