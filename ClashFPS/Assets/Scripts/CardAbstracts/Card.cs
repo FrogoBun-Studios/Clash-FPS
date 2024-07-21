@@ -35,11 +35,12 @@ public abstract class Card : NetworkBehaviour
 
     
 #region Update
-    public virtual void UpdateCard(Rigidbody rb, float friction, Transform cameraFollow){
+    public virtual void UpdateCard(Rigidbody rb, float friction, Transform cameraFollow, LayerMask NotPlayerLayer){
         if(Params.health <= 0)
             return;
 
         Move(rb, friction);
+        StepClimb(rb, NotPlayerLayer);
         Look(cameraFollow);
 
         attackTimer -= Time.deltaTime;
@@ -97,18 +98,22 @@ public abstract class Card : NetworkBehaviour
 
         cameraFollow.localEulerAngles = new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y"), -40, 75), 0, 0);
     }
+
+    protected void StepClimb(Rigidbody rb, LayerMask NotPlayerLayer){
+        if (Physics.OverlapBox(player.position - player.up * 0.55f, new Vector3(1.5f, 0.3f, 1.5f) / 2, Quaternion.identity, NotPlayerLayer).Length > 0)
+        {
+            Vector3 targetVector = new Vector3(rb.position.x, rb.position.y + 0.01f, rb.position.z);
+            // rb.position = Vector3.Lerp(rb.position, targetVector, Time.deltaTime / 0.01f);
+            rb.position = targetVector;
+        }
+    }
 #endregion
 
 #region Misc
     protected bool OnGround(){
-        return Physics.OverlapSphere(player.position - player.right * 0.75f, 0.05f).Length > 0
-            || Physics.OverlapSphere(player.position + player.right * 0.75f, 0.05f).Length > 0;
+        return Physics.OverlapSphere(player.position - player.right * 0.75f - player.up * 0.65f, 0.25f).Length > 0
+            || Physics.OverlapSphere(player.position + player.right * 0.75f - player.up * 0.65f, 0.25f).Length > 0;
     }
-
-    // private void OnDrawGizmos(){
-    //     Gizmos.DrawWireSphere(player.position - player.right * 0.75f, 0.05f);
-    //     Gizmos.DrawWireSphere(player.position + player.right * 0.75f, 0.05f);
-    // }
 
     protected float MagnitudeInDirection(Vector3 v, Vector3 direction)
     {

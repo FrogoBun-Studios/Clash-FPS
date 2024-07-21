@@ -11,6 +11,7 @@ public class Player : NetworkBehaviour
     [SerializeField] private Transform cameraFollow;
     [SerializeField] private Slider HealthSlider;
     [SerializeField] private TextMeshProUGUI Name;
+    [SerializeField] private LayerMask NotPlayerLayer;
 
     private Card card;
     private bool spawned = false;
@@ -76,7 +77,7 @@ public class Player : NetworkBehaviour
         if(!IsOwner || !spawned)
             return;
 
-        card.UpdateCard(rb, friction, cameraFollow);
+        card.UpdateCard(rb, friction, cameraFollow, NotPlayerLayer);
     }
 
     public Card GetCard(){
@@ -90,5 +91,34 @@ public class Player : NetworkBehaviour
     private void OnCollisionEnter(Collision collision){
         if(IsOwner && collision.gameObject.CompareTag("WaterCols"))
             card.DamageRpc(Mathf.Infinity);
+    }
+
+    private void OnDrawGizmos(){
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(transform.position - transform.right * 0.75f - transform.up * 0.65f, 0.25f);
+        Gizmos.DrawWireSphere(transform.position + transform.right * 0.75f - transform.up * 0.65f, 0.25f);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(transform.position - transform.up * 0.55f, new Vector3(1.5f, 0.3f, 1.5f));
+
+        // Gizmos.color = Color.green;
+        // Gizmos.DrawWireCube(transform.position + transform.forward * 1.1f - transform.up * 0.4f, new Vector3(1.5f, 0.3f, 0.5f));
+        // Gizmos.color = Color.red;
+        // Gizmos.DrawWireCube(transform.position + transform.forward * 1.1f + transform.up * 1.05f, new Vector3(1.5f, 2.6f, 0.5f));
+
+        // Gizmos.color = Color.green;
+        // Gizmos.DrawWireCube(transform.position - transform.forward * 1.1f - transform.up * 0.4f, new Vector3(1.5f, 0.3f, -0.5f));
+        // Gizmos.color = Color.red;
+        // Gizmos.DrawWireCube(transform.position - transform.forward * 1.1f + transform.up * 1.05f, new Vector3(1.5f, 2.6f, -0.5f));
+
+        // Gizmos.color = Color.green;
+        // Gizmos.DrawWireCube(transform.position + transform.right * 1.1f - transform.up * 0.4f, new Vector3(0.5f, 0.3f, 1.5f));
+        // Gizmos.color = Color.red;
+        // Gizmos.DrawWireCube(transform.position + transform.right * 1.1f + transform.up * 1.05f, new Vector3(0.5f, 2.6f, 1.5f));
+
+        // Gizmos.color = Color.green;
+        // Gizmos.DrawWireCube(transform.position - transform.right * 1.1f - transform.up * 0.4f, new Vector3(-0.5f, 0.3f, 1.5f));
+        // Gizmos.color = Color.red;
+        // Gizmos.DrawWireCube(transform.position - transform.right * 1.1f + transform.up * 1.05f, new Vector3(-0.5f, 2.6f, 1.5f));
     }
 }

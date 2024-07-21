@@ -233,7 +233,7 @@ MonoBehaviour:
   m_text: Player 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 19621b54a70a60a4bab3e600b737b617, type: 2}
-  m_sharedMaterial: {fileID: 2144673768134403464, guid: 19621b54a70a60a4bab3e600b737b617, type: 2}
+  m_sharedMaterial: {fileID: -2463774480918789572, guid: 19621b54a70a60a4bab3e600b737b617, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -610,7 +610,7 @@ GameObject:
   - component: {fileID: 7384453625925542161}
   - component: {fileID: 5540789386702437624}
   - component: {fileID: 1964903237285331413}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -646,7 +646,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 558133668
+  GlobalObjectIdHash: 3483306873
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -672,6 +672,9 @@ MonoBehaviour:
   cameraFollow: {fileID: 5294004677974913342}
   HealthSlider: {fileID: 188951927054600825}
   Name: {fileID: 6543260067913513965}
+  NotPlayerLayer:
+    serializedVersion: 2
+    m_Bits: 55
 --- !u!54 &4561870125675919991
 Rigidbody:
   m_ObjectHideFlags: 0
