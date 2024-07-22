@@ -604,12 +604,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 219309480709859539}
+  - component: {fileID: 7173863885474572805}
   - component: {fileID: 8878631989719329824}
-  - component: {fileID: 4809827067371089619}
-  - component: {fileID: 4561870125675919991}
-  - component: {fileID: 7384453625925542161}
   - component: {fileID: 5540789386702437624}
-  - component: {fileID: 1964903237285331413}
+  - component: {fileID: 4809827067371089619}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -634,6 +632,31 @@ Transform:
   - {fileID: 5789965063277022234}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!143 &7173863885474572805
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8070673677507829336}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 4
+  m_Radius: 1
+  m_SlopeLimit: 90
+  m_StepOffset: 0.7
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 1.4, z: 0}
 --- !u!114 &8878631989719329824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -655,76 +678,6 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &4809827067371089619
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8070673677507829336}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b57d6d574de88d45bf646d8d01f841d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rb: {fileID: 4561870125675919991}
-  friction: 0.9
-  cameraFollow: {fileID: 5294004677974913342}
-  HealthSlider: {fileID: 188951927054600825}
-  Name: {fileID: 6543260067913513965}
-  NotPlayerLayer:
-    serializedVersion: 2
-    m_Bits: 55
---- !u!54 &4561870125675919991
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8070673677507829336}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 112
-  m_CollisionDetection: 0
---- !u!136 &7384453625925542161
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8070673677507829336}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 1
-  m_Height: 4
-  m_Direction: 1
-  m_Center: {x: 0, y: 1.4, z: 0}
 --- !u!114 &5540789386702437624
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -756,7 +709,7 @@ MonoBehaviour:
   InLocalSpace: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &1964903237285331413
+--- !u!114 &4809827067371089619
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -765,9 +718,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 8070673677507829336}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
+  m_Script: {fileID: 11500000, guid: 4b57d6d574de88d45bf646d8d01f841d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  controller: {fileID: 7173863885474572805}
+  cameraFollow: {fileID: 5294004677974913342}
+  HealthSlider: {fileID: 188951927054600825}
+  Name: {fileID: 6543260067913513965}
 --- !u!1 &8579730926063026017
 GameObject:
   m_ObjectHideFlags: 0
