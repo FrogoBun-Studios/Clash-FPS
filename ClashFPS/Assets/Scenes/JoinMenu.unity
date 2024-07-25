@@ -3553,7 +3553,7 @@ GameObject:
   - component: {fileID: 1973522568}
   - component: {fileID: 1973522567}
   m_Layer: 5
-  m_Name: RawImage
+  m_Name: Crosshair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3568,7 +3568,7 @@ RectTransform:
   m_GameObject: {fileID: 1973522565}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.61109, y: 0.61109, z: 0.61109}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 131346368}
@@ -3598,7 +3598,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 6373d3bc59f564741bb806091dab8fb3, type: 3}
+  m_Texture: {fileID: 2800000, guid: 67a3315ef3d5dd04f99a9fbfdfe3bcf1, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
