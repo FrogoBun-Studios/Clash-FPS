@@ -67,6 +67,11 @@ public abstract class Card : NetworkBehaviour
         if(IsOwner)
             yield break;
 
+        if(value <= 0){
+            HealthSlider.value = 0;
+            yield break;
+        }
+
         float StepSize = 0.5f;
         float dir = value > HealthSlider.value ? StepSize : -StepSize;
         float wait = 0.01f / (Mathf.Abs(HealthSlider.value - value) / StepSize);
@@ -106,7 +111,6 @@ public abstract class Card : NetworkBehaviour
 #region CardMethods
     protected virtual void Attack(){
         animator.SetTrigger("Attack");
-        Chat.Singleton.Log("Attacking");
     }
 
     [Rpc(SendTo.Everyone)]

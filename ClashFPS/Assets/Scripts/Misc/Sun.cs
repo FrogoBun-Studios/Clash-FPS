@@ -6,6 +6,6 @@ public class Sun : MonoBehaviour
 
     void Update()
     {
-        transform.Rotate(0, Time.deltaTime * rotationSpeed, 0);
+        transform.RotateAround(Vector3.zero, Vector3.up, Time.deltaTime * rotationSpeed);
     }
 }
