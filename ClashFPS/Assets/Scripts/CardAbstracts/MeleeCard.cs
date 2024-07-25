@@ -15,7 +15,7 @@ public abstract class MeleeCard : Card
 
         foreach(Collider col in colliders){
             if(col.CompareTag("Player")){
-                if(!col.GetComponent<Player>().IsOwner && col.GetComponent<Player>().GetCard().GetSide() != Params.side)
+                if(col.GetComponent<Player>().GetCard().GetSide() != Params.side)
                     col.GetComponent<Player>().GetCard().DamageRpc(Params.damage);
             }
 

@@ -17,11 +17,11 @@ public class CardParamHelper
     }
 
     public class Speed{
-        public static float Slow = 0.02f;
-        public static float SlowMedium = 0.04f;
-        public static float Medium = 0.06f;
-        public static float MediumFast = 0.1f;
-        public static float Fast = 0.2f;
+        public static float Slow = 3f;
+        public static float SlowMedium = 4.5f;
+        public static float Medium = 8f;
+        public static float MediumFast = 10f;
+        public static float Fast = 15f;
     }
 
     public class JumpStrength{

@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class WizardCard : Card
+public class WizardCard : ShooterCard
 {
     public override void StartCard(Transform player)
     {
-        base.StartCard(player, new CardParams(
+        base.StartCard(player, new ShooterCardParams(
             health: CardParamHelper.Health.Medium,
             damage: CardParamHelper.Damage.MediumHigh,
             speed: CardParamHelper.Speed.MediumFast,
@@ -12,8 +12,12 @@ public class WizardCard : Card
             jumps: 1,
             elixer: 5,
             flying: false,
+            AttackRate: CardParamHelper.AttackRate.SlowMedium,
             side: Side.Red,
-            AttackRate: CardParamHelper.AttackRate.SlowMedium
+            BulletPrefab: Resources.Load("Wizard/Bullet") as GameObject,
+            BulletSpead: 30,
+            BulletAmount: 1,
+            BulletSpread: 0
         ), "Wizard");
     }
 }

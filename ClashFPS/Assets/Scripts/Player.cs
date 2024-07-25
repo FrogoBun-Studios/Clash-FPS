@@ -38,9 +38,9 @@ public class Player : NetworkBehaviour
         Teleport(new Vector3(0, 2, -34));
 
         if(OwnerClientId == 0)
-            ChooseCard(CardTypes.Valkyrie);
-        else
             ChooseCard(CardTypes.Wizard);
+        else
+            ChooseCard(CardTypes.Valkyrie);
     }
 
 #region CardCreation
@@ -107,9 +107,9 @@ public class Player : NetworkBehaviour
         Vector3 movementDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
 
         yVelocity += Physics.gravity.y * Time.deltaTime;
-        controller.Move(transform.right * movementDir.x * speed
+        controller.Move(transform.right * movementDir.x * speed * Time.deltaTime
                         + Vector3.up * yVelocity * Time.deltaTime
-                        + transform.forward * movementDir.z * speed);
+                        + transform.forward * movementDir.z * speed * Time.deltaTime);
 
         if(controller.isGrounded)
             yVelocity = 0;
@@ -140,6 +140,10 @@ public class Player : NetworkBehaviour
 
     public Card GetCard(){
         return card;
+    }
+
+    public Quaternion GetCameraRotation(){
+        return cameraFollow.rotation;
     }
 
     public void Spawned(){

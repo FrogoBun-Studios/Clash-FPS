@@ -7,7 +7,7 @@ public abstract class Card : NetworkBehaviour
 {
     private GameObject ModelPrefab;
     protected Transform player;
-    private Player PlayerScript;
+    protected Player PlayerScript;
     private Transform model;
     private Animator animator;
     protected CardParams Params;
