@@ -6,8 +6,8 @@ TagManager:
   tags:
   - Model
   - Card
-  - Castle
   - WaterCols
+  - Tower
   layers:
   - Default
   - TransparentFX

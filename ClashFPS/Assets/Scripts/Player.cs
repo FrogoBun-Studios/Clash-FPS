@@ -22,6 +22,7 @@ public class Player : NetworkBehaviour
 
         Name.text = $"Player {OwnerClientId}";
         HealthSlider.name = $"Slider{OwnerClientId}";
+        GameObject.Find("HealthSlider").name = $"Slider{OwnerClientId}UI";
 
         if(!IsOwner)
             return;
@@ -69,7 +70,7 @@ public class Player : NetworkBehaviour
         card = GameObject.Find($"Card{OwnerClientId}").transform.GetComponent<Card>();
         card.StartCard(transform);
         
-        card.SetSliderRpc($"Slider{OwnerClientId}");
+        card.SetSlidersRpc($"Slider{OwnerClientId}", $"Slider{OwnerClientId}UI");
     }
 
     [Rpc(SendTo.Everyone)]

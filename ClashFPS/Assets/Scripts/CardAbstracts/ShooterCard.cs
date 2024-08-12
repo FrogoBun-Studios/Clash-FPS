@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,7 +9,7 @@ public abstract class ShooterCard : Card
     {
         base.Attack();
 
-        SpawnBulletRpc();
+        StartCoroutine(SpawnBullet());
     }
 
     [Rpc(SendTo.Server)]
@@ -23,6 +22,12 @@ public abstract class ShooterCard : Card
         bullet.Enable();
 
         StartCoroutine(DestroyBullet(bullet.GetComponent<NetworkObject>()));
+    }
+
+    protected IEnumerator SpawnBullet(){
+        yield return new WaitForSeconds(0.25f);
+
+        SpawnBulletRpc();
     }
 
     protected IEnumerator DestroyBullet(NetworkObject bullet){
