@@ -49,11 +49,11 @@ public abstract class Card : NetworkBehaviour
 
 #region Misc
     [Rpc(SendTo.Everyone)]
-    public void SetSlidersRpc(string topSlider, string uiSlider){
+    public void SetSlidersRpc(string topSlider){
         if(!IsOwner)
             HealthSlider = GameObject.Find(topSlider).GetComponent<Slider>();
         else
-            HealthSlider = GameObject.Find(uiSlider).GetComponent<Slider>();
+            HealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
 
         HealthSlider.maxValue = Params.health;
         HealthSlider.value = Params.health;
@@ -115,8 +115,8 @@ public abstract class Card : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    protected void AttackCastleRpc(string CastleName){
-        Tower t = GameObject.Find(CastleName).GetComponent<Tower>();
+    protected void AttackTowerRpc(string TowerName){
+        Tower t = GameObject.Find(TowerName).GetComponent<Tower>();
 
         if(t.GetSide() != Params.side)
             t.Damage(Params.damage);

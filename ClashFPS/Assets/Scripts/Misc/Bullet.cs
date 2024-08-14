@@ -18,8 +18,8 @@ public class Bullet : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone)]
-    protected void AttackCastleRpc(string CastleName){
-        Tower t = GameObject.Find(CastleName).GetComponent<Tower>();
+    protected void AttackTowerRpc(string TowerName){
+        Tower t = GameObject.Find(TowerName).GetComponent<Tower>();
 
         if(t.GetSide() != side)
             t.Damage(damage);
@@ -38,7 +38,7 @@ public class Bullet : NetworkBehaviour
         }
 
         if(other.gameObject.CompareTag("Tower")){
-            AttackCastleRpc(other.gameObject.name);
+            AttackTowerRpc(other.gameObject.name);
             DestroyRpc();
         }
     }

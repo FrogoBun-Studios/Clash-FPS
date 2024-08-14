@@ -38,4 +38,12 @@ public abstract class ShooterCard : Card
     }
 
     protected ShooterCardParams getParamsAsShooter() => (ShooterCardParams)Params;
+
+    private void OnDrawGizmos(){
+        if(!IsOwner)
+            return;
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawRay(player.position + player.forward * 0.5f + player.up * 2f, PlayerScript.GetCameraForward());
+    }
 }

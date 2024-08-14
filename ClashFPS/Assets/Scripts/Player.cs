@@ -22,7 +22,6 @@ public class Player : NetworkBehaviour
 
         Name.text = $"Player {OwnerClientId}";
         HealthSlider.name = $"Slider{OwnerClientId}";
-        GameObject.Find("HealthSlider").name = $"Slider{OwnerClientId}UI";
 
         if(!IsOwner)
             return;
@@ -39,9 +38,9 @@ public class Player : NetworkBehaviour
         Teleport(new Vector3(0, 2, -34));
 
         if(OwnerClientId == 0)
-            ChooseCard(CardTypes.Wizard);
-        else
             ChooseCard(CardTypes.Valkyrie);
+        else
+            ChooseCard(CardTypes.Wizard);
     }
 
 #region CardCreation
@@ -70,7 +69,7 @@ public class Player : NetworkBehaviour
         card = GameObject.Find($"Card{OwnerClientId}").transform.GetComponent<Card>();
         card.StartCard(transform);
         
-        card.SetSlidersRpc($"Slider{OwnerClientId}", $"Slider{OwnerClientId}UI");
+        card.SetSlidersRpc($"Slider{OwnerClientId}");
     }
 
     [Rpc(SendTo.Everyone)]
@@ -145,6 +144,10 @@ public class Player : NetworkBehaviour
 
     public Quaternion GetCameraRotation(){
         return cameraFollow.rotation;
+    }
+
+    public Vector3 GetCameraForward(){
+        return cameraFollow.forward;
     }
 
     public void Spawned(){

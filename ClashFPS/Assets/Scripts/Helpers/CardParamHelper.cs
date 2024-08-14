@@ -10,10 +10,10 @@ public class CardParamHelper
 
     public class Damage{
         public static float Low = 10;
-        public static float LowMedium = 20;
-        public static float Medium = 30;
-        public static float MediumHigh = 50;
-        public static float High = 80;
+        public static float LowMedium = 30;
+        public static float Medium = 50;
+        public static float MediumHigh = 70;
+        public static float High = 100;
     }
 
     public class Speed{

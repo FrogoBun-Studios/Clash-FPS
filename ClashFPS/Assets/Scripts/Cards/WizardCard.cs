@@ -6,7 +6,7 @@ public class WizardCard : ShooterCard
     {
         base.StartCard(player, new ShooterCardParams(
             health: CardParamHelper.Health.Medium,
-            damage: CardParamHelper.Damage.MediumHigh,
+            damage: CardParamHelper.Damage.Medium,
             speed: CardParamHelper.Speed.MediumFast,
             JumpStrength: CardParamHelper.JumpStrength.Medium,
             jumps: 1,

@@ -22,7 +22,7 @@ public class Tower : MonoBehaviour
         StartCoroutine(UpdateSlider(Health));
 
         if(Health <= 0){
-            Instantiate(DeathPrefab, transform.position + Vector3.down * (IsKing ? 9.3f : 4.8f), Quaternion.identity);
+            Instantiate(DeathPrefab, transform.position + Vector3.down * (IsKing ? 8.3f : 5.8f), Quaternion.identity);
             Destroy(gameObject);
         }
     }
