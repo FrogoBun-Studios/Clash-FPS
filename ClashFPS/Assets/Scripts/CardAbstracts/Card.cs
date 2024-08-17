@@ -14,8 +14,11 @@ public abstract class Card : NetworkBehaviour
     private Slider HealthSlider;
     
     protected float attackTimer;
+    private bool Started = false;
 
     public virtual void StartCard(Transform player, CardParams Params, string ModelName){
+        Started = true;
+
         this.Params = Params;
         this.ModelPrefab = Resources.Load($"{ModelName}/ModelPrefab") as GameObject;
         this.player = player;
@@ -27,6 +30,10 @@ public abstract class Card : NetworkBehaviour
         CreateModelRpc();
 
         attackTimer = 1 / Params.AttackRate;
+    }
+
+    public bool IsStarted(){
+        return Started;
     }
 
     public abstract void StartCard(Transform player);
@@ -48,8 +55,7 @@ public abstract class Card : NetworkBehaviour
     }
 
 #region Misc
-    [Rpc(SendTo.Everyone)]
-    public void SetSlidersRpc(string topSlider){
+    public void SetSliders(string topSlider){
         if(!IsOwner)
             HealthSlider = GameObject.Find(topSlider).GetComponent<Slider>();
         else
@@ -66,7 +72,7 @@ public abstract class Card : NetworkBehaviour
     public Animator GetAnimator(){
         return animator;
     }
-
+    
     protected IEnumerator UpdateSlider(float value){
         if(value <= 0){
             HealthSlider.value = 0;
@@ -81,6 +87,11 @@ public abstract class Card : NetworkBehaviour
             HealthSlider.value = v;
             yield return new WaitForSeconds(wait);
         }
+    }
+
+    [Rpc(SendTo.Everyone)]
+    protected void UpdateSliderRpc(float value){
+        StartCoroutine(UpdateSlider(value));
     }
 #endregion
 
@@ -122,21 +133,18 @@ public abstract class Card : NetworkBehaviour
             t.Damage(Params.damage);
     }
 
-    [Rpc(SendTo.Everyone)]
+    [Rpc(SendTo.Owner)]
     public virtual void DamageRpc(float amount){
         Params.health -= amount;
 
-        StartCoroutine(UpdateSlider(Params.health));
+        UpdateSliderRpc(Params.health);
 
         if(Params.health <= 0)
             animator.SetTrigger("Death");
     }
 
-    [Rpc(SendTo.Everyone)]
-    public virtual void HealRpc(float amount){
-        Params.health += amount;
-
-        StartCoroutine(UpdateSlider(Params.health));
+    public virtual void Heal(float amount){
+        DamageRpc(-amount);
     }
 
     [Rpc(SendTo.Everyone)]

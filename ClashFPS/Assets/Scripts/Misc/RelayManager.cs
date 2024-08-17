@@ -5,6 +5,7 @@ using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
+using UnityEditor;
 using UnityEngine;
 
 public class RelayManager : MonoBehaviour
@@ -22,6 +23,7 @@ public class RelayManager : MonoBehaviour
             Allocation allocation = await RelayService.Instance.CreateAllocationAsync(7); //for 8 players
             string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
             Chat.Singleton.Log($"Creating relay with code {joinCode.ToUpper()}");
+            GUIUtility.systemCopyBuffer = joinCode.ToUpper();
 
             RelayServerData relayServerData = new RelayServerData(allocation, "dtls");
             NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(relayServerData);

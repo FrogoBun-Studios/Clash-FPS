@@ -61,15 +61,18 @@ public class Player : NetworkBehaviour
     [Rpc(SendTo.Everyone)]
     private void SetCardRpc(){
         int i = 0;
-        foreach(GameObject card in GameObject.FindGameObjectsWithTag("Card")){
-            card.name = $"Card{i}";
+        foreach(GameObject cardGO in GameObject.FindGameObjectsWithTag("Card")){
+            cardGO.name = $"Card{i}";
+            Card card = cardGO.GetComponent<Card>();
+            GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
+
+            if(!card.IsStarted()){
+                card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform);
+                card.SetSliders($"Slider{i}");
+            }
+
             i++;
         }
-
-        card = GameObject.Find($"Card{OwnerClientId}").transform.GetComponent<Card>();
-        card.StartCard(transform);
-        
-        card.SetSlidersRpc($"Slider{OwnerClientId}");
     }
 
     [Rpc(SendTo.Everyone)]
@@ -140,6 +143,10 @@ public class Player : NetworkBehaviour
 
     public Card GetCard(){
         return card;
+    }
+
+    public void SetCard(Card card){
+        this.card = card;
     }
 
     public Quaternion GetCameraRotation(){

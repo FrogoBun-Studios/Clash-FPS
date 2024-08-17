@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -15,13 +16,17 @@ public abstract class ShooterCard : Card
     [Rpc(SendTo.Server)]
     protected void SpawnBulletRpc(){
         Bullet bullet = Instantiate(getParamsAsShooter().BulletPrefab, player.position + player.forward * 0.5f + player.up * 2f, PlayerScript.GetCameraRotation(), player).GetComponent<Bullet>();
-        bullet.GetComponent<NetworkObject>().Spawn(true);
-        bullet.speed = getParamsAsShooter().BulletSpeed;
-        bullet.damage = getParamsAsShooter().damage;
-        bullet.side = getParamsAsShooter().side;
-        bullet.Enable();
+        bullet.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+        SetBulletRpc();
 
         StartCoroutine(DestroyBullet(bullet.GetComponent<NetworkObject>()));
+    }
+
+    [Rpc(SendTo.Everyone)]
+    protected void SetBulletRpc(){
+        Bullet bullet = GameObject.FindGameObjectsWithTag("Bullet").Last().GetComponent<Bullet>();
+
+        bullet.Enable(getParamsAsShooter().BulletSpeed, getParamsAsShooter().damage, getParamsAsShooter().side, PlayerScript.GetCameraForward());
     }
 
     protected IEnumerator SpawnBullet(){
