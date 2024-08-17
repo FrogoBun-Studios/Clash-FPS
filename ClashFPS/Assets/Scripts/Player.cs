@@ -38,9 +38,9 @@ public class Player : NetworkBehaviour
         Teleport(new Vector3(0, 2, -34));
 
         if(OwnerClientId == 0)
-            ChooseCard(CardTypes.Valkyrie);
-        else
             ChooseCard(CardTypes.Wizard);
+        else
+            ChooseCard(CardTypes.Valkyrie);
     }
 
 #region CardCreation
