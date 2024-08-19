@@ -8,4 +8,6 @@ public static class CardTypes
 
     public const string Wizard = "Wizard";
     public const string Valkyrie = "Valkyrie";
+    public const string Giant = "Giant";
+    
 }

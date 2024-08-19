@@ -38,7 +38,7 @@ public class Player : NetworkBehaviour
         Teleport(new Vector3(0, 2, -34));
 
         if(OwnerClientId == 0)
-            ChooseCard(CardTypes.Wizard);
+            ChooseCard(CardTypes.Giant);
         else
             ChooseCard(CardTypes.Valkyrie);
     }
