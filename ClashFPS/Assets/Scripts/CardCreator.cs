@@ -171,12 +171,12 @@ public class " + name + @"Card : Card
 
     private void CreateCard(){
         CreateFolder();
-        // CreateAnimator();
+        CreateAnimator();
         CreateModelPrefab();
-        // CreateCardScript();
+        CreateCardScript();
         CreateCardPrefab();
-        // EditNetworkPrefabs();
-        // EditCardTypes();
+        EditNetworkPrefabs();
+        EditCardTypes();
     }
 
     #endregion
