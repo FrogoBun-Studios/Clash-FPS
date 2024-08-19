@@ -15,11 +15,14 @@ public class CardCreator : EditorWindow
     private NetworkBehaviour script = null;
     private GameObject modelPrefab = null;
     private GameObject cardPrefab = null;
+    private bool cardCreated = false;
 
     [MenuItem("Window/Card Creator")]
     public static void ShowWindow(){
         GetWindow<CardCreator>("Card Creator");
     }
+
+    #region CardCreation
 
     private void GetInfo(){
         name = EditorGUILayout.TextField("Card name", name);
@@ -91,6 +94,7 @@ public class CardCreator : EditorWindow
         modelPrefab.GetComponent<ClientNetworkTransform>().SyncScaleY = false;
         modelPrefab.GetComponent<ClientNetworkTransform>().SyncScaleZ = false;
         modelPrefab.AddComponent<ClientNetworkAnimator>().Animator = modelPrefab.GetComponent<Animator>();
+        modelPrefab.tag = "Model";
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -129,6 +133,7 @@ public class " + name + @"Card : Card
     private void CreateCardPrefab(){
         GameObject cardPrefab = new GameObject();
         cardPrefab.AddComponent<NetworkObject>();
+        cardPrefab.tag = "Card";
 
         this.cardPrefab = PrefabUtility.SaveAsPrefabAsset(cardPrefab, AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/{name}/{name}Card.prefab"));
         Debug.Log($"Card Creator: {name}Card.prefab created.");
@@ -166,13 +171,16 @@ public class " + name + @"Card : Card
 
     private void CreateCard(){
         CreateFolder();
-        CreateAnimator();
+        // CreateAnimator();
         CreateModelPrefab();
-        CreateCardScript();
+        // CreateCardScript();
         CreateCardPrefab();
-        EditNetworkPrefabs();
-        EditCardTypes();
+        // EditNetworkPrefabs();
+        // EditCardTypes();
     }
+
+    #endregion
+    #region CardRemoval
 
     private void RemoveFolder(){
         string folderPath = $"Assets/Resources/{name}";
@@ -225,6 +233,8 @@ public class " + name + @"Card : Card
         RemoveCardType();
     }
 
+    #endregion
+
     private void OnGUI(){
         GUIStyle headlineStyle = new GUIStyle(GUI.skin.label)
         {
@@ -235,31 +245,24 @@ public class " + name + @"Card : Card
         };
 
         GUILayout.Label("Card Creator", headlineStyle);
-
-        GUILayout.Space(20);
-
         GetInfo();
-
-        GUILayout.Space(20);
+        GUILayout.Space(10);
 
         if(GUILayout.Button("Create Card")){
             CreateCard();
-
-            GUILayout.Label($"Please attach {name}Card.cs to {name}Card.prefab in Assets/Resources/{name}.");
+            cardCreated = true;
         }
+        if(cardCreated)
+            GUILayout.Label($"Please attach {name}Card.cs to {name}Card.prefab in Assets/Resources/{name}.");
 
-        GUILayout.Space(40);
-
+        GUILayout.Space(20);
         GUILayout.Label("Card Remover", headlineStyle);
-
-        GUILayout.Space(20);
-
         name = EditorGUILayout.TextField("Card name", name);
-
-        GUILayout.Space(20);
+        GUILayout.Space(10);
 
         if(GUILayout.Button("Remove Card")){
             RemoveCard();
+            cardCreated = false;
         }
     }
 }
