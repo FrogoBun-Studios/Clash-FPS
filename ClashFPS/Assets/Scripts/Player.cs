@@ -3,6 +3,7 @@ using UnityEngine;
 using Unity.Cinemachine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Rendering;
 
 public class Player : NetworkBehaviour
 {
@@ -38,28 +39,28 @@ public class Player : NetworkBehaviour
         Teleport(new Vector3(0, 2, -34));
 
         if(OwnerClientId == 0)
-            ChooseCard(CardTypes.Giant);
+            ChooseCard(CardTypes.Wizard, Side.Blue);
         else
-            ChooseCard(CardTypes.Valkyrie);
+            ChooseCard(CardTypes.Giant, Side.Red);
     }
 
 #region CardCreation
-    private void ChooseCard(string cardName){
+    private void ChooseCard(string cardName, Side side){
         spawned = false;
 
-        SpawnCardRpc(cardName);
+        SpawnCardRpc(cardName, (int)side);
     }
 
     [Rpc(SendTo.Server)]
-    private void SpawnCardRpc(string cardName){
+    private void SpawnCardRpc(string cardName, int side){
         GameObject card = Instantiate(CardTypes.StringToCardPrefab(cardName));
         card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-        SetCardRpc();
+        SetCardRpc(side);
     }
 
     [Rpc(SendTo.Everyone)]
-    private void SetCardRpc(){
+    private void SetCardRpc(int side){
         int i = 0;
         foreach(GameObject cardGO in GameObject.FindGameObjectsWithTag("Card")){
             cardGO.name = $"Card{i}";
@@ -67,7 +68,7 @@ public class Player : NetworkBehaviour
             GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
 
             if(!card.IsStarted()){
-                card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform);
+                card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform, (Side)side);
                 card.SetSliders($"Slider{i}");
             }
 
@@ -159,6 +160,17 @@ public class Player : NetworkBehaviour
 
     public void Spawned(){
         spawned = true;
+    }
+
+    [Rpc(SendTo.Everyone)]
+    public void SetColliderSizeRpc(float radius, float height, float YOffset){
+        controller.radius = radius;
+        controller.height = height;
+        controller.center = Vector3.up * YOffset;
+    }
+
+    public void SetCameraFollow(Vector3 pos){
+        cameraFollow.localPosition = pos;
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit){

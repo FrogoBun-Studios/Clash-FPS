@@ -9,8 +9,11 @@ public class CardParams
     public bool flying;
     public float AttackRate;
     public Side side;
+    public float ColliderRadius;
+    public float ColliderHeight;
+    public float ColliderYOffset;
 
-    public CardParams(float health, float damage, float speed, float JumpStrength, int jumps, int elixer, bool flying, float AttackRate, Side side)
+    public CardParams(float health, float damage, float speed, float JumpStrength, int jumps, int elixer, bool flying, float AttackRate, Side side, float ColliderRadius, float ColliderHeight, float ColliderYOffset)
     {
         this.health = health;
         this.damage = damage;
@@ -21,5 +24,8 @@ public class CardParams
         this.flying = flying;
         this.AttackRate = AttackRate;
         this.side = side;
+        this.ColliderRadius = ColliderRadius;
+        this.ColliderHeight = ColliderHeight;
+        this.ColliderYOffset = ColliderYOffset;
     }
 }

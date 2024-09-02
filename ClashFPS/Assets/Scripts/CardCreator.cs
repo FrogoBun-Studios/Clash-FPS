@@ -119,7 +119,10 @@ public class " + name + @"Card : Card
             elixer: 4,
             flying: false,
             AttackRate: CardParamHelper.AttackRate.Medium,
-            side: Side.Blue
+            side: Side.Blue,
+            ColliderRadius: CardParamHelper.Collider.Radius,
+            ColliderHeight: CardParamHelper.Collider.Height,
+            ColliderYOffset: CardParamHelper.Collider.YOffset
         ), """ + name + @""");
     }
 }";

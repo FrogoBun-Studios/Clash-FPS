@@ -39,4 +39,10 @@ public class CardParamHelper
         public static float MediumFast = 2;
         public static float Fast = 3;
     }
+
+    public class Collider{
+        public static float Radius = 1;
+        public static float Height = 3.5f;
+        public static float YOffset = 1.75f;
+    }
 }

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class WizardCard : ShooterCard
 {
-    public override void StartCard(Transform player)
+    public override void StartCard(Transform player, Side side)
     {
         base.StartCard(player, new ShooterCardParams(
             health: CardParamHelper.Health.Medium,
@@ -13,9 +13,12 @@ public class WizardCard : ShooterCard
             elixer: 5,
             flying: false,
             AttackRate: CardParamHelper.AttackRate.SlowMedium,
-            side: Side.Red,
+            side: side,
+            ColliderRadius: CardParamHelper.Collider.Radius,
+            ColliderHeight: CardParamHelper.Collider.Height,
+            ColliderYOffset: CardParamHelper.Collider.YOffset,
             BulletPrefab: Resources.Load("Wizard/Bullet") as GameObject,
-            BulletSpead: 30,
+            BulletSpeed: 30,
             BulletAmount: 1,
             BulletSpread: 0
         ), "Wizard");

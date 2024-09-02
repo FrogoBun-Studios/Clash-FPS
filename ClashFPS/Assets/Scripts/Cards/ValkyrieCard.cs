@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class ValkyrieCard : MeleeCard
 {
-    public override void StartCard(Transform player)
+    public override void StartCard(Transform player, Side side)
     {
         base.StartCard(player, new MeleeCardParams(
             health: CardParamHelper.Health.Heavy,
@@ -13,7 +13,10 @@ public class ValkyrieCard : MeleeCard
             elixer: 4,
             flying: false,
             AttackRate: CardParamHelper.AttackRate.Medium,
-            side: Side.Blue,
+            side: side,
+            ColliderRadius: CardParamHelper.Collider.Radius,
+            ColliderHeight: CardParamHelper.Collider.Height,
+            ColliderYOffset: CardParamHelper.Collider.YOffset,
             AttackZone: new Bounds(Vector3.up * 1.5f, new Vector3(5, 2, 5))
         ), "Valkyrie");
     }

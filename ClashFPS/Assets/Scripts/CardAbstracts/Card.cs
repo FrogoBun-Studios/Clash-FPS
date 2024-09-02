@@ -27,7 +27,10 @@ public abstract class Card : NetworkBehaviour
         if(!IsOwner)
             return;
 
+        PlayerScript.SetColliderSizeRpc(Params.ColliderRadius, Params.ColliderHeight, Params.ColliderYOffset);
         CreateModelRpc();
+
+        PlayerScript.SetCameraFollow(new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f));
 
         attackTimer = 1 / Params.AttackRate;
     }
@@ -36,7 +39,7 @@ public abstract class Card : NetworkBehaviour
         return Started;
     }
 
-    public abstract void StartCard(Transform player);
+    public abstract void StartCard(Transform player, Side side);
 
     public virtual void UpdateCard(){
         if(Params.health <= 0)
