@@ -10,7 +10,6 @@ public class GiantCard : MeleeCard
             speed: CardParamHelper.Speed.Slow,
             JumpStrength: CardParamHelper.JumpStrength.LowMedium,
             jumps: 1,
-            elixer: 4,
             flying: false,
             AttackRate: CardParamHelper.AttackRate.Slow,
             side: side,
@@ -20,4 +19,6 @@ public class GiantCard : MeleeCard
             AttackZone: new Bounds(new Vector3(0, 5, 3.5f), new Vector3(7, 8, 5))
         ), "Giant");
     }
+
+    public override int GetElixerCost() => 5;
 }

@@ -10,7 +10,6 @@ public class ValkyrieCard : MeleeCard
             speed: CardParamHelper.Speed.Medium,
             JumpStrength: CardParamHelper.JumpStrength.MediumHigh,
             jumps: 2,
-            elixer: 4,
             flying: false,
             AttackRate: CardParamHelper.AttackRate.Medium,
             side: side,
@@ -20,4 +19,6 @@ public class ValkyrieCard : MeleeCard
             AttackZone: new Bounds(Vector3.up * 1.5f, new Vector3(5, 2, 5))
         ), "Valkyrie");
     }
+
+    public override int GetElixerCost() => 4;
 }

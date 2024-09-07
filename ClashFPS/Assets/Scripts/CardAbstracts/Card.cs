@@ -41,6 +41,8 @@ public abstract class Card : NetworkBehaviour
 
     public abstract void StartCard(Transform player, Side side);
 
+    public abstract int GetElixerCost();
+
     public virtual void UpdateCard(){
         if(Params.health <= 0)
             return;

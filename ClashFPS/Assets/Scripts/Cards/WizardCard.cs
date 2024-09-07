@@ -10,7 +10,6 @@ public class WizardCard : ShooterCard
             speed: CardParamHelper.Speed.MediumFast,
             JumpStrength: CardParamHelper.JumpStrength.Medium,
             jumps: 1,
-            elixer: 5,
             flying: false,
             AttackRate: CardParamHelper.AttackRate.SlowMedium,
             side: side,
@@ -23,4 +22,6 @@ public class WizardCard : ShooterCard
             BulletSpread: 0
         ), "Wizard");
     }
+
+    public override int GetElixerCost() => 5;
 }

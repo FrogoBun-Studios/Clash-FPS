@@ -13,14 +13,13 @@ public class CardParams
     public float ColliderHeight;
     public float ColliderYOffset;
 
-    public CardParams(float health, float damage, float speed, float JumpStrength, int jumps, int elixer, bool flying, float AttackRate, Side side, float ColliderRadius, float ColliderHeight, float ColliderYOffset)
+    public CardParams(float health, float damage, float speed, float JumpStrength, int jumps, bool flying, float AttackRate, Side side, float ColliderRadius, float ColliderHeight, float ColliderYOffset)
     {
         this.health = health;
         this.damage = damage;
         this.speed = speed;
         this.JumpStrength = JumpStrength;
         this.jumps = jumps;
-        this.elixer = elixer;
         this.flying = flying;
         this.AttackRate = AttackRate;
         this.side = side;

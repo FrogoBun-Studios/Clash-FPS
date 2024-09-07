@@ -116,7 +116,6 @@ public class " + name + @"Card : Card
             speed: CardParamHelper.Speed.Medium,
             JumpStrength: CardParamHelper.JumpStrength.MediumHigh,
             jumps: 2,
-            elixer: 4,
             flying: false,
             AttackRate: CardParamHelper.AttackRate.Medium,
             side: Side.Blue,
@@ -125,6 +124,8 @@ public class " + name + @"Card : Card
             ColliderYOffset: CardParamHelper.Collider.YOffset
         ), """ + name + @""");
     }
+
+    public override int GetElixerCost() => 5;
 }";
 
         File.WriteAllText($"Assets/Scripts/Cards/{name}Card.cs", scriptTemplate);
