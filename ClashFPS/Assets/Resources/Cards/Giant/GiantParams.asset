@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0e758d7c52c79540a7fd6a61a1c6af8, type: 3}
+  m_Name: GiantParams
+  m_EditorClassIdentifier: 
+  health: 300
+  damage: 100
+  speed: 3
+  JumpStrength: 5
+  jumps: 1
+  elixer: 5
+  AttackRate: 1
+  ColliderRadius: 5
+  ColliderHeight: 12
+  ColliderYOffset: 6
+  ModelPrefab: {fileID: 919132149155446097, guid: 80ddcbc22abf59e48a9bf1b3416d4665, type: 3}
+  CardImage: {fileID: 2800000, guid: 45f33a0bb8a25d34bba84acf786fdd13, type: 3}
+  AttackZone:
+    m_Center: {x: 0, y: 5, z: 3.5}
+    m_Extent: {x: 7, y: 8, z: 5}

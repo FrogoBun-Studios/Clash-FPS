@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53f26b7ac3313dc4aaaae52110f26b7b, type: 3}
+  m_Name: WizardParams
+  m_EditorClassIdentifier: 
+  health: 100
+  damage: 50
+  speed: 10
+  JumpStrength: 10
+  jumps: 1
+  elixer: 5
+  AttackRate: 1
+  ColliderRadius: 1
+  ColliderHeight: 3.5
+  ColliderYOffset: 1.75
+  ModelPrefab: {fileID: 6614300916131496709, guid: 52f4957d3d2b72648ab83c179a7cc620, type: 3}
+  CardImage: {fileID: 2800000, guid: fa5e191b3e4d0e14db57db8614c40ee3, type: 3}
+  BulletPrefab: {fileID: 8605331445094836383, guid: c10072ff891f6584ab7dd0afc80fc4e9, type: 3}
+  BulletSpeed: 30
+  BulletAmount: 1
+  BulletSpread: 0

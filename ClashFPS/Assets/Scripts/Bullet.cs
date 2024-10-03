@@ -18,7 +18,6 @@ public class Bullet : NetworkBehaviour
 
     [Rpc(SendTo.Server)]
     private void SetVelocityRpc(Vector3 dir){
-        Chat.Singleton.Log(dir.ToString());
         rb.linearVelocity = dir * speed;
     }
 
@@ -30,7 +29,6 @@ public class Bullet : NetworkBehaviour
 
     [Rpc(SendTo.Everyone)]
     protected void AttackTowerRpc(string TowerName){
-        Chat.Singleton.KillLog($"{OwnerClientId}", TowerName, "Wizard");
         Tower t = GameObject.Find(TowerName).GetComponent<Tower>();
 
         if(t.GetSide() != side)

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public abstract class MeleeCard : Card
+public class MeleeCard : Card
 {
     protected override void Attack()
     {
@@ -15,7 +15,7 @@ public abstract class MeleeCard : Card
 
         foreach(Collider col in colliders){
             if(col.CompareTag("Player")){
-                if(col.GetComponent<Player>().GetCard().GetSide() != Params.side)
+                if(col.GetComponent<Player>().GetCard().GetSide() != side)
                     col.GetComponent<Player>().GetCard().DamageRpc(Params.damage);
             }
 

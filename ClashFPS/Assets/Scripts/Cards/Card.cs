@@ -10,17 +10,19 @@ public abstract class Card : NetworkBehaviour
     protected Player PlayerScript;
     private Transform model;
     private Animator animator;
-    protected CardParams Params;
+    [SerializeField] protected CardParams Params;
     private Slider HealthSlider;
+    protected Side side;
     
     protected float attackTimer;
     private bool Started = false;
 
-    public virtual void StartCard(Transform player, CardParams Params, string ModelName){
+    public virtual void StartCard(Transform player, Side side){
         Started = true;
 
-        this.Params = Params;
-        this.ModelPrefab = Resources.Load($"{ModelName}/ModelPrefab") as GameObject;
+        this.side = side;
+        // this.ModelPrefab = Resources.Load($"{ModelName}/ModelPrefab") as GameObject;
+        this.ModelPrefab = Params.ModelPrefab;
         this.player = player;
         this.PlayerScript = player.GetComponent<Player>();
 
@@ -39,9 +41,7 @@ public abstract class Card : NetworkBehaviour
         return Started;
     }
 
-    public abstract void StartCard(Transform player, Side side);
-
-    public abstract int GetElixerCost();
+    public int GetElixerCost() => Params.elixer;
 
     public virtual void UpdateCard(){
         if(Params.health <= 0)
@@ -71,7 +71,7 @@ public abstract class Card : NetworkBehaviour
     }
 
     public Side GetSide(){
-        return Params.side;
+        return side;
     }
 
     public Animator GetAnimator(){
@@ -134,7 +134,7 @@ public abstract class Card : NetworkBehaviour
     protected void AttackTowerRpc(string TowerName){
         Tower t = GameObject.Find(TowerName).GetComponent<Tower>();
 
-        if(t.GetSide() != Params.side)
+        if(t.GetSide() != side)
             t.Damage(Params.damage);
     }
 

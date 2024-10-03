@@ -17,7 +17,6 @@ public class Tower : MonoBehaviour
 
     public void Damage(float amount)
     {
-        Chat.Singleton.Log(gameObject.name + ": " + amount);
         Health -= amount;
 
         StartCoroutine(UpdateSlider(Health));

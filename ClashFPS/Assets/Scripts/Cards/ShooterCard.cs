@@ -3,9 +3,8 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-public abstract class ShooterCard : Card
+public class ShooterCard : Card
 {
-
     protected override void Attack()
     {
         base.Attack();
@@ -26,7 +25,7 @@ public abstract class ShooterCard : Card
     protected void SetBulletRpc(){
         Bullet bullet = GameObject.FindGameObjectsWithTag("Bullet").Last().GetComponent<Bullet>();
 
-        bullet.Enable(getParamsAsShooter().BulletSpeed, getParamsAsShooter().damage, getParamsAsShooter().side, PlayerScript.GetCameraForward());
+        bullet.Enable(getParamsAsShooter().BulletSpeed, getParamsAsShooter().damage, side, PlayerScript.GetCameraForward());
     }
 
     protected IEnumerator SpawnBullet(){

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5612084315179116124}
   - component: {fileID: -5663128559035332799}
-  - component: {fileID: -2097655958131993449}
+  - component: {fileID: -5894004795545982858}
   m_Layer: 0
   m_Name: WizardCard
   m_TagString: Card
@@ -54,7 +54,7 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &-2097655958131993449
+--- !u!114 &-5894004795545982858
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -63,6 +63,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6011916849953329451}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 981f79ee165c27642beab1f69fa73730, type: 3}
+  m_Script: {fileID: 11500000, guid: 3e24ad1a3af4d0b42a548e5c62cc9a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Params: {fileID: 11400000, guid: 8136a4f1ac8ced745867c8597c845ee0, type: 2}

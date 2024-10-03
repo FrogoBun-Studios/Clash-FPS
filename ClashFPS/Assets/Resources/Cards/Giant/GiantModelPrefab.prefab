@@ -942,7 +942,7 @@ GameObject:
   - component: {fileID: 795896866403169388}
   - component: {fileID: -8104397589647503480}
   m_Layer: 0
-  m_Name: ModelPrefab
+  m_Name: GiantModelPrefab
   m_TagString: Model
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

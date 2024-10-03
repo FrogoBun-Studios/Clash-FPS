@@ -42,10 +42,10 @@ public class CardCreator : EditorWindow
     }
 
     private void CreateFolder(){
-        string folderPath = $"Assets/Resources/{name}";
+        string folderPath = $"Assets/Resources/Cards/{name}";
 
         if (!AssetDatabase.IsValidFolder(folderPath)){
-            AssetDatabase.CreateFolder("Assets/Resources", $"{name}");
+            AssetDatabase.CreateFolder("Assets/Resources/Cards", $"{name}");
             AssetDatabase.Refresh();
             Debug.Log("Card Creator: Folder created at " + folderPath);
         }
@@ -54,7 +54,7 @@ public class CardCreator : EditorWindow
     }
 
     private void CreateAnimator(){
-        bool success = AssetDatabase.CopyAsset("Assets/Resources/Valkyrie/Animator.controller", $"Assets/Resources/{name}/Animator.controller");
+        bool success = AssetDatabase.CopyAsset("Assets/Resources/Cards/Valkyrie/Animator.controller", $"Assets/Resources/{name}/Animator.controller");
         if (success)
             Debug.Log("Card Creator: Animator controller created.");
         else
@@ -62,7 +62,7 @@ public class CardCreator : EditorWindow
 
         AssetDatabase.Refresh();
 
-        AnimatorController animator = Resources.Load<AnimatorController>($"{name}/Animator");
+        AnimatorController animator = Resources.Load<AnimatorController>($"Cards/{name}/Animator");
 
         animator.layers[0].stateMachine.states[0].state.motion = animations[0];
         animator.layers[0].stateMachine.states[1].state.motion = animations[7];
@@ -80,12 +80,12 @@ public class CardCreator : EditorWindow
     }
 
     private void CreateModelPrefab(){
-        modelPrefab = PrefabUtility.SaveAsPrefabAsset(model, AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/{name}/ModelPrefab.prefab"));
+        modelPrefab = PrefabUtility.SaveAsPrefabAsset(model, AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/Cards/{name}/{name}ModelPrefab.prefab"));
         AssetDatabase.Refresh();
 
         Debug.Log("Card Creator: Model prefab created.");
 
-        modelPrefab.GetComponent<Animator>().runtimeAnimatorController = Resources.Load<AnimatorController>($"{name}/Animator");
+        modelPrefab.GetComponent<Animator>().runtimeAnimatorController = Resources.Load<AnimatorController>($"Cards/{name}/Animator");
         modelPrefab.GetComponent<Animator>().avatar = avatar;
         modelPrefab.AddComponent<NetworkObject>();
         modelPrefab.AddComponent<ClientNetworkTransform>().SyncRotAngleX = false;
@@ -139,7 +139,7 @@ public class " + name + @"Card : Card
         cardPrefab.AddComponent<NetworkObject>();
         cardPrefab.tag = "Card";
 
-        this.cardPrefab = PrefabUtility.SaveAsPrefabAsset(cardPrefab, AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/{name}/{name}Card.prefab"));
+        this.cardPrefab = PrefabUtility.SaveAsPrefabAsset(cardPrefab, AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/Cards/{name}/{name}Card.prefab"));
         Debug.Log($"Card Creator: {name}Card.prefab created.");
 
         Undo.DestroyObjectImmediate(cardPrefab);
@@ -148,7 +148,7 @@ public class " + name + @"Card : Card
         AssetDatabase.Refresh();
 
         Debug.Log($"Card Creator: {name}Card.prefab created.");
-        Debug.Log($"Card Creator: Don't forget to add {name}Card.cs to {name}Card.prefab.");
+        Debug.Log($"Card Creator: Don't forget to add a card script to the card- {name}Card.prefab.");
     }
 
     private void EditNetworkPrefabs(){
@@ -177,17 +177,15 @@ public class " + name + @"Card : Card
         CreateFolder();
         CreateAnimator();
         CreateModelPrefab();
-        CreateCardScript();
         CreateCardPrefab();
         EditNetworkPrefabs();
-        EditCardTypes();
     }
 
     #endregion
     #region CardRemoval
 
     private void RemoveFolder(){
-        string folderPath = $"Assets/Resources/{name}";
+        string folderPath = $"Assets/Resources/Cards/{name}";
 
         if (Directory.Exists(folderPath))
         {
@@ -232,9 +230,7 @@ public class " + name + @"Card : Card
 
     private void RemoveCard(){
         RemoveFolder();
-        RemoveCardScript();
         RemoveFromNetworkPrefabs();
-        RemoveCardType();
     }
 
     #endregion
@@ -257,7 +253,7 @@ public class " + name + @"Card : Card
             cardCreated = true;
         }
         if(cardCreated)
-            GUILayout.Label($"Please attach {name}Card.cs to {name}Card.prefab in Assets/Resources/{name}.");
+            GUILayout.Label($"Please attach a card script to {name}Card.prefab in Assets/Resources/Cards/{name}.");
 
         GUILayout.Space(20);
         GUILayout.Label("Card Remover", headlineStyle);

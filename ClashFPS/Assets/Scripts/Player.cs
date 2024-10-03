@@ -3,7 +3,6 @@ using UnityEngine;
 using Unity.Cinemachine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.Rendering;
 
 public class Player : NetworkBehaviour
 {
@@ -11,6 +10,7 @@ public class Player : NetworkBehaviour
     [SerializeField] private Transform cameraFollow;
     [SerializeField] private Slider HealthSlider;
     [SerializeField] private TextMeshProUGUI Name;
+    private CardSelection CardSelection;
 
     private Card card;
     private Animator animator;
@@ -32,28 +32,26 @@ public class Player : NetworkBehaviour
 
         Application.targetFrameRate = 120;
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-        GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
-
-        Teleport(new Vector3(0, 2, -34));
-
-        if(OwnerClientId == 0)
-            ChooseCard(CardTypes.Wizard, Side.Blue);
-        else
-            ChooseCard(CardTypes.Giant, Side.Red);
+        CardSelection = FindFirstObjectByType<CardSelection>();
+        CardSelection.SetPlayerScript(this);
+        StartCoroutine(CardSelection.Show());
     }
 
 #region CardCreation
-    private void ChooseCard(string cardName, Side side){
+    public void ChooseCard(string cardName, Side side){
         spawned = false;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
+        Teleport(new Vector3(0, 2, -34));
 
         SpawnCardRpc(cardName, (int)side);
     }
 
     [Rpc(SendTo.Server)]
     private void SpawnCardRpc(string cardName, int side){
-        GameObject card = Instantiate(CardTypes.StringToCardPrefab(cardName));
+        GameObject card = Instantiate(Cards.CardPrefabs[cardName]);
         card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
         SetCardRpc(side);
