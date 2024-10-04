@@ -50,19 +50,19 @@ public class Player : NetworkBehaviour
         GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
         Teleport(new Vector3(0, 2, -34));
 
-        SpawnCardRpc(cardName, (int)side);
+        SpawnCardRpc(cardName);
     }
 
     [Rpc(SendTo.Server)]
-    private void SpawnCardRpc(string cardName, int side){
+    private void SpawnCardRpc(string cardName){
         GameObject card = Instantiate(Cards.CardPrefabs[cardName]);
         card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-        SetCardRpc(side);
+        SetCardRpc();
     }
 
     [Rpc(SendTo.Everyone)]
-    private void SetCardRpc(int side){
+    private void SetCardRpc(){
         int i = 0;
         foreach(GameObject cardGO in GameObject.FindGameObjectsWithTag("Card")){
             cardGO.name = $"Card{i}";
@@ -70,7 +70,8 @@ public class Player : NetworkBehaviour
             GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
 
             if(!card.IsStarted()){
-                card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform, (Side)side);
+                Chat.Singleton.Log($"Starting card {i} with side {GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide()}");
+                card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform, GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide());
                 card.SetSliders($"Slider{i}");
             }
 
@@ -146,6 +147,10 @@ public class Player : NetworkBehaviour
 
     public Card GetCard(){
         return card;
+    }
+
+    public Side GetSide(){
+        return side;
     }
 
     public void SetCard(Card card){

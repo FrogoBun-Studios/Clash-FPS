@@ -22,7 +22,6 @@ public abstract class Card : NetworkBehaviour
         Started = true;
 
         this.side = side;
-        // this.ModelPrefab = Resources.Load($"{ModelName}/ModelPrefab") as GameObject;
         this.ModelPrefab = Params.ModelPrefab;
         this.player = player;
         this.PlayerScript = player.GetComponent<Player>();
@@ -96,6 +95,7 @@ public abstract class Card : NetworkBehaviour
 
     [Rpc(SendTo.Everyone)]
     protected void UpdateSliderRpc(float value){
+        Chat.Singleton.Log($"Updating slider of {OwnerClientId} to {value}");
         StartCoroutine(UpdateSlider(value));
     }
 #endregion
@@ -141,6 +141,7 @@ public abstract class Card : NetworkBehaviour
 
     [Rpc(SendTo.Owner)]
     public virtual void DamageRpc(float amount){
+        Chat.Singleton.Log($"Player {OwnerClientId} damaged {Health} - {amount}");
         Health -= amount;
 
         UpdateSliderRpc(Health);
