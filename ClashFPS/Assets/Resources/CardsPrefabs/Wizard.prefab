@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 5612084315179116124}
   - component: {fileID: -5663128559035332799}
-  - component: {fileID: -4247338255194349215}
+  - component: {fileID: -5894004795545982858}
   m_Layer: 0
-  m_Name: ValkyrieCard
+  m_Name: Wizard
   m_TagString: Card
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 94685973
+  GlobalObjectIdHash: 755457252
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -54,7 +54,7 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &-4247338255194349215
+--- !u!114 &-5894004795545982858
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -63,7 +63,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6011916849953329451}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8bb697069be8c694c96f2c27b1db7dea, type: 3}
+  m_Script: {fileID: 11500000, guid: 3e24ad1a3af4d0b42a548e5c62cc9a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Params: {fileID: 11400000, guid: d9829a7b1b182e541be383699d4dfe5e, type: 2}
+  Params: {fileID: 11400000, guid: 8136a4f1ac8ced745867c8597c845ee0, type: 2}

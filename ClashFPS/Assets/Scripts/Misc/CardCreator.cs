@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -23,6 +24,7 @@ public class CardCreator : EditorWindow
     }
 
     #region CardCreation
+
 
     private void GetInfo(){
         name = EditorGUILayout.TextField("Card name", name);
@@ -266,3 +268,4 @@ public class " + name + @"Card : Card
         }
     }
 }
+#endif

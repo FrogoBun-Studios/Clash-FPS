@@ -9,18 +9,12 @@ public static class Cards
     
     [RuntimeInitializeOnLoadMethod]
     static void init(){
-        string path = Path.Combine(Application.dataPath, "Resources/Cards");
-        string[] cardFolders = Directory.GetDirectories(path);
-
-        foreach (string folderPath in cardFolders)
+        GameObject[] cardPrefabs = Resources.LoadAll<GameObject>("CardsPrefabs");
+        foreach (GameObject card in cardPrefabs)
         {
-            string folderName = Path.GetFileName(folderPath);
-            string resourcePath = $"Cards/{folderName}/{folderName}Card";
-            GameObject cardPrefab = Resources.Load<GameObject>(resourcePath);
-            CardPrefabs[folderName] = cardPrefab;
-
-            resourcePath = $"Cards/{folderName}/{folderName}Params";
-            CardParams[folderName] = Resources.Load<CardParams>(resourcePath);
+            string cardName = card.name;
+            CardPrefabs[cardName] = Resources.Load<GameObject>($"CardsPrefabs/{cardName}");
+            CardParams[cardName] = Resources.Load<CardParams>($"CardsPrefabs/{cardName}Params");
         }
     }
 }

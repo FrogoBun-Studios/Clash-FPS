@@ -33,7 +33,7 @@ public class CardSelection : MonoBehaviour
             CanvasGroup.alpha = t;
             yield return new WaitForSeconds(0.01f);
         }
-        
+
         CanvasGroup.alpha = 0;
     }
 
@@ -55,28 +55,34 @@ public class CardSelection : MonoBehaviour
 
         LeftCardButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = LeftCardName;
         LeftCardButton.transform.GetChild(0).GetComponent<RawImage>().texture = Cards.CardParams[LeftCardName].CardImage;
+        LeftCardButton.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = Cards.CardParams[LeftCardName].elixer.ToString();
+        LeftCardButton.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text = Cards.CardParams[LeftCardName].elixer.ToString();
 
         MiddleCardButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = MiddleCardName;
         MiddleCardButton.transform.GetChild(0).GetComponent<RawImage>().texture = Cards.CardParams[MiddleCardName].CardImage;
+        MiddleCardButton.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = Cards.CardParams[MiddleCardName].elixer.ToString();
+        MiddleCardButton.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text = Cards.CardParams[MiddleCardName].elixer.ToString();
 
         RightCardButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = RightCardName;
         RightCardButton.transform.GetChild(0).GetComponent<RawImage>().texture = Cards.CardParams[RightCardName].CardImage;
+        RightCardButton.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text = Cards.CardParams[RightCardName].elixer.ToString();
+        RightCardButton.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text = Cards.CardParams[RightCardName].elixer.ToString();
     }
 
     public void LeftCard(){
-        PlayerScript.ChooseCard(LeftCardName, Side.Blue);
+        PlayerScript.ChooseCard(LeftCardName);
 
         StartCoroutine(Hide());
     }
 
     public void MiddleCard(){
-        PlayerScript.ChooseCard(MiddleCardName, Side.Blue);
+        PlayerScript.ChooseCard(MiddleCardName);
 
         StartCoroutine(Hide());
     }
 
     public void RightCard(){
-        PlayerScript.ChooseCard(RightCardName, Side.Blue);
+        PlayerScript.ChooseCard(RightCardName);
 
         StartCoroutine(Hide());
     }

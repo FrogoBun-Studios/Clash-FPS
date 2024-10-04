@@ -13,6 +13,8 @@ public class Player : NetworkBehaviour
     private CardSelection CardSelection;
 
     private Card card;
+    private Side side;
+    private int elixr;
     private Animator animator;
     private float yVelocity = 0;
     private bool spawned = false;
@@ -23,6 +25,8 @@ public class Player : NetworkBehaviour
 
         Name.text = $"Player {OwnerClientId}";
         HealthSlider.name = $"Slider{OwnerClientId}";
+
+        side = Side.Blue;
 
         if(!IsOwner)
             return;
@@ -38,7 +42,7 @@ public class Player : NetworkBehaviour
     }
 
 #region CardCreation
-    public void ChooseCard(string cardName, Side side){
+    public void ChooseCard(string cardName){
         spawned = false;
 
         Cursor.lockState = CursorLockMode.Locked;
