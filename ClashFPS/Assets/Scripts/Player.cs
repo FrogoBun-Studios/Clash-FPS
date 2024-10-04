@@ -26,7 +26,7 @@ public class Player : NetworkBehaviour
         Name.text = $"Player {OwnerClientId}";
         HealthSlider.name = $"Slider{OwnerClientId}";
 
-        side = Side.Blue;
+        side = (Side)(OwnerClientId % 2);
 
         if(!IsOwner)
             return;
