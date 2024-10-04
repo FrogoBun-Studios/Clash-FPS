@@ -14,6 +14,7 @@ public abstract class Card : NetworkBehaviour
     private Slider HealthSlider;
     protected Side side;
     
+    protected float Health;
     protected float attackTimer;
     private bool Started = false;
 
@@ -25,14 +26,13 @@ public abstract class Card : NetworkBehaviour
         this.ModelPrefab = Params.ModelPrefab;
         this.player = player;
         this.PlayerScript = player.GetComponent<Player>();
+        Health = Params.health;
 
         if(!IsOwner)
             return;
 
         PlayerScript.SetColliderSizeRpc(Params.ColliderRadius, Params.ColliderHeight, Params.ColliderYOffset);
         CreateModelRpc();
-
-        PlayerScript.SetCameraFollow(new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f));
 
         attackTimer = 1 / Params.AttackRate;
     }
@@ -44,7 +44,7 @@ public abstract class Card : NetworkBehaviour
     public int GetElixerCost() => Params.elixer;
 
     public virtual void UpdateCard(){
-        if(Params.health <= 0)
+        if(Health <= 0)
             return;
 
         PlayerScript.ControlCharacter(Params.speed, Params.jumps, Params.JumpStrength);
@@ -66,8 +66,8 @@ public abstract class Card : NetworkBehaviour
         else
             HealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
 
-        HealthSlider.maxValue = Params.health;
-        HealthSlider.value = Params.health;
+        HealthSlider.maxValue = Health;
+        HealthSlider.value = Health;
     }
 
     public Side GetSide(){
@@ -120,6 +120,7 @@ public abstract class Card : NetworkBehaviour
         model = GameObject.Find($"Model{OwnerClientId}").transform;
         animator = model.GetComponent<Animator>();
         PlayerScript.SetAnimatorRpc(model.name);
+        PlayerScript.SetCameraFollow(new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f));
         
         PlayerScript.Spawned();
     }
@@ -140,11 +141,11 @@ public abstract class Card : NetworkBehaviour
 
     [Rpc(SendTo.Owner)]
     public virtual void DamageRpc(float amount){
-        Params.health -= amount;
+        Health -= amount;
 
-        UpdateSliderRpc(Params.health);
+        UpdateSliderRpc(Health);
 
-        if(Params.health <= 0)
+        if(Health <= 0)
             animator.SetTrigger("Death");
     }
 

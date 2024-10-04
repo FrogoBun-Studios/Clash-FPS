@@ -9,35 +9,43 @@ public class JoinMenuUI : MonoBehaviour
     [SerializeField] private Button hostBtn;
     [SerializeField] private Button joinBtn;
     [SerializeField] private TMP_InputField joinField;
+    string joinText;
 
     private void Start()
     {
         DontDestroyOnLoad(this);
 
-        hostBtn.onClick.AddListener(() => StartCoroutine(Host()));
+        hostBtn.onClick.AddListener(() => StartCoroutine(LoadArena(true)));
 
-        joinBtn.onClick.AddListener(() => StartCoroutine(Join()));
+        joinBtn.onClick.AddListener(() => StartCoroutine(LoadArena(false)));
     }
 
-    private IEnumerator Host(){
+    private IEnumerator LoadArena(bool host){
+        joinText = joinField.text;
+
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("Arena");
         while (!asyncLoad.isDone)
             yield return null;
-        yield return new WaitForSeconds(0.25f);
 
-        FindFirstObjectByType<RelayManager>().CreateRelay();
+        if(host)
+            Host();
+        else
+            Join();
+    }
+
+    private async void Host(){
+        RelayManager relayManager = FindFirstObjectByType<RelayManager>();
+        await relayManager.StartManager();
+
+        relayManager.CreateRelay();
         Destroy(gameObject);
     }
 
-    private IEnumerator Join(){
-        string joinText = joinField.text;
-
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("Arena");
-        while (!asyncLoad.isDone)
-            yield return null;
-        yield return new WaitForSeconds(0.25f);
-
-        FindFirstObjectByType<RelayManager>().JoinRelay(joinText);
+    private async void Join(){
+        RelayManager relayManager = FindFirstObjectByType<RelayManager>();
+        await relayManager.StartManager();
+        
+        relayManager.JoinRelay(joinText);
         Destroy(gameObject);
     }
 }
