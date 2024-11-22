@@ -26,18 +26,13 @@ public class MeleeCard : Card
 		                    + _player.forward * GetParamsAsMelee().attackZone.center.z;
 
 		Collider[] colliders = Physics.OverlapBox(attackPos, GetParamsAsMelee().attackZone.size / 2);
-		Chat.Singleton.Log($"Found {colliders.Length} objects to attack");
 
 		foreach (Collider col in colliders)
 		{
 			if (col.CompareTag("Player"))
 			{
-				Chat.Singleton.Log($"Found player {col.name}");
 				if (col.GetComponent<Player>().GetCard().GetSide() != _side)
-				{
-					Chat.Singleton.Log($"Attacking {col.name}");
 					col.GetComponent<Player>().GetCard().DamageRpc(cardParams.damage);
-				}
 			}
 
 			if (col.CompareTag("Tower"))

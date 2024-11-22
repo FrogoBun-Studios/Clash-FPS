@@ -39,19 +39,33 @@ public class JoinMenuUI : MonoBehaviour
 
 	private async void Host()
 	{
+		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0;
+		GameObject.Find("LoadingBar").SetActive(true);
+		hostBtn.gameObject.SetActive(false);
+		joinBtn.gameObject.SetActive(false);
+		joinField.gameObject.SetActive(false);
 		RelayManager relayManager = FindFirstObjectByType<RelayManager>();
 		await relayManager.StartManager();
+		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0.25f;
 
 		relayManager.CreateRelay();
+		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0.5f;
 		Destroy(gameObject);
 	}
 
 	private async void Join()
 	{
+		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0;
+		GameObject.Find("LoadingBar").SetActive(true);
+		hostBtn.gameObject.SetActive(false);
+		joinBtn.gameObject.SetActive(false);
+		joinField.gameObject.SetActive(false);
 		RelayManager relayManager = FindFirstObjectByType<RelayManager>();
 		await relayManager.StartManager();
+		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0.25f;
 
 		relayManager.JoinRelay(_joinText);
+		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0.5f;
 		Destroy(gameObject);
 	}
 }

@@ -114,7 +114,6 @@ public abstract class Card : NetworkBehaviour
 	[Rpc(SendTo.Everyone)]
 	protected void UpdateSliderRpc(float value)
 	{
-		Chat.Singleton.Log($"Updating slider of {OwnerClientId} to {value}");
 		StartCoroutine(UpdateSlider(value));
 	}
 
@@ -171,7 +170,6 @@ public abstract class Card : NetworkBehaviour
 	[Rpc(SendTo.Owner)]
 	public virtual void DamageRpc(float amount)
 	{
-		Chat.Singleton.Log($"Player {OwnerClientId} damaged {_health} - {amount}");
 		_health -= amount;
 
 		UpdateSliderRpc(_health);
