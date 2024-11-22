@@ -1,90 +1,96 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
+
 using TMPro;
+
 using UnityEngine;
+
 
 public class Chat : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI ChatText;
-    [SerializeField] private float TimeToDisappear = 5f;
-    [SerializeField] private CanvasGroup CanvasGroup;
-    [SerializeField] private int maxMessages;
-    private float time;
-    private List<string> ChatMessages = new List<string>();
-    private bool isShown = false;
+	[SerializeField] private TextMeshProUGUI chatText;
+	[SerializeField] private float timeToDisappear = 5f;
+	[SerializeField] private CanvasGroup canvasGroup;
+	[SerializeField] private int maxMessages;
+	private readonly List<string> _chatMessages = new();
+	private bool _isShown;
+	private float _time;
 
-    public static Chat Singleton { get; private set; }
+	public static Chat Singleton { get; private set; }
 
-    private void OnEnable(){
-        Singleton = this;
-        time = TimeToDisappear;
-    }
+	private void Update()
+	{
+		_time -= Time.deltaTime;
 
-    private void OnDestroy()
-    {
-        if (Singleton == this)
-            Singleton = null;
-    }
+		if (_time <= 0 && _isShown)
+			StartCoroutine(Disappear());
 
-    public void Log(string message)
-    {
-        Show();
+		if (Input.GetKeyUp(KeyCode.Return))
+			Show();
 
-        message = $"[System]: {message}";
-        ChatMessages.Add(message);
-        Debug.Log(message);
-    }
+		for (int i = 0; i < _chatMessages.Count - maxMessages; i++) _chatMessages.RemoveAt(0);
 
-    public void PlayerWrite(string message, string playerName)
-    {
-        Show();
+		chatText.text = string.Join("\n", _chatMessages);
+	}
 
-        message = $"[{playerName}]: {message}";
-        ChatMessages.Add(message);
-        Debug.Log(message);
-    }
+	private void OnEnable()
+	{
+		Singleton = this;
+		_time = timeToDisappear;
+	}
 
-    public void KillLog(string killer, string killed, string killerCard)
-    {
-        Show();
+	private void OnDestroy()
+	{
+		if (Singleton == this)
+			Singleton = null;
+	}
 
-        string message = $"[System]: {killer} killed {killed} as a {killerCard}";
-        ChatMessages.Add(message);
-        Debug.Log(message);
-    }
+	public void Log(string message)
+	{
+		Show();
 
-    private void Update(){
-        time -= Time.deltaTime;
+		message = $"[System]: {message}";
+		_chatMessages.Add(message);
+		Debug.Log(message);
+	}
 
-        if (time <= 0 && isShown)
-            StartCoroutine(Disappear());
+	public void PlayerWrite(string message, string playerName)
+	{
+		Show();
 
-        if(Input.GetKeyUp(KeyCode.Return))
-            Show();
+		message = $"[{playerName}]: {message}";
+		_chatMessages.Add(message);
+		Debug.Log(message);
+	}
 
-        for(int i = 0; i < (ChatMessages.Count - maxMessages); i++){
-            ChatMessages.RemoveAt(0);
-        }
+	public void KillLog(string killer, string killed, string killerCard)
+	{
+		Show();
 
-        ChatText.text = string.Join("\n", ChatMessages);
-    }
+		string message = $"[System]: {killer} killed {killed} as a {killerCard}";
+		_chatMessages.Add(message);
+		Debug.Log(message);
+	}
 
-    private void Show(){
-        time = TimeToDisappear;
-        isShown = true;
-        CanvasGroup.alpha = 1;
+	private void Show()
+	{
+		_time = timeToDisappear;
+		_isShown = true;
+		canvasGroup.alpha = 1;
 
-        StopAllCoroutines();
-    }
+		StopAllCoroutines();
+	}
 
-    private IEnumerator Disappear(){
-        isShown = false;
+	private IEnumerator Disappear()
+	{
+		_isShown = false;
 
-        for(float t = 1; t >= 0; t -= 0.01f){
-            CanvasGroup.alpha = t;
-            yield return new WaitForSeconds(0.01f);
-        }
-        CanvasGroup.alpha = 0;
-    }
+		for (float t = 1; t >= 0; t -= 0.01f)
+		{
+			canvasGroup.alpha = t;
+			yield return new WaitForSeconds(0.01f);
+		}
+
+		canvasGroup.alpha = 0;
+	}
 }

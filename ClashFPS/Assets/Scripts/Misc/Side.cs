@@ -1,4 +1,5 @@
-public enum Side{
-    Blue,
-    Red
+public enum Side
+{
+	Blue,
+	Red
 }

@@ -1,53 +1,67 @@
 using System.Collections;
 using System.Linq;
+
 using Unity.Netcode;
+
 using UnityEngine;
+
 
 public class ShooterCard : Card
 {
-    protected override void Attack()
-    {
-        base.Attack();
+	private void OnDrawGizmos()
+	{
+		if (!IsOwner)
+			return;
 
-        StartCoroutine(SpawnBullet());
-    }
+		Gizmos.color = Color.red;
+		Gizmos.DrawRay(_player.position + _player.forward * 0.5f + _player.up * 2f, _playerScript.GetCameraForward());
+	}
 
-    [Rpc(SendTo.Server)]
-    protected void SpawnBulletRpc(){
-        Bullet bullet = Instantiate(getParamsAsShooter().BulletPrefab, player.position + player.forward * 0.5f + player.up * 2f, PlayerScript.GetCameraRotation(), player).GetComponent<Bullet>();
-        bullet.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
-        SetBulletRpc();
+	protected override void Attack()
+	{
+		base.Attack();
 
-        StartCoroutine(DestroyBullet(bullet.GetComponent<NetworkObject>()));
-    }
+		StartCoroutine(SpawnBullet());
+	}
 
-    [Rpc(SendTo.Everyone)]
-    protected void SetBulletRpc(){
-        Bullet bullet = GameObject.FindGameObjectsWithTag("Bullet").Last().GetComponent<Bullet>();
+	[Rpc(SendTo.Server)]
+	protected void SpawnBulletRpc()
+	{
+		Bullet bullet = Instantiate(GetParamsAsShooter().bulletPrefab,
+				_player.position + _player.forward * 0.5f + _player.up * 2f, _playerScript.GetCameraRotation(), _player)
+			.GetComponent<Bullet>();
+		bullet.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+		SetBulletRpc();
 
-        bullet.Enable(getParamsAsShooter().BulletSpeed, getParamsAsShooter().damage, side, PlayerScript.GetCameraForward());
-    }
+		StartCoroutine(DestroyBullet(bullet.GetComponent<NetworkObject>()));
+	}
 
-    protected IEnumerator SpawnBullet(){
-        yield return new WaitForSeconds(0.25f);
+	[Rpc(SendTo.Everyone)]
+	protected void SetBulletRpc()
+	{
+		Bullet bullet = GameObject.FindGameObjectsWithTag("Bullet").Last().GetComponent<Bullet>();
 
-        SpawnBulletRpc();
-    }
+		bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage, _side,
+			_playerScript.GetCameraForward());
+	}
 
-    protected IEnumerator DestroyBullet(NetworkObject bullet){
-        yield return new WaitForSeconds(3f);
+	protected IEnumerator SpawnBullet()
+	{
+		yield return new WaitForSeconds(0.25f);
 
-        if(bullet.IsSpawned)
-            bullet.Despawn(true);
-    }
+		SpawnBulletRpc();
+	}
 
-    protected ShooterCardParams getParamsAsShooter() => (ShooterCardParams)Params;
+	protected IEnumerator DestroyBullet(NetworkObject bullet)
+	{
+		yield return new WaitForSeconds(3f);
 
-    private void OnDrawGizmos(){
-        if(!IsOwner)
-            return;
+		if (bullet.IsSpawned)
+			bullet.Despawn();
+	}
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(player.position + player.forward * 0.5f + player.up * 2f, PlayerScript.GetCameraForward());
-    }
+	protected ShooterCardParams GetParamsAsShooter()
+	{
+		return (ShooterCardParams)cardParams;
+	}
 }

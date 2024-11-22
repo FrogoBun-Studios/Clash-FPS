@@ -1,55 +1,63 @@
-using Unity.Netcode;
-using UnityEngine;
 using System.Collections;
+
+using Unity.Netcode;
+
+using UnityEngine;
+
 
 public class Bullet : NetworkBehaviour
 {
-    [SerializeField] private Rigidbody rb;
-    private float speed;
-    private float damage;
-    private Side side;
+	[SerializeField] private Rigidbody rb;
+	private float _damage;
+	private Side _side;
+	private float _speed;
 
-    public void Enable(float speed, float damage, Side side, Vector3 dir){
-        this.speed = speed;
-        this.damage = damage;
-        this.side = side;
-        SetVelocityRpc(dir);
-    }
+	private void OnTriggerEnter(Collider other)
+	{
+		if (!IsServer)
+			return;
 
-    [Rpc(SendTo.Server)]
-    private void SetVelocityRpc(Vector3 dir){
-        rb.linearVelocity = dir * speed;
-    }
+		if (other.gameObject.CompareTag("Player"))
+			if (other.gameObject.GetComponent<Player>().GetCard().GetSide() != _side)
+			{
+				other.gameObject.GetComponent<Player>().GetCard().DamageRpc(_damage);
+				StartCoroutine(SelfDestroy());
+			}
 
-    private IEnumerator SelfDestroy(){
-        yield return new WaitForSeconds(0.5f);
+		if (other.gameObject.CompareTag("Tower"))
+		{
+			AttackTowerRpc(other.gameObject.name);
+			StartCoroutine(SelfDestroy());
+		}
+	}
 
-        GetComponent<NetworkObject>().Despawn(true);
-    }
+	public void Enable(float speed, float damage, Side side, Vector3 dir)
+	{
+		_speed = speed;
+		_damage = damage;
+		_side = side;
+		SetVelocityRpc(dir);
+	}
 
-    [Rpc(SendTo.Everyone)]
-    protected void AttackTowerRpc(string TowerName){
-        Tower t = GameObject.Find(TowerName).GetComponent<Tower>();
+	[Rpc(SendTo.Server)]
+	private void SetVelocityRpc(Vector3 dir)
+	{
+		rb.linearVelocity = dir * _speed;
+	}
 
-        if(t.GetSide() != side)
-            t.Damage(damage);
-    }
+	private IEnumerator SelfDestroy()
+	{
+		yield return new WaitForSeconds(0.5f);
 
-    private void OnTriggerEnter(Collider other){
-        if(!IsServer)
-            return;
+		GetComponent<NetworkObject>().Despawn();
+	}
 
-        if(other.gameObject.CompareTag("Player")){
-            if(other.gameObject.GetComponent<Player>().GetCard().GetSide() != side){
-                other.gameObject.GetComponent<Player>().GetCard().DamageRpc(damage);
-                SelfDestroy();
-            }
+	[Rpc(SendTo.Everyone)]
+	protected void AttackTowerRpc(string towerName)
+	{
+		Tower t = GameObject.Find(towerName).GetComponent<Tower>();
 
-        }
-
-        if(other.gameObject.CompareTag("Tower")){
-            AttackTowerRpc(other.gameObject.name);
-            SelfDestroy();
-        }
-    }
+		if (t.GetSide() != _side)
+			t.Damage(_damage);
+	}
 }

@@ -1,162 +1,195 @@
-using UnityEngine.UI;
-using Unity.Netcode;
-using UnityEngine;
 using System.Collections;
+
+using Unity.Netcode;
+
+using UnityEngine;
+using UnityEngine.UI;
+
 
 public abstract class Card : NetworkBehaviour
 {
-    private GameObject ModelPrefab;
-    protected Transform player;
-    protected Player PlayerScript;
-    private Transform model;
-    private Animator animator;
-    [SerializeField] protected CardParams Params;
-    private Slider HealthSlider;
-    protected Side side;
-    
-    protected float Health;
-    protected float attackTimer;
-    private bool Started = false;
+	[SerializeField] protected CardParams cardParams;
+	private Animator _animator;
+	protected float _attackTimer;
 
-    public virtual void StartCard(Transform player, Side side){
-        Started = true;
+	protected float _health;
+	private Slider _healthSlider;
+	private Transform _model;
+	private GameObject _modelPrefab;
+	protected Transform _player;
+	protected Player _playerScript;
+	protected Side _side;
+	private bool _started;
 
-        this.side = side;
-        this.ModelPrefab = Params.ModelPrefab;
-        this.player = player;
-        this.PlayerScript = player.GetComponent<Player>();
-        Health = Params.health;
+	public virtual void StartCard(Transform player, Side side)
+	{
+		_started = true;
 
-        if(!IsOwner)
-            return;
+		_side = side;
+		_modelPrefab = cardParams.modelPrefab;
+		_player = player;
+		_playerScript = player.GetComponent<Player>();
+		_health = cardParams.health;
 
-        PlayerScript.SetColliderSizeRpc(Params.ColliderRadius, Params.ColliderHeight, Params.ColliderYOffset);
-        CreateModelRpc();
+		if (!IsOwner)
+			return;
 
-        attackTimer = 1 / Params.AttackRate;
-    }
+		_playerScript.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
+			cardParams.colliderYOffset);
+		CreateModelRpc();
 
-    public bool IsStarted(){
-        return Started;
-    }
+		_attackTimer = 1 / cardParams.attackRate;
+	}
 
-    public int GetElixerCost() => Params.elixer;
+	public bool IsStarted()
+	{
+		return _started;
+	}
 
-    public virtual void UpdateCard(){
-        if(Health <= 0)
-            return;
+	public int GetElixirCost()
+	{
+		return cardParams.elixir;
+	}
 
-        PlayerScript.ControlCharacter(Params.speed, Params.jumps, Params.JumpStrength);
+	public virtual void UpdateCard()
+	{
+		if (_health <= 0)
+			return;
 
-        attackTimer -= Time.deltaTime;
-        if(Input.GetButtonDown("Fire") && attackTimer <= 0){
-            attackTimer = 1 / Params.AttackRate;
-            Attack();
-        }
+		_playerScript.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
 
-        model.position = player.position;
-        model.localEulerAngles = player.localEulerAngles;
-    }
+		_attackTimer -= Time.deltaTime;
+		if (Input.GetButtonDown("Fire") && _attackTimer <= 0)
+		{
+			_attackTimer = 1 / cardParams.attackRate;
+			Attack();
+		}
 
-#region Misc
-    public void SetSliders(string topSlider){
-        if(!IsOwner)
-            HealthSlider = GameObject.Find(topSlider).GetComponent<Slider>();
-        else
-            HealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
+		_model.position = _player.position;
+		_model.localEulerAngles = _player.localEulerAngles;
+	}
 
-        HealthSlider.maxValue = Health;
-        HealthSlider.value = Health;
-    }
+	#region Misc
 
-    public Side GetSide(){
-        return side;
-    }
+	public void SetSliders(string topSlider)
+	{
+		if (!IsOwner)
+			_healthSlider = GameObject.Find(topSlider).GetComponent<Slider>();
+		else
+			_healthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
 
-    public Animator GetAnimator(){
-        return animator;
-    }
-    
-    protected IEnumerator UpdateSlider(float value){
-        if(value <= 0){
-            HealthSlider.value = 0;
-            yield break;
-        }
+		_healthSlider.maxValue = _health;
+		_healthSlider.value = _health;
+	}
 
-        float StepSize = 0.5f;
-        float dir = value > HealthSlider.value ? StepSize : -StepSize;
-        float wait = 0.01f / (Mathf.Abs(HealthSlider.value - value) / StepSize);
+	public Side GetSide()
+	{
+		return _side;
+	}
 
-        for(float v = HealthSlider.value; Mathf.Abs(value - v) > StepSize; v += dir){
-            HealthSlider.value = v;
-            yield return new WaitForSeconds(wait);
-        }
-    }
+	public Animator GetAnimator()
+	{
+		return _animator;
+	}
 
-    [Rpc(SendTo.Everyone)]
-    protected void UpdateSliderRpc(float value){
-        Chat.Singleton.Log($"Updating slider of {OwnerClientId} to {value}");
-        StartCoroutine(UpdateSlider(value));
-    }
-#endregion
+	protected IEnumerator UpdateSlider(float value)
+	{
+		if (value <= 0)
+		{
+			_healthSlider.value = 0;
+			yield break;
+		}
 
-#region ModelCreation
-    [Rpc(SendTo.Server)]
-    private void CreateModelRpc(){
-        GameObject model = Instantiate(ModelPrefab, new Vector3(), Quaternion.identity, player);
-        model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+		float stepSize = 0.5f;
+		float dir = value > _healthSlider.value ? stepSize : -stepSize;
+		float wait = 0.01f / (Mathf.Abs(_healthSlider.value - value) / stepSize);
 
-        SetModelRpc();
-    }
+		for (float v = _healthSlider.value; Mathf.Abs(value - v) > stepSize; v += dir)
+		{
+			_healthSlider.value = v;
+			yield return new WaitForSeconds(wait);
+		}
+	}
 
-    [Rpc(SendTo.Everyone)]
-    private void SetModelRpc(){
-        int i = 0;
-        foreach(GameObject model in GameObject.FindGameObjectsWithTag("Model")){
-            model.name = $"Model{i}";
-            i++;
-        }
+	[Rpc(SendTo.Everyone)]
+	protected void UpdateSliderRpc(float value)
+	{
+		Chat.Singleton.Log($"Updating slider of {OwnerClientId} to {value}");
+		StartCoroutine(UpdateSlider(value));
+	}
 
-        model = GameObject.Find($"Model{OwnerClientId}").transform;
-        animator = model.GetComponent<Animator>();
-        PlayerScript.SetAnimatorRpc(model.name);
-        PlayerScript.SetCameraFollow(new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f));
-        
-        PlayerScript.Spawned();
-    }
-#endregion
+	#endregion
 
-#region CardMethods
-    protected virtual void Attack(){
-        animator.SetTrigger("Attack");
-    }
+	#region ModelCreation
 
-    [Rpc(SendTo.Everyone)]
-    protected void AttackTowerRpc(string TowerName){
-        Tower t = GameObject.Find(TowerName).GetComponent<Tower>();
+	[Rpc(SendTo.Server)]
+	private void CreateModelRpc()
+	{
+		GameObject model = Instantiate(_modelPrefab, new Vector3(), Quaternion.identity, _player);
+		model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-        if(t.GetSide() != side)
-            t.Damage(Params.damage);
-    }
+		SetModelRpc();
+	}
 
-    [Rpc(SendTo.Owner)]
-    public virtual void DamageRpc(float amount){
-        Chat.Singleton.Log($"Player {OwnerClientId} damaged {Health} - {amount}");
-        Health -= amount;
+	[Rpc(SendTo.Everyone)]
+	private void SetModelRpc()
+	{
+		int i = 0;
+		foreach (GameObject model in GameObject.FindGameObjectsWithTag("Model"))
+		{
+			model.name = $"Model{i}";
+			i++;
+		}
 
-        UpdateSliderRpc(Health);
+		_model = GameObject.Find($"Model{OwnerClientId}").transform;
+		_animator = _model.GetComponent<Animator>();
+		_playerScript.SetAnimatorRpc(_model.name);
+		_playerScript.SetCameraFollow(new Vector3(0, 4.625f * _model.localScale.y - 2.375f,
+			-2.5f * _model.localScale.y + 2.5f));
 
-        if(Health <= 0)
-            animator.SetTrigger("Death");
-    }
+		_playerScript.Spawned();
+	}
 
-    public virtual void Heal(float amount){
-        DamageRpc(-amount);
-    }
+	#endregion
 
-    [Rpc(SendTo.Everyone)]
-    protected void SetDamageRpc(float newDamage){
-        Params.damage = newDamage;
-    }
-#endregion
+	#region CardMethods
+
+	protected virtual void Attack()
+	{
+		_animator.SetTrigger("Attack");
+	}
+
+	[Rpc(SendTo.Everyone)]
+	protected void AttackTowerRpc(string towerName)
+	{
+		Tower t = GameObject.Find(towerName).GetComponent<Tower>();
+
+		if (t.GetSide() != _side)
+			t.Damage(cardParams.damage);
+	}
+
+	[Rpc(SendTo.Owner)]
+	public virtual void DamageRpc(float amount)
+	{
+		Chat.Singleton.Log($"Player {OwnerClientId} damaged {_health} - {amount}");
+		_health -= amount;
+
+		UpdateSliderRpc(_health);
+
+		if (_health <= 0)
+			_animator.SetTrigger("Death");
+	}
+
+	public virtual void Heal(float amount)
+	{
+		DamageRpc(-amount);
+	}
+
+	[Rpc(SendTo.Everyone)]
+	protected void SetDamageRpc(float newDamage)
+	{
+		cardParams.damage = newDamage;
+	}
+
+	#endregion
 }

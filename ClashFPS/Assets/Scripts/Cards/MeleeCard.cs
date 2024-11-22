@@ -1,43 +1,52 @@
 using UnityEngine;
 
+
 public class MeleeCard : Card
 {
-    protected override void Attack()
-    {
-        base.Attack();
+	private void OnDrawGizmos()
+	{
+		if (!IsOwner)
+			return;
 
-        Vector3 attackPos = player.position
-            + player.right * getParamsAsMelee().AttackZone.center.x
-            + player.up * getParamsAsMelee().AttackZone.center.y
-            + player.forward * getParamsAsMelee().AttackZone.center.z;
+		Gizmos.color = Color.red;
+		Gizmos.DrawWireCube(_player.position
+		                    + _player.right * GetParamsAsMelee().attackZone.center.x
+		                    + _player.up * GetParamsAsMelee().attackZone.center.y
+		                    + _player.forward * GetParamsAsMelee().attackZone.center.z,
+			GetParamsAsMelee().attackZone.size);
+	}
 
-        Collider[] colliders = Physics.OverlapBox(attackPos, getParamsAsMelee().AttackZone.size / 2);
-        Chat.Singleton.Log($"Found {colliders.Length} objects to attack");
+	protected override void Attack()
+	{
+		base.Attack();
 
-        foreach(Collider col in colliders){
-            if(col.CompareTag("Player")){
-                Chat.Singleton.Log($"Found player {col.name}");
-                if(col.GetComponent<Player>().GetCard().GetSide() != side){
-                    Chat.Singleton.Log($"Attacking {col.name}");
-                    col.GetComponent<Player>().GetCard().DamageRpc(Params.damage);
-                }
-            }
+		Vector3 attackPos = _player.position
+		                    + _player.right * GetParamsAsMelee().attackZone.center.x
+		                    + _player.up * GetParamsAsMelee().attackZone.center.y
+		                    + _player.forward * GetParamsAsMelee().attackZone.center.z;
 
-            if(col.CompareTag("Tower"))
-                AttackTowerRpc(col.name);
-        }
-    }
+		Collider[] colliders = Physics.OverlapBox(attackPos, GetParamsAsMelee().attackZone.size / 2);
+		Chat.Singleton.Log($"Found {colliders.Length} objects to attack");
 
-    protected MeleeCardParams getParamsAsMelee() => (MeleeCardParams)Params;
+		foreach (Collider col in colliders)
+		{
+			if (col.CompareTag("Player"))
+			{
+				Chat.Singleton.Log($"Found player {col.name}");
+				if (col.GetComponent<Player>().GetCard().GetSide() != _side)
+				{
+					Chat.Singleton.Log($"Attacking {col.name}");
+					col.GetComponent<Player>().GetCard().DamageRpc(cardParams.damage);
+				}
+			}
 
-    private void OnDrawGizmos(){
-        if(!IsOwner)
-            return;
+			if (col.CompareTag("Tower"))
+				AttackTowerRpc(col.name);
+		}
+	}
 
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(player.position
-            + player.right * getParamsAsMelee().AttackZone.center.x
-            + player.up * getParamsAsMelee().AttackZone.center.y
-            + player.forward * getParamsAsMelee().AttackZone.center.z, getParamsAsMelee().AttackZone.size);
-    }
+	protected MeleeCardParams GetParamsAsMelee()
+	{
+		return (MeleeCardParams)cardParams;
+	}
 }

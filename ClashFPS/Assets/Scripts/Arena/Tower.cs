@@ -1,49 +1,57 @@
 using System.Collections;
+
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class Tower : MonoBehaviour
 {
-    [SerializeField] private float Health = 1000f;
-    [SerializeField] private GameObject DeathPrefab;
-    [SerializeField] private bool IsKing = false;
-    [SerializeField] private Side side;
-    [SerializeField] private Slider HealthSlider;
+	[SerializeField] private float health = 1000f;
+	[SerializeField] private GameObject deathPrefab;
+	[SerializeField] private bool isKing;
+	[SerializeField] private Side side;
+	[SerializeField] private Slider healthSlider;
 
-    private void Start(){
-        HealthSlider.maxValue = Health;
-        HealthSlider.value = Health;
-    }
+	private void Start()
+	{
+		healthSlider.maxValue = health;
+		healthSlider.value = health;
+	}
 
-    public void Damage(float amount)
-    {
-        Health -= amount;
+	public void Damage(float amount)
+	{
+		health -= amount;
 
-        StartCoroutine(UpdateSlider(Health));
+		StartCoroutine(UpdateSlider(health));
 
-        if(Health <= 0){
-            Instantiate(DeathPrefab, transform.position + Vector3.down * (IsKing ? 8.3f : 5.8f), Quaternion.identity);
-            Destroy(gameObject);
-        }
-    }
+		if (health <= 0)
+		{
+			Instantiate(deathPrefab, transform.position + Vector3.down * (isKing ? 8.3f : 5.8f), Quaternion.identity);
+			Destroy(gameObject);
+		}
+	}
 
-    protected IEnumerator UpdateSlider(float value){
-        if(value <= 0){
-            HealthSlider.value = 0;
-            yield break;
-        }
+	protected IEnumerator UpdateSlider(float value)
+	{
+		if (value <= 0)
+		{
+			healthSlider.value = 0;
+			yield break;
+		}
 
-        float StepSize = 0.5f;
-        float dir = value > HealthSlider.value ? StepSize : -StepSize;
-        float wait = 0.01f / (Mathf.Abs(HealthSlider.value - value) / StepSize);
+		float stepSize = 0.5f;
+		float dir = value > healthSlider.value ? stepSize : -stepSize;
+		float wait = 0.01f / (Mathf.Abs(healthSlider.value - value) / stepSize);
 
-        for(float v = HealthSlider.value; Mathf.Abs(value - v) > StepSize; v += dir){
-            HealthSlider.value = v;
-            yield return new WaitForSeconds(wait);
-        }
-    }
+		for (float v = healthSlider.value; Mathf.Abs(value - v) > stepSize; v += dir)
+		{
+			healthSlider.value = v;
+			yield return new WaitForSeconds(wait);
+		}
+	}
 
-    public Side GetSide(){
-        return side;
-    }
+	public Side GetSide()
+	{
+		return side;
+	}
 }

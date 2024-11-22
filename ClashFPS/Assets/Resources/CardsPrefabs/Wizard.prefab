@@ -66,4 +66,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e24ad1a3af4d0b42a548e5c62cc9a73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Params: {fileID: 11400000, guid: 8136a4f1ac8ced745867c8597c845ee0, type: 2}
+  cardParams: {fileID: 11400000, guid: 8136a4f1ac8ced745867c8597c845ee0, type: 2}

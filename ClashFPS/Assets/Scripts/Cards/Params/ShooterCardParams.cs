@@ -1,10 +1,11 @@
 using UnityEngine;
 
+
 [CreateAssetMenu(fileName = "New ShooterCardParams", menuName = "ClashFPS/ShooterCardParams")]
 public class ShooterCardParams : CardParams
 {
-    public GameObject BulletPrefab;
-    public float BulletSpeed;
-    public int BulletAmount;
-    public float BulletSpread;
+	public GameObject bulletPrefab;
+	public float bulletSpeed;
+	public int bulletAmount;
+	public float bulletSpread;
 }

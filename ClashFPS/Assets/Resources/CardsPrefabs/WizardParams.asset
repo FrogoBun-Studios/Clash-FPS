@@ -15,16 +15,16 @@ MonoBehaviour:
   health: 100
   damage: 50
   speed: 10
-  JumpStrength: 10
+  jumpStrength: 10
   jumps: 1
-  elixer: 5
-  AttackRate: 1
-  ColliderRadius: 1
-  ColliderHeight: 3.5
-  ColliderYOffset: 1.75
-  ModelPrefab: {fileID: 6614300916131496709, guid: 52f4957d3d2b72648ab83c179a7cc620, type: 3}
-  CardImage: {fileID: 2800000, guid: fa5e191b3e4d0e14db57db8614c40ee3, type: 3}
-  BulletPrefab: {fileID: 8605331445094836383, guid: c10072ff891f6584ab7dd0afc80fc4e9, type: 3}
-  BulletSpeed: 30
-  BulletAmount: 1
-  BulletSpread: 0
+  elixir: 5
+  attackRate: 1
+  colliderRadius: 1
+  colliderHeight: 3.5
+  colliderYOffset: 1.75
+  modelPrefab: {fileID: 6614300916131496709, guid: 52f4957d3d2b72648ab83c179a7cc620, type: 3}
+  cardImage: {fileID: 2800000, guid: fa5e191b3e4d0e14db57db8614c40ee3, type: 3}
+  bulletPrefab: {fileID: 8605331445094836383, guid: c10072ff891f6584ab7dd0afc80fc4e9, type: 3}
+  bulletSpeed: 30
+  bulletAmount: 1
+  bulletSpread: 0

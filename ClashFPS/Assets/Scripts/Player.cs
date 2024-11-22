@@ -1,187 +1,219 @@
-using Unity.Netcode;
-using UnityEngine;
-using Unity.Cinemachine;
-using UnityEngine.UI;
 using TMPro;
+
+using Unity.Cinemachine;
+using Unity.Netcode;
+
+using UnityEngine;
+using UnityEngine.UI;
+
 
 public class Player : NetworkBehaviour
 {
-    [SerializeField] private CharacterController controller;
-    [SerializeField] private Transform cameraFollow;
-    [SerializeField] private Slider HealthSlider;
-    [SerializeField] private TextMeshProUGUI Name;
-    private CardSelection CardSelection;
+	[SerializeField] private CharacterController controller;
+	[SerializeField] private Transform cameraFollow;
+	[SerializeField] private Slider healthSlider;
+	[SerializeField] private TextMeshProUGUI playerName;
+	private Animator _animator;
 
-    private Card card;
-    private Side side;
-    private int elixr;
-    private Animator animator;
-    private float yVelocity = 0;
-    private bool spawned = false;
-    private int jumpsLeft;
-    
-    public override void OnNetworkSpawn(){
-        Chat.Singleton.Log($"Player {OwnerClientId} logged in");
+	private Card _card;
+	private CardSelection _cardSelection;
+	private int _elixr;
+	private int _jumpsLeft;
+	private Side _side;
+	private bool _spawned;
+	private float _yVelocity;
 
-        Name.text = $"Player {OwnerClientId}";
-        HealthSlider.name = $"Slider{OwnerClientId}";
+	private void Update()
+	{
+		if (!IsOwner || !_spawned)
+			return;
 
-        side = (Side)(OwnerClientId % 2);
+		_card.UpdateCard();
+	}
 
-        if(!IsOwner)
-            return;
+	private void OnControllerColliderHit(ControllerColliderHit hit)
+	{
+		if (IsOwner && hit.gameObject.CompareTag("WaterCols"))
+			_card.DamageRpc(Mathf.Infinity);
+	}
 
-        Destroy(HealthSlider.gameObject);
-        Destroy(Name.gameObject);
+	public override void OnNetworkSpawn()
+	{
+		Chat.Singleton.Log($"Player {OwnerClientId} logged in");
 
-        Application.targetFrameRate = 120;
+		playerName.text = $"Player {OwnerClientId}";
+		healthSlider.name = $"Slider{OwnerClientId}";
 
-        CardSelection = FindFirstObjectByType<CardSelection>();
-        CardSelection.SetPlayerScript(this);
-        StartCoroutine(CardSelection.Show());
-    }
+		_side = (Side)(OwnerClientId % 2);
 
-#region CardCreation
-    public void ChooseCard(string cardName){
-        spawned = false;
+		if (!IsOwner)
+			return;
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-        GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
-        Teleport(new Vector3(0, 2, -34));
+		Destroy(healthSlider.gameObject);
+		Destroy(playerName.gameObject);
 
-        SpawnCardRpc(cardName);
-    }
+		Application.targetFrameRate = 120;
 
-    [Rpc(SendTo.Server)]
-    private void SpawnCardRpc(string cardName){
-        GameObject card = Instantiate(Cards.CardPrefabs[cardName]);
-        card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+		_cardSelection = FindFirstObjectByType<CardSelection>();
+		_cardSelection.SetPlayerScript(this);
+		StartCoroutine(_cardSelection.Show());
+	}
 
-        SetCardRpc();
-    }
+	public Card GetCard()
+	{
+		return _card;
+	}
 
-    [Rpc(SendTo.Everyone)]
-    private void SetCardRpc(){
-        int i = 0;
-        foreach(GameObject cardGO in GameObject.FindGameObjectsWithTag("Card")){
-            cardGO.name = $"Card{i}";
-            Card card = cardGO.GetComponent<Card>();
-            GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
+	public Side GetSide()
+	{
+		return _side;
+	}
 
-            if(!card.IsStarted()){
-                Chat.Singleton.Log($"Starting card {i} with side {GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide()}");
-                card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform, GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide());
-                card.SetSliders($"Slider{i}");
-            }
+	public void SetCard(Card card)
+	{
+		_card = card;
+	}
 
-            i++;
-        }
-    }
+	public Quaternion GetCameraRotation()
+	{
+		return cameraFollow.rotation;
+	}
 
-    [Rpc(SendTo.Everyone)]
-    public void SetAnimatorRpc(string name){
-        animator = GameObject.Find(name).GetComponent<Animator>();
-    }
-#endregion
+	public Vector3 GetCameraForward()
+	{
+		return cameraFollow.forward;
+	}
 
-    private void Update()
-    {
-        if(!IsOwner || !spawned)
-            return;
+	public void Spawned()
+	{
+		_spawned = true;
+	}
 
-        card.UpdateCard();
-    }
+	[Rpc(SendTo.Everyone)]
+	public void SetColliderSizeRpc(float radius, float height, float yOffset)
+	{
+		controller.radius = radius;
+		controller.height = height;
+		controller.center = Vector3.up * yOffset;
+	}
 
-#region Movement
-    public void ControlCharacter(float speed, int jumps, float JumpStrength){
-        Move(speed);
-        Look();
+	public void SetCameraFollow(Vector3 pos)
+	{
+		cameraFollow.localPosition = pos;
+	}
 
-        if(Input.GetButtonDown("Jump")){
-            if(controller.isGrounded)
-                jumpsLeft = jumps;
+	#region CardCreation
 
-            if(jumpsLeft > 0){
-                yVelocity = JumpStrength;
-                animator.SetTrigger("Jump");
-                jumpsLeft--;
-            }
-        }
-    }
+	public void ChooseCard(string cardName)
+	{
+		_spawned = false;
 
-    private void Move(float speed){
-        Vector3 movementDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+		Cursor.lockState = CursorLockMode.Locked;
+		Cursor.visible = false;
+		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
+		Teleport(new Vector3(0, 2, -34));
 
-        yVelocity += Physics.gravity.y * Time.deltaTime;
-        controller.Move(transform.right * movementDir.x * speed * Time.deltaTime
-                        + Vector3.up * yVelocity * Time.deltaTime
-                        + transform.forward * movementDir.z * speed * Time.deltaTime);
+		SpawnCardRpc(cardName);
+	}
 
-        if(controller.isGrounded)
-            yVelocity = 0;
-        
-        animator.SetBool("Moving", movementDir != Vector3.zero);
-        if(movementDir.z != 0)
-            animator.SetFloat("Speed", Utils.MagnitudeInDirection(controller.velocity, transform.forward) / 6.6f);
-        else
-            animator.SetFloat("Speed", Mathf.Abs(Utils.MagnitudeInDirection(controller.velocity, transform.right)) >= 0.2f ? 1 : 0);
-    }
+	[Rpc(SendTo.Server)]
+	private void SpawnCardRpc(string cardName)
+	{
+		GameObject card = Instantiate(Cards.CardPrefabs[cardName]);
+		card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-    private void Look(){
-        transform.localEulerAngles = new Vector3(0, transform.rotation.eulerAngles.y + Input.GetAxis("Mouse X"), 0);
+		SetCardRpc();
+	}
 
-        float xAngle = cameraFollow.rotation.eulerAngles.x;
-        if(xAngle >= 180)
-            xAngle -= 360;
+	[Rpc(SendTo.Everyone)]
+	private void SetCardRpc()
+	{
+		int i = 0;
+		foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
+		{
+			cardGo.name = $"Card{i}";
+			Card card = cardGo.GetComponent<Card>();
+			GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
 
-        cameraFollow.localEulerAngles = new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y"), -40, 75), 0, 0);
-    }
+			if (!card.IsStarted())
+			{
+				Chat.Singleton.Log(
+					$"Starting card {i} with side {GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide()}");
+				card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform,
+					GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide());
+				card.SetSliders($"Slider{i}");
+			}
 
-    private void Teleport(Vector3 pos){
-        controller.enabled = false;
-        transform.position = pos;
-        controller.enabled = true;
-    }
-#endregion
+			i++;
+		}
+	}
 
-    public Card GetCard(){
-        return card;
-    }
+	[Rpc(SendTo.Everyone)]
+	public void SetAnimatorRpc(string modelName)
+	{
+		_animator = GameObject.Find(modelName).GetComponent<Animator>();
+	}
 
-    public Side GetSide(){
-        return side;
-    }
+	#endregion
 
-    public void SetCard(Card card){
-        this.card = card;
-    }
+	#region Movement
 
-    public Quaternion GetCameraRotation(){
-        return cameraFollow.rotation;
-    }
+	public void ControlCharacter(float speed, int jumps, float jumpStrength)
+	{
+		Move(speed);
+		Look();
 
-    public Vector3 GetCameraForward(){
-        return cameraFollow.forward;
-    }
+		if (Input.GetButtonDown("Jump"))
+		{
+			if (controller.isGrounded)
+				_jumpsLeft = jumps;
 
-    public void Spawned(){
-        spawned = true;
-    }
+			if (_jumpsLeft > 0)
+			{
+				_yVelocity = jumpStrength;
+				_animator.SetTrigger("Jump");
+				_jumpsLeft--;
+			}
+		}
+	}
 
-    [Rpc(SendTo.Everyone)]
-    public void SetColliderSizeRpc(float radius, float height, float YOffset){
-        controller.radius = radius;
-        controller.height = height;
-        controller.center = Vector3.up * YOffset;
-    }
+	private void Move(float speed)
+	{
+		Vector3 movementDir = new(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
 
-    public void SetCameraFollow(Vector3 pos){
-        cameraFollow.localPosition = pos;
-    }
+		_yVelocity += Physics.gravity.y * Time.deltaTime;
+		controller.Move(transform.right * (movementDir.x * speed * Time.deltaTime)
+		                + Vector3.up * (_yVelocity * Time.deltaTime)
+		                + transform.forward * (movementDir.z * speed * Time.deltaTime));
 
-    private void OnControllerColliderHit(ControllerColliderHit hit){
-        if(IsOwner && hit.gameObject.CompareTag("WaterCols"))
-            card.DamageRpc(Mathf.Infinity);
-    }
+		if (controller.isGrounded)
+			_yVelocity = 0;
+
+		_animator.SetBool("Moving", movementDir != Vector3.zero);
+		if (movementDir.z != 0)
+			_animator.SetFloat("Speed", Utils.MagnitudeInDirection(controller.velocity, transform.forward) / 6.6f);
+		else
+			_animator.SetFloat("Speed",
+				Mathf.Abs(Utils.MagnitudeInDirection(controller.velocity, transform.right)) >= 0.2f ? 1 : 0);
+	}
+
+	private void Look()
+	{
+		transform.localEulerAngles = new Vector3(0, transform.rotation.eulerAngles.y + Input.GetAxis("Mouse X"), 0);
+
+		float xAngle = cameraFollow.rotation.eulerAngles.x;
+		if (xAngle >= 180)
+			xAngle -= 360;
+
+		cameraFollow.localEulerAngles = new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y"), -40, 75), 0, 0);
+	}
+
+	private void Teleport(Vector3 pos)
+	{
+		controller.enabled = false;
+		transform.position = pos;
+		controller.enabled = true;
+	}
+
+	#endregion
 }
