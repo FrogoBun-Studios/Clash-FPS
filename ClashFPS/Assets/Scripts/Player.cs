@@ -13,6 +13,7 @@ public class Player : NetworkBehaviour
 	[SerializeField] private Transform cameraFollow;
 	[SerializeField] private Slider healthSlider;
 	[SerializeField] private TextMeshProUGUI playerName;
+	[SerializeField] private NetworkObject chatNetworkHelper;
 	private Animator _animator;
 
 	private Card _card;
@@ -39,11 +40,6 @@ public class Player : NetworkBehaviour
 
 	public override void OnNetworkSpawn()
 	{
-		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0.75f;
-		Chat.Singleton.Log($"Player {OwnerClientId} logged in");
-		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 1;
-		Destroy(GameObject.Find("LoadingBar"), 0.25f);
-
 		playerName.text = $"Player {OwnerClientId}";
 		healthSlider.name = $"Slider{OwnerClientId}";
 
@@ -51,6 +47,21 @@ public class Player : NetworkBehaviour
 
 		if (!IsOwner)
 			return;
+
+		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0.75f;
+
+		if (IsServer)
+		{
+			chatNetworkHelper = Instantiate(chatNetworkHelper.gameObject).GetComponent<NetworkObject>();
+			chatNetworkHelper.Spawn();
+		}
+
+		chatNetworkHelper = GameObject.Find("ChatNetworkHelper(Clone)").GetComponent<NetworkObject>();
+		Chat.Singleton.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>());
+		Chat.Singleton.Log($"Player {OwnerClientId} logged in");
+
+		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 1;
+		Destroy(GameObject.Find("LoadingBar"), 0.25f);
 
 		Destroy(healthSlider.gameObject);
 		Destroy(playerName.gameObject);

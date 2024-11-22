@@ -155,6 +155,7 @@ public abstract class Card : NetworkBehaviour
 
 	protected virtual void Attack()
 	{
+		Chat.Singleton.PlayerWrite("Sigma", _playerScript.name);
 		_animator.SetTrigger("Attack");
 	}
 
