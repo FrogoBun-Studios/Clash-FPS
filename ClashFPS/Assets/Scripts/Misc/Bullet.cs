@@ -26,7 +26,7 @@ public class Bullet : NetworkBehaviour
 
 		if (other.gameObject.CompareTag("Tower"))
 		{
-			AttackTowerRpc(other.gameObject.name);
+			DamageTowerRpc(other.gameObject.name);
 			StartCoroutine(SelfDestroy());
 		}
 	}
@@ -53,7 +53,7 @@ public class Bullet : NetworkBehaviour
 	}
 
 	[Rpc(SendTo.Everyone)]
-	protected void AttackTowerRpc(string towerName)
+	protected void DamageTowerRpc(string towerName)
 	{
 		Tower t = GameObject.Find(towerName).GetComponent<Tower>();
 

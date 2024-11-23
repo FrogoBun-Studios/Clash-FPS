@@ -46,11 +46,6 @@ public abstract class Card : NetworkBehaviour
 		return _started;
 	}
 
-	public int GetElixirCost()
-	{
-		return cardParams.elixir;
-	}
-
 	public virtual void UpdateCard()
 	{
 		if (_health <= 0)
@@ -67,6 +62,13 @@ public abstract class Card : NetworkBehaviour
 
 		_model.position = _player.position;
 		_model.localEulerAngles = _player.localEulerAngles;
+	}
+
+	[Rpc(SendTo.Server)]
+	public void DespawnCardRpc()
+	{
+		_model.GetComponent<NetworkObject>().Despawn();
+		GetComponent<NetworkObject>().Despawn();
 	}
 
 	#region Misc
@@ -111,12 +113,6 @@ public abstract class Card : NetworkBehaviour
 		}
 	}
 
-	[Rpc(SendTo.Everyone)]
-	protected void UpdateSliderRpc(float value)
-	{
-		StartCoroutine(UpdateSlider(value));
-	}
-
 	#endregion
 
 	#region ModelCreation
@@ -133,12 +129,8 @@ public abstract class Card : NetworkBehaviour
 	[Rpc(SendTo.Everyone)]
 	private void SetModelRpc()
 	{
-		int i = 0;
 		foreach (GameObject model in GameObject.FindGameObjectsWithTag("Model"))
-		{
-			model.name = $"Model{i}";
-			i++;
-		}
+			model.name = $"Model{model.GetComponent<NetworkObject>().OwnerClientId}";
 
 		_model = GameObject.Find($"Model{OwnerClientId}").transform;
 		_animator = _model.GetComponent<Animator>();
@@ -155,12 +147,11 @@ public abstract class Card : NetworkBehaviour
 
 	protected virtual void Attack()
 	{
-		Chat.Singleton.PlayerWrite("Sigma", _playerScript.name);
 		_animator.SetTrigger("Attack");
 	}
 
 	[Rpc(SendTo.Everyone)]
-	protected void AttackTowerRpc(string towerName)
+	protected void DamageTowerRpc(string towerName)
 	{
 		Tower t = GameObject.Find(towerName).GetComponent<Tower>();
 
@@ -168,26 +159,27 @@ public abstract class Card : NetworkBehaviour
 			t.Damage(cardParams.damage);
 	}
 
-	[Rpc(SendTo.Owner)]
-	public virtual void DamageRpc(float amount)
+	[Rpc(SendTo.Everyone)]
+	public void DamageRpc(float amount)
 	{
 		_health -= amount;
 
-		UpdateSliderRpc(_health);
+		StartCoroutine(UpdateSlider(_health));
 
 		if (_health <= 0)
-			_animator.SetTrigger("Death");
+			OnDeathRpc();
 	}
 
-	public virtual void Heal(float amount)
+	[Rpc(SendTo.Owner)]
+	protected virtual void OnDeathRpc()
+	{
+		_animator.SetTrigger("Death");
+		_playerScript.Respawn();
+	}
+
+	public void Heal(float amount)
 	{
 		DamageRpc(-amount);
-	}
-
-	[Rpc(SendTo.Everyone)]
-	protected void SetDamageRpc(float newDamage)
-	{
-		cardParams.damage = newDamage;
 	}
 
 	#endregion

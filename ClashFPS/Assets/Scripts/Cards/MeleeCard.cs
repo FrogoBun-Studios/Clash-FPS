@@ -36,7 +36,7 @@ public class MeleeCard : Card
 			}
 
 			if (col.CompareTag("Tower"))
-				AttackTowerRpc(col.name);
+				DamageTowerRpc(col.name);
 		}
 	}
 

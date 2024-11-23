@@ -1,3 +1,5 @@
+using System.Collections;
+
 using TMPro;
 
 using Unity.Cinemachine;
@@ -14,12 +16,15 @@ public class Player : NetworkBehaviour
 	[SerializeField] private Slider healthSlider;
 	[SerializeField] private TextMeshProUGUI playerName;
 	[SerializeField] private NetworkObject chatNetworkHelper;
+	[SerializeField] private float timeToRespawn = 5f;
 	private Animator _animator;
 
 	private Card _card;
 	private CardSelection _cardSelection;
 	private int _elixr;
 	private int _jumpsLeft;
+	private Vector3 _resetedCameraPosition;
+	private Quaternion _resetedCameraRotation;
 	private Side _side;
 	private bool _spawned;
 	private float _yVelocity;
@@ -68,9 +73,12 @@ public class Player : NetworkBehaviour
 
 		Application.targetFrameRate = 120;
 
+		_resetedCameraPosition = GameObject.Find("CineCam").transform.position;
+		_resetedCameraRotation = GameObject.Find("CineCam").transform.rotation;
+
 		_cardSelection = FindFirstObjectByType<CardSelection>();
 		_cardSelection.SetPlayerScript(this);
-		StartCoroutine(_cardSelection.Show());
+		Respawn(false);
 	}
 
 	public Card GetCard()
@@ -103,6 +111,13 @@ public class Player : NetworkBehaviour
 		_spawned = true;
 	}
 
+	private void ResetCamera()
+	{
+		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = null;
+		GameObject.Find("CineCam").transform.position = _resetedCameraPosition;
+		GameObject.Find("CineCam").transform.rotation = _resetedCameraRotation;
+	}
+
 	[Rpc(SendTo.Everyone)]
 	public void SetColliderSizeRpc(float radius, float height, float yOffset)
 	{
@@ -118,15 +133,31 @@ public class Player : NetworkBehaviour
 
 	#region CardCreation
 
-	public void ChooseCard(string cardName)
+	public void Respawn(bool delay = true)
 	{
 		_spawned = false;
 
+		Cursor.lockState = CursorLockMode.None;
+		Cursor.visible = true;
+		ResetCamera();
+
+		StartCoroutine(_cardSelection.Show(delay ? timeToRespawn : 0));
+	}
+
+	public IEnumerator ChooseCard(string cardName)
+	{
+		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
-		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
-		Teleport(new Vector3(0, 2, -34));
 
+		if (_card != null)
+		{
+			_card.DespawnCardRpc();
+			yield return new WaitUntil(() => _card == null);
+		}
+
+		Teleport(new Vector3(0, 2, _side == Side.Blue ? -34 : 34),
+			Quaternion.Euler(0, _side == Side.Blue ? 0 : 180, 0));
 		SpawnCardRpc(cardName);
 	}
 
@@ -142,9 +173,10 @@ public class Player : NetworkBehaviour
 	[Rpc(SendTo.Everyone)]
 	private void SetCardRpc()
 	{
-		int i = 0;
 		foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
 		{
+			int i = (int)cardGo.GetComponent<NetworkObject>().OwnerClientId;
+
 			cardGo.name = $"Card{i}";
 			Card card = cardGo.GetComponent<Card>();
 			GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
@@ -157,8 +189,6 @@ public class Player : NetworkBehaviour
 					GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide());
 				card.SetSliders($"Slider{i}");
 			}
-
-			i++;
 		}
 	}
 
@@ -222,10 +252,18 @@ public class Player : NetworkBehaviour
 		cameraFollow.localEulerAngles = new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y"), -40, 75), 0, 0);
 	}
 
-	private void Teleport(Vector3 pos)
+	private void Teleport(Vector3 position, Quaternion rotation)
 	{
 		controller.enabled = false;
-		transform.position = pos;
+		transform.position = position;
+		transform.rotation = rotation;
+		controller.enabled = true;
+	}
+
+	private void Teleport(Vector3 position)
+	{
+		controller.enabled = false;
+		transform.position = position;
 		controller.enabled = true;
 	}
 

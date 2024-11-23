@@ -109,8 +109,8 @@ public class CardCreator : EditorWindow
 
 	private void CreateAnimator()
 	{
-		bool success = AssetDatabase.CopyAsset("Assets/Resources/Cards/Valkyrie/Animator.controller",
-			$"Assets/Resources/{_name}/Animator.controller");
+		bool success = AssetDatabase.CopyAsset("Assets/Resources/CardsAssets/Valkyrie/Animator.controller",
+			$"Assets/Resources/CardsAssets/{_name}/Animator.controller");
 		if (success)
 			Debug.Log("Card Creator: Animator controller created.");
 		else
@@ -118,7 +118,7 @@ public class CardCreator : EditorWindow
 
 		AssetDatabase.Refresh();
 
-		AnimatorController animator = Resources.Load<AnimatorController>($"Cards/{_name}/Animator");
+		AnimatorController animator = Resources.Load<AnimatorController>($"CardsAssets/{_name}/Animator");
 
 		animator.layers[0].stateMachine.states[0].state.motion = _animations[0];
 		animator.layers[0].stateMachine.states[1].state.motion = _animations[7];
@@ -138,13 +138,13 @@ public class CardCreator : EditorWindow
 	private void CreateModelPrefab()
 	{
 		_modelPrefab = PrefabUtility.SaveAsPrefabAsset(_model,
-			AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/Cards/{_name}/{_name}ModelPrefab.prefab"));
+			AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/CardsAssets/{_name}/{_name}ModelPrefab.prefab"));
 		AssetDatabase.Refresh();
 
 		Debug.Log("Card Creator: Model prefab created.");
 
 		_modelPrefab.GetComponent<Animator>().runtimeAnimatorController =
-			Resources.Load<AnimatorController>($"Cards/{_name}/Animator");
+			Resources.Load<AnimatorController>($"CardsAssets/{_name}/Animator");
 		_modelPrefab.GetComponent<Animator>().avatar = _avatar;
 		_modelPrefab.AddComponent<NetworkObject>();
 		_modelPrefab.AddComponent<ClientNetworkTransform>().SyncRotAngleX = false;
@@ -201,7 +201,7 @@ public class " + _name + @"Card : Card
 		cardPrefab.tag = "Card";
 
 		_cardPrefab = PrefabUtility.SaveAsPrefabAsset(cardPrefab,
-			AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/Cards/{_name}/{_name}Card.prefab"));
+			AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/CardsPrefabs/{_name}/{_name}Card.prefab"));
 		Debug.Log($"Card Creator: {_name}Card.prefab created.");
 
 		Undo.DestroyObjectImmediate(cardPrefab);
@@ -235,7 +235,7 @@ public class " + _name + @"Card : Card
 
 	private void RemoveFolder()
 	{
-		string folderPath = $"Assets/Resources/Cards/{_name}";
+		string folderPath = $"Assets/Resources/CardsAssets/{_name}";
 
 		if (Directory.Exists(folderPath))
 		{

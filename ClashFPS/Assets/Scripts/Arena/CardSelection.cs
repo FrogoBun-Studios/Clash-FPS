@@ -14,23 +14,39 @@ public class CardSelection : MonoBehaviour
 	[SerializeField] private Button leftCardButton;
 	[SerializeField] private Button middleCardButton;
 	[SerializeField] private Button rightCardButton;
+	[SerializeField] private TextMeshProUGUI waitText;
 	private string _leftCardName;
 	private string _middleCardName;
 
 	private Player _playerScript;
 	private string _rightCardName;
 
-	public IEnumerator Show()
+	public IEnumerator Show(float delay)
 	{
 		PutCards();
 
-		for (float t = 0; t < 1; t += 0.05f)
+		canvasGroup.interactable = false;
+
+		float timeToOpen = 0.2f;
+		float timeStep = 0.01f;
+		for (float t = 0; t < 1; t += timeStep / timeToOpen)
 		{
 			canvasGroup.alpha = t;
-			yield return new WaitForSeconds(0.01f);
+			yield return new WaitForSeconds(timeStep);
 		}
 
 		canvasGroup.alpha = 1;
+
+		timeToOpen = delay - timeToOpen;
+		for (float t = 0; t < timeToOpen; t += Time.deltaTime)
+		{
+			waitText.text = $"Respawn In {Mathf.Ceil(timeToOpen - t)} Seconds...";
+			yield return null;
+		}
+
+		waitText.text = "Respawn Now";
+
+		canvasGroup.interactable = true;
 	}
 
 	public IEnumerator Hide()
@@ -89,21 +105,21 @@ public class CardSelection : MonoBehaviour
 
 	public void LeftCard()
 	{
-		_playerScript.ChooseCard(_leftCardName);
+		StartCoroutine(_playerScript.ChooseCard(_leftCardName));
 
 		StartCoroutine(Hide());
 	}
 
 	public void MiddleCard()
 	{
-		_playerScript.ChooseCard(_middleCardName);
+		StartCoroutine(_playerScript.ChooseCard(_middleCardName));
 
 		StartCoroutine(Hide());
 	}
 
 	public void RightCard()
 	{
-		_playerScript.ChooseCard(_rightCardName);
+		StartCoroutine(_playerScript.ChooseCard(_rightCardName));
 
 		StartCoroutine(Hide());
 	}
