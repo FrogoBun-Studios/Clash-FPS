@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using TMPro;
 
+using Unity.Netcode;
+
 using UnityEngine;
 
 
@@ -73,7 +75,10 @@ public class Chat : MonoBehaviour
 	public void Log(string message)
 	{
 		Show();
-		AddMessage($"[System]: {message}");
+		if (_chatNetworkHelper is not null)
+			AddMessage($"[{NetworkManager.Singleton.LocalClientId} System]: {message}");
+		else
+			AddMessage($"[System]: {message}");
 	}
 
 	public void PlayerWrite(string message, string playerName)

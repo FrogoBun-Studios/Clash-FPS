@@ -20,25 +20,33 @@ public abstract class Card : NetworkBehaviour
 	protected Player _playerScript;
 	protected Side _side;
 	private bool _started;
+	private string _topSliderName;
 
-	public virtual void StartCard(Transform player, Side side)
+	public virtual void StartCard(Transform player, Side side, string topSlider)
 	{
-		_started = true;
-
 		_side = side;
 		_modelPrefab = cardParams.modelPrefab;
 		_player = player;
 		_playerScript = player.GetComponent<Player>();
-		_health = cardParams.health;
 
+		if (!_started)
+			_health = cardParams.health;
+
+		_topSliderName = topSlider;
 		if (!IsOwner)
+		{
+			SetModelRpc();
 			return;
+		}
 
 		_playerScript.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
 			cardParams.colliderYOffset);
-		CreateModelRpc();
 
-		_attackTimer = 1 / cardParams.attackRate;
+		if (!_started)
+			CreateModelRpc();
+
+		if (!_started)
+			_attackTimer = 1 / cardParams.attackRate;
 	}
 
 	public bool IsStarted()
@@ -76,12 +84,18 @@ public abstract class Card : NetworkBehaviour
 	public void SetSliders(string topSlider)
 	{
 		if (!IsOwner)
+		{
 			_healthSlider = GameObject.Find(topSlider).GetComponent<Slider>();
+			_healthSlider.transform.parent.position = new Vector3(_healthSlider.transform.position.x,
+				_model.localScale.y * 4f + 2.1f, _healthSlider.transform.position.z);
+		}
 		else
 			_healthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
 
 		_healthSlider.maxValue = _health;
 		_healthSlider.value = _health;
+
+		_started = true;
 	}
 
 	public Side GetSide()
@@ -137,6 +151,7 @@ public abstract class Card : NetworkBehaviour
 		_playerScript.SetAnimatorRpc(_model.name);
 		_playerScript.SetCameraFollow(new Vector3(0, 4.625f * _model.localScale.y - 2.375f,
 			-2.5f * _model.localScale.y + 2.5f));
+		SetSliders(_topSliderName);
 
 		_playerScript.Spawned();
 	}

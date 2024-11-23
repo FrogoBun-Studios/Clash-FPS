@@ -19,7 +19,7 @@ MonoBehaviour:
   jumps: 1
   elixir: 5
   attackRate: 1
-  colliderRadius: 5
+  colliderRadius: 4
   colliderHeight: 12
   colliderYOffset: 6
   modelPrefab: {fileID: 919132149155446097, guid: 80ddcbc22abf59e48a9bf1b3416d4665, type: 3}

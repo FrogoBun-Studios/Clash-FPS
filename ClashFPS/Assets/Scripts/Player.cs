@@ -181,14 +181,11 @@ public class Player : NetworkBehaviour
 			Card card = cardGo.GetComponent<Card>();
 			GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
 
-			if (!card.IsStarted())
-			{
-				Chat.Singleton.Log(
-					$"Starting card {i} with side {GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide()}");
-				card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform,
-					GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide());
-				card.SetSliders($"Slider{i}");
-			}
+			Chat.Singleton.Log(
+				$"Starting card {i} with side {GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide()}");
+
+			card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform,
+				GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide(), $"Slider{i}");
 		}
 	}
 
