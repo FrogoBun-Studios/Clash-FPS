@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0e758d7c52c79540a7fd6a61a1c6af8, type: 3}
   m_Name: ValkyrieParams
   m_EditorClassIdentifier: 
+  cardName: Valkyrie
   health: 300
   damage: 70
   speed: 8

@@ -14,15 +14,17 @@ public class Player : NetworkBehaviour
 	[SerializeField] private CharacterController controller;
 	[SerializeField] private Transform cameraFollow;
 	[SerializeField] private Slider healthSlider;
-	[SerializeField] private TextMeshProUGUI playerName;
+	[SerializeField] private TextMeshProUGUI playerNameText;
 	[SerializeField] private NetworkObject chatNetworkHelper;
-	[SerializeField] private float timeToRespawn = 5f;
+	[SerializeField] private float timeToRespawn;
+	[SerializeField] private float sensitivity;
 	private Animator _animator;
-
 	private Card _card;
 	private CardSelection _cardSelection;
-	private int _elixr;
+	private int _elixir = 5;
 	private int _jumpsLeft;
+
+	private string _playerName;
 	private Vector3 _resetedCameraPosition;
 	private Quaternion _resetedCameraRotation;
 	private Side _side;
@@ -40,12 +42,13 @@ public class Player : NetworkBehaviour
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
 		if (IsOwner && hit.gameObject.CompareTag("WaterCols"))
-			_card.DamageRpc(Mathf.Infinity);
+			_card.Damage(Mathf.Infinity);
 	}
 
 	public override void OnNetworkSpawn()
 	{
-		playerName.text = $"Player {OwnerClientId}";
+		_playerName = $"Player {OwnerClientId}";
+		playerNameText.text = _playerName;
 		healthSlider.name = $"Slider{OwnerClientId}";
 
 		_side = (Side)(OwnerClientId % 2);
@@ -69,7 +72,7 @@ public class Player : NetworkBehaviour
 		Destroy(GameObject.Find("LoadingBar"), 0.25f);
 
 		Destroy(healthSlider.gameObject);
-		Destroy(playerName.gameObject);
+		Destroy(playerNameText.gameObject);
 
 		Application.targetFrameRate = 120;
 
@@ -77,8 +80,13 @@ public class Player : NetworkBehaviour
 		_resetedCameraRotation = GameObject.Find("CineCam").transform.rotation;
 
 		_cardSelection = FindFirstObjectByType<CardSelection>();
-		_cardSelection.SetPlayerScript(this);
+		_cardSelection.Set(this);
 		Respawn(false);
+	}
+
+	public string GetPlayerName()
+	{
+		return _playerName;
 	}
 
 	public Card GetCard()
@@ -89,6 +97,21 @@ public class Player : NetworkBehaviour
 	public Side GetSide()
 	{
 		return _side;
+	}
+
+	public int GetElixir()
+	{
+		return _elixir;
+	}
+
+	public void SpendElixir(int amount)
+	{
+		_elixir -= amount;
+	}
+
+	public void EarnElixir(int amount)
+	{
+		_elixir += amount;
 	}
 
 	public void SetCard(Card card)
@@ -240,13 +263,15 @@ public class Player : NetworkBehaviour
 
 	private void Look()
 	{
-		transform.localEulerAngles = new Vector3(0, transform.rotation.eulerAngles.y + Input.GetAxis("Mouse X"), 0);
+		transform.localEulerAngles =
+			new Vector3(0, transform.rotation.eulerAngles.y + Input.GetAxis("Mouse X") * sensitivity, 0);
 
 		float xAngle = cameraFollow.rotation.eulerAngles.x;
 		if (xAngle >= 180)
 			xAngle -= 360;
 
-		cameraFollow.localEulerAngles = new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y"), -40, 75), 0, 0);
+		cameraFollow.localEulerAngles =
+			new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y") * sensitivity, -40, 75), 0, 0);
 	}
 
 	private void Teleport(Vector3 position, Quaternion rotation)

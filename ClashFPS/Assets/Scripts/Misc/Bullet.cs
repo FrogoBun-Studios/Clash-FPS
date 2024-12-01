@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 
 using Unity.Netcode;
@@ -9,6 +10,8 @@ public class Bullet : NetworkBehaviour
 {
 	[SerializeField] private Rigidbody rb;
 	private float _damage;
+	private Action<float> _earnElixir;
+	private Action<Player> _killedPlayer;
 	private Side _side;
 	private float _speed;
 
@@ -20,7 +23,10 @@ public class Bullet : NetworkBehaviour
 		if (other.gameObject.CompareTag("Player"))
 			if (other.gameObject.GetComponent<Player>().GetCard().GetSide() != _side)
 			{
-				other.gameObject.GetComponent<Player>().GetCard().DamageRpc(_damage);
+				_earnElixir(_damage * 0.00025f);
+				if (other.gameObject.GetComponent<Player>().GetCard().Damage(_damage))
+					_killedPlayer(other.gameObject.GetComponent<Player>());
+
 				StartCoroutine(SelfDestroy());
 			}
 
@@ -31,11 +37,14 @@ public class Bullet : NetworkBehaviour
 		}
 	}
 
-	public void Enable(float speed, float damage, Side side, Vector3 dir)
+	public void Enable(float speed, float damage, Side side, Vector3 dir, Action<float> earnElixir,
+		Action<Player> killedPlayer)
 	{
 		_speed = speed;
 		_damage = damage;
 		_side = side;
+		_earnElixir = earnElixir;
+		_killedPlayer = killedPlayer;
 		SetVelocityRpc(dir);
 	}
 
@@ -58,6 +67,10 @@ public class Bullet : NetworkBehaviour
 		Tower t = GameObject.Find(towerName).GetComponent<Tower>();
 
 		if (t.GetSide() != _side)
-			t.Damage(_damage);
+		{
+			_earnElixir(_damage * 0.00025f);
+			if (t.Damage(_damage))
+				_earnElixir(10);
+		}
 	}
 }

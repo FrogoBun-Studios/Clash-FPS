@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53f26b7ac3313dc4aaaae52110f26b7b, type: 3}
   m_Name: WizardParams
   m_EditorClassIdentifier: 
+  cardName: Wizard
   health: 100
   damage: 50
   speed: 10

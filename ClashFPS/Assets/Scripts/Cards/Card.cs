@@ -11,6 +11,7 @@ public abstract class Card : NetworkBehaviour
 	[SerializeField] protected CardParams cardParams;
 	private Animator _animator;
 	protected float _attackTimer;
+	protected float _elixirEarned;
 
 	protected float _health;
 	private Slider _healthSlider;
@@ -28,6 +29,7 @@ public abstract class Card : NetworkBehaviour
 		_modelPrefab = cardParams.modelPrefab;
 		_player = player;
 		_playerScript = player.GetComponent<Player>();
+		_elixirEarned = 0f;
 
 		if (!_started)
 			_health = cardParams.health;
@@ -58,6 +60,8 @@ public abstract class Card : NetworkBehaviour
 	{
 		if (_health <= 0)
 			return;
+
+		_elixirEarned += Time.deltaTime * 0.025f;
 
 		_playerScript.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
 
@@ -171,11 +175,14 @@ public abstract class Card : NetworkBehaviour
 		Tower t = GameObject.Find(towerName).GetComponent<Tower>();
 
 		if (t.GetSide() != _side)
-			t.Damage(cardParams.damage);
+		{
+			if (t.Damage(cardParams.damage))
+				_elixirEarned += 10;
+		}
 	}
 
 	[Rpc(SendTo.Everyone)]
-	public void DamageRpc(float amount)
+	private void DamageRpc(float amount)
 	{
 		_health -= amount;
 
@@ -185,11 +192,25 @@ public abstract class Card : NetworkBehaviour
 			OnDeathRpc();
 	}
 
+	public void KilledPlayer(Player killedPlayer)
+	{
+		_elixirEarned += 3;
+		Chat.Singleton.KillLog(_playerScript.GetPlayerName(), killedPlayer.GetPlayerName(), cardParams.cardName);
+	}
+
 	[Rpc(SendTo.Owner)]
 	protected virtual void OnDeathRpc()
 	{
 		_animator.SetTrigger("Death");
+
+		_playerScript.EarnElixir((int)_elixirEarned);
 		_playerScript.Respawn();
+	}
+
+	public bool Damage(float amount)
+	{
+		DamageRpc(amount);
+		return _health <= 0;
 	}
 
 	public void Heal(float amount)

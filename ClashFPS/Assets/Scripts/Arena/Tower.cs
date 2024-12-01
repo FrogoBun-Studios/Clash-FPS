@@ -18,7 +18,7 @@ public class Tower : MonoBehaviour
 		healthSlider.value = health;
 	}
 
-	public void Damage(float amount)
+	public bool Damage(float amount)
 	{
 		health -= amount;
 
@@ -27,8 +27,11 @@ public class Tower : MonoBehaviour
 		if (health <= 0)
 		{
 			Instantiate(deathPrefab, transform.position + Vector3.down * (isKing ? 8.3f : 5.8f), Quaternion.identity);
-			Destroy(gameObject);
+			Destroy(gameObject, 0.01f);
+			return true;
 		}
+
+		return false;
 	}
 
 	protected IEnumerator UpdateSlider(float value)

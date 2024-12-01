@@ -4,6 +4,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New CardParams", menuName = "ClashFPS/CardParams")]
 public class CardParams : ScriptableObject
 {
+	public string cardName;
 	public float health;
 	public float damage;
 	public float speed;
