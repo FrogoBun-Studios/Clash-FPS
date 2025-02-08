@@ -1149,27 +1149,27 @@ PrefabInstance:
       objectReference: {fileID: -5521159809323618214, guid: 916672b425881c24a84074dca458eaba, type: 3}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2181,6 +2181,10 @@ PrefabInstance:
       propertyPath: DeathPrefab
       value: 
       objectReference: {fileID: 2923333605833555649, guid: b2a9d7108f18faf4ba5f41f1b6ef73be, type: 3}
+    - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
+      propertyPath: deathPrefab
+      value: 
+      objectReference: {fileID: 2923333605833555649, guid: b2a9d7108f18faf4ba5f41f1b6ef73be, type: 3}
     - target: {fileID: 58545315655077571, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_Name
       value: LeftBlueTower
@@ -2247,27 +2251,27 @@ PrefabInstance:
       objectReference: {fileID: -5521159809323618214, guid: 916672b425881c24a84074dca458eaba, type: 3}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2374,7 +2378,7 @@ PrefabInstance:
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: deathPrefab
       value: 
-      objectReference: {fileID: 919132149155446097, guid: 2b7f187c8ade2c041b6504a49c2bb382, type: 3}
+      objectReference: {fileID: 3052787266206628275, guid: 7d29cfb951e7dca4db9255d905d312e5, type: 3}
     - target: {fileID: 58545315655077571, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_Name
       value: LeftRedTower
@@ -2441,27 +2445,27 @@ PrefabInstance:
       objectReference: {fileID: -5521159809323618214, guid: aa7f0233e35000e4cb8cfee756e8d9b1, type: 3}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3526,7 +3530,7 @@ PrefabInstance:
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: deathPrefab
       value: 
-      objectReference: {fileID: 919132149155446097, guid: 8747db3c437510646849083824cebd3d, type: 3}
+      objectReference: {fileID: 5948184150380124955, guid: 240593499ce482a4890968a7286cb44d, type: 3}
     - target: {fileID: 58545315655077571, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_Name
       value: RedKingTower
@@ -3605,27 +3609,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 7.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4062,7 +4066,7 @@ PrefabInstance:
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: deathPrefab
       value: 
-      objectReference: {fileID: 919132149155446097, guid: a662d97730efe584f90440a71974712f, type: 3}
+      objectReference: {fileID: 5145090104409177879, guid: b3e5bcefaba66a547a2ef8b5364879f4, type: 3}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: healthSlider
       value: 
@@ -4145,27 +4149,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 7.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4776,7 +4780,7 @@ PrefabInstance:
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: deathPrefab
       value: 
-      objectReference: {fileID: 919132149155446097, guid: 2b7f187c8ade2c041b6504a49c2bb382, type: 3}
+      objectReference: {fileID: 3052787266206628275, guid: 7d29cfb951e7dca4db9255d905d312e5, type: 3}
     - target: {fileID: 58545315655077571, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_Name
       value: RightRedTower
@@ -4843,27 +4847,27 @@ PrefabInstance:
       objectReference: {fileID: -5521159809323618214, guid: aa7f0233e35000e4cb8cfee756e8d9b1, type: 3}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7049475415050861950, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5847,9 +5851,9 @@ SceneRoots:
   - {fileID: 979330825}
   - {fileID: 1443458465}
   - {fileID: 1437718216}
-  - {fileID: 210328341}
-  - {fileID: 1403863971}
   - {fileID: 859563974}
+  - {fileID: 1403863971}
+  - {fileID: 210328341}
   - {fileID: 961586392}
   - {fileID: 1204549134}
   - {fileID: 1666213078}

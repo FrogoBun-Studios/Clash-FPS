@@ -33,7 +33,7 @@ public class MeleeCard : Card
 			{
 				if (col.GetComponent<Player>().GetCard().GetSide() != _side)
 				{
-					_elixirEarned += cardParams.damage * 0.00025f;
+					_elixirEarned += cardParams.damage * 0.005f;
 					if (col.GetComponent<Player>().GetCard().Damage(cardParams.damage))
 						KilledPlayer(col.GetComponent<Player>());
 				}

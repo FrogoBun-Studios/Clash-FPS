@@ -120,15 +120,17 @@ public abstract class Card : NetworkBehaviour
 			yield break;
 		}
 
-		float stepSize = 0.5f;
+		float stepSize = 2f;
 		float dir = value > _healthSlider.value ? stepSize : -stepSize;
-		float wait = 0.01f / (Mathf.Abs(_healthSlider.value - value) / stepSize);
+		float wait = 0.5f / (Mathf.Abs(_healthSlider.value - value) / stepSize);
 
 		for (float v = _healthSlider.value; Mathf.Abs(value - v) > stepSize; v += dir)
 		{
 			_healthSlider.value = v;
 			yield return new WaitForSeconds(wait);
 		}
+
+		_healthSlider.value = value;
 	}
 
 	#endregion
@@ -184,10 +186,11 @@ public abstract class Card : NetworkBehaviour
 	[Rpc(SendTo.Everyone)]
 	private void DamageRpc(float amount)
 	{
+		if (_health <= 0)
+			return;
+
 		_health -= amount;
-
 		StartCoroutine(UpdateSlider(_health));
-
 		if (_health <= 0)
 			OnDeathRpc();
 	}
