@@ -41,8 +41,9 @@ public class ShooterCard : Card
 	{
 		Bullet bullet = GameObject.FindGameObjectsWithTag("Bullet").Last().GetComponent<Bullet>();
 
-		bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage, _side,
-			_playerScript.GetCameraForward(), amount => _elixirEarned += amount, KilledPlayer);
+		bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage,
+			GetParamsAsShooter().bulletPiercing, _side,
+			_playerScript.GetCameraForward(), amount => _elixirEarned += amount, KilledPlayer, _playerScript);
 	}
 
 	protected IEnumerator SpawnBullet()

@@ -29,3 +29,4 @@ MonoBehaviour:
   bulletSpeed: 30
   bulletAmount: 1
   bulletSpread: 0
+  bulletPiercing: 1

@@ -8,4 +8,5 @@ public class ShooterCardParams : CardParams
 	public float bulletSpeed;
 	public int bulletAmount;
 	public float bulletSpread;
+	public int bulletPiercing;
 }

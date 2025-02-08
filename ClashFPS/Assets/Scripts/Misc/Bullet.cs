@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 
 using Unity.Netcode;
 
@@ -12,6 +11,8 @@ public class Bullet : NetworkBehaviour
 	private float _damage;
 	private Action<float> _earnElixir;
 	private Action<Player> _killedPlayer;
+	private int _piercing;
+	private Player _player;
 	private Side _side;
 	private float _speed;
 
@@ -20,31 +21,38 @@ public class Bullet : NetworkBehaviour
 		if (!IsServer)
 			return;
 
-		if (other.gameObject.CompareTag("Player"))
-			if (other.gameObject.GetComponent<Player>().GetCard().GetSide() != _side)
-			{
-				_earnElixir(_damage * 0.00025f);
-				if (other.gameObject.GetComponent<Player>().GetCard().Damage(_damage))
-					_killedPlayer(other.gameObject.GetComponent<Player>());
+		if (other.gameObject == _player.gameObject)
+			return;
 
-				StartCoroutine(SelfDestroy());
-			}
-
-		if (other.gameObject.CompareTag("Tower"))
+		Collider[] cols = Physics.OverlapSphere(transform.position,
+			Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z));
+		foreach (Collider col in cols)
 		{
-			DamageTowerRpc(other.gameObject.name);
-			StartCoroutine(SelfDestroy());
+			if (col.gameObject.CompareTag("Player"))
+				if (col.gameObject.GetComponent<Player>().GetCard().GetSide() != _side)
+				{
+					_earnElixir(_damage * 0.005f);
+					if (col.gameObject.GetComponent<Player>().GetCard().Damage(_damage))
+						_killedPlayer(col.gameObject.GetComponent<Player>());
+				}
+
+			if (col.gameObject.CompareTag("Tower"))
+				DamageTowerRpc(col.gameObject.name);
 		}
+
+		SelfDestroy();
 	}
 
-	public void Enable(float speed, float damage, Side side, Vector3 dir, Action<float> earnElixir,
-		Action<Player> killedPlayer)
+	public void Enable(float speed, float damage, int piercing, Side side, Vector3 dir, Action<float> earnElixir,
+		Action<Player> killedPlayer, Player player)
 	{
 		_speed = speed;
 		_damage = damage;
+		_piercing = piercing;
 		_side = side;
 		_earnElixir = earnElixir;
 		_killedPlayer = killedPlayer;
+		_player = player;
 		SetVelocityRpc(dir);
 	}
 
@@ -54,11 +62,12 @@ public class Bullet : NetworkBehaviour
 		rb.linearVelocity = dir * _speed;
 	}
 
-	private IEnumerator SelfDestroy()
+	private void SelfDestroy()
 	{
-		yield return new WaitForSeconds(0.5f);
+		_piercing--;
 
-		GetComponent<NetworkObject>().Despawn();
+		if (_piercing <= 0)
+			GetComponent<NetworkObject>().Despawn();
 	}
 
 	[Rpc(SendTo.Everyone)]
@@ -68,7 +77,7 @@ public class Bullet : NetworkBehaviour
 
 		if (t.GetSide() != _side)
 		{
-			_earnElixir(_damage * 0.00025f);
+			_earnElixir(_damage * 0.005f);
 			if (t.Damage(_damage))
 				_earnElixir(10);
 		}
