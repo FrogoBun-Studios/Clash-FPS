@@ -28,6 +28,7 @@ public class Player : NetworkBehaviour
 	private Vector3 _resetedCameraPosition;
 	private Quaternion _resetedCameraRotation;
 	private Side _side;
+	private SideSelection _sideSelection;
 	private bool _spawned;
 	private float _yVelocity;
 
@@ -51,8 +52,6 @@ public class Player : NetworkBehaviour
 		playerNameText.text = _playerName;
 		healthSlider.name = $"Slider{OwnerClientId}";
 
-		_side = (Side)(OwnerClientId % 2);
-
 		if (!IsOwner)
 			return;
 
@@ -65,8 +64,8 @@ public class Player : NetworkBehaviour
 		}
 
 		chatNetworkHelper = GameObject.Find("ChatNetworkHelper(Clone)").GetComponent<NetworkObject>();
-		Chat.Singleton.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>());
-		Chat.Singleton.Log($"Player {OwnerClientId} logged in");
+		Chat.Get.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>());
+		Chat.Get.Log($"Player {OwnerClientId} logged in");
 
 		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 1;
 		Destroy(GameObject.Find("LoadingBar"), 0.25f);
@@ -79,9 +78,35 @@ public class Player : NetworkBehaviour
 		_resetedCameraPosition = GameObject.Find("CineCam").transform.position;
 		_resetedCameraRotation = GameObject.Find("CineCam").transform.rotation;
 
+		_sideSelection = FindFirstObjectByType<SideSelection>();
+		_sideSelection.Set(this);
 		_cardSelection = FindFirstObjectByType<CardSelection>();
 		_cardSelection.Set(this);
+
+		ChooseSide();
+	}
+
+	public void ChooseSide()
+	{
+		_spawned = false;
+
+		Cursor.lockState = CursorLockMode.None;
+		Cursor.visible = true;
+		ResetCamera();
+
+		StartCoroutine(_sideSelection.Show());
+	}
+
+	public void SetSide(Side side)
+	{
+		UpdateSideRpc(side);
 		Respawn(false);
+	}
+
+	[Rpc(SendTo.Everyone)]
+	public void UpdateSideRpc(Side side)
+	{
+		_side = side;
 	}
 
 	public string GetPlayerName()
@@ -204,7 +229,7 @@ public class Player : NetworkBehaviour
 			Card card = cardGo.GetComponent<Card>();
 			GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
 
-			Chat.Singleton.Log(
+			Chat.Get.Log(
 				$"Starting card {i} with side {GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide()}");
 
 			card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform,

@@ -31,6 +31,7 @@ public class CardSelection : MonoBehaviour
 		PutCards();
 
 		canvasGroup.interactable = false;
+		canvasGroup.blocksRaycasts = false;
 
 		float timeToOpen = 0.2f;
 		float timeStep = 0.01f;
@@ -52,6 +53,7 @@ public class CardSelection : MonoBehaviour
 		waitText.text = "Respawn Now";
 
 		canvasGroup.interactable = true;
+		canvasGroup.blocksRaycasts = true;
 
 		leftCardButton.interactable = Cards.CardParams[_leftCardName].elixir <= _playerScript.GetElixir();
 		middleCardButton.interactable = Cards.CardParams[_middleCardName].elixir <= _playerScript.GetElixir();
@@ -60,6 +62,9 @@ public class CardSelection : MonoBehaviour
 
 	public IEnumerator Hide()
 	{
+		canvasGroup.interactable = false;
+		canvasGroup.blocksRaycasts = false;
+
 		for (float t = 1; t > 0; t -= 0.05f)
 		{
 			canvasGroup.alpha = t;

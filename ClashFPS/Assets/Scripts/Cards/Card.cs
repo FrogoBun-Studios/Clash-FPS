@@ -198,7 +198,7 @@ public abstract class Card : NetworkBehaviour
 	public void KilledPlayer(Player killedPlayer)
 	{
 		_elixirEarned += 3;
-		Chat.Singleton.KillLog(_playerScript.GetPlayerName(), killedPlayer.GetPlayerName(), cardParams.cardName);
+		Chat.Get.KillLog(_playerScript.GetPlayerName(), killedPlayer.GetPlayerName(), cardParams.cardName);
 	}
 
 	[Rpc(SendTo.Owner)]
@@ -212,8 +212,9 @@ public abstract class Card : NetworkBehaviour
 
 	public bool Damage(float amount)
 	{
+		float preHealth = _health;
 		DamageRpc(amount);
-		return _health <= 0;
+		return _health <= 0 && preHealth > 0;
 	}
 
 	public void Heal(float amount)

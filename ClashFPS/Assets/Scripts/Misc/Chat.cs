@@ -19,7 +19,7 @@ public class Chat : MonoBehaviour
 	private bool _isShown;
 	private float _time;
 
-	public static Chat Singleton { get; private set; }
+	public static Chat Get { get; private set; }
 
 	private void Update()
 	{
@@ -44,14 +44,14 @@ public class Chat : MonoBehaviour
 
 	private void OnEnable()
 	{
-		Singleton = this;
+		Get = this;
 		_time = timeToDisappear;
 	}
 
 	private void OnDestroy()
 	{
-		if (Singleton == this)
-			Singleton = null;
+		if (Get == this)
+			Get = null;
 	}
 
 	private void AddMessage(string message)
