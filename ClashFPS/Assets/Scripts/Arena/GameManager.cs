@@ -11,4 +11,16 @@ public class GameManager : NetworkBehaviour
 	{
 		Get = this;
 	}
+
+	[Rpc(SendTo.Server)]
+	public void UpdateBluePlayersCountRpc(int amount)
+	{
+		bluePlayersCount.Value += amount;
+	}
+
+	[Rpc(SendTo.Server)]
+	public void UpdateRedPlayersCountRpc(int amount)
+	{
+		redPlayersCount.Value += amount;
+	}
 }

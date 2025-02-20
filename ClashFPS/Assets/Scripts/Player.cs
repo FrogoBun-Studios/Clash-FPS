@@ -15,6 +15,7 @@ public class Player : NetworkBehaviour
 	[SerializeField] private Transform cameraFollow;
 	[SerializeField] private Slider healthSlider;
 	[SerializeField] private TextMeshProUGUI playerNameText;
+	[SerializeField] private NetworkObject gameManager;
 	[SerializeField] private NetworkObject chatNetworkHelper;
 	[SerializeField] private float timeToRespawn;
 	[SerializeField] private float sensitivity;
@@ -59,9 +60,14 @@ public class Player : NetworkBehaviour
 
 		if (IsServer)
 		{
+			gameManager = Instantiate(gameManager.gameObject).GetComponent<NetworkObject>();
+			gameManager.Spawn();
+
 			chatNetworkHelper = Instantiate(chatNetworkHelper.gameObject).GetComponent<NetworkObject>();
 			chatNetworkHelper.Spawn();
 		}
+
+		gameManager = GameObject.Find("GameManager(Clone)").GetComponent<NetworkObject>();
 
 		chatNetworkHelper = GameObject.Find("ChatNetworkHelper(Clone)").GetComponent<NetworkObject>();
 		Chat.Get.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>());
