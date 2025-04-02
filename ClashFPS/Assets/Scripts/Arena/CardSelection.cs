@@ -137,4 +137,10 @@ public class CardSelection : MonoBehaviour
 		StartCoroutine(_playerScript.ChooseCard(_rightCardName));
 		StartCoroutine(Hide());
 	}
+
+	public void FreeCard()
+	{
+		StartCoroutine(_playerScript.ChooseCard("Wizard"));
+		StartCoroutine(Hide());
+	}
 }
