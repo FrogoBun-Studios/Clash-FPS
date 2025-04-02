@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 using TMPro;
 
-using Unity.Netcode;
-
 using UnityEngine;
 
 
@@ -17,6 +15,7 @@ public class Chat : MonoBehaviour
 	private readonly List<string> _chatMessages = new();
 	private ChatNetworkHelper _chatNetworkHelper;
 	private bool _isShown;
+	private Player _playerScript;
 	private float _time;
 
 	public static Chat Get { get; private set; }
@@ -76,21 +75,21 @@ public class Chat : MonoBehaviour
 	{
 		Show();
 		if (_chatNetworkHelper is not null)
-			AddMessage($"[{NetworkManager.Singleton.LocalClientId} System]: {message}");
+			AddMessage($"[{_playerScript.GetPlayerName()}'s System]: {message}");
 		else
 			AddMessage($"[System]: {message}");
 	}
 
-	public void PlayerWrite(string message, string playerName)
+	public void PlayerWrite(string message)
 	{
 		Show();
-		AddMessage($"[{playerName}]: {message}");
+		AddMessage($"[{_playerScript.GetPlayerName()}]: {message}");
 	}
 
 	public void KillLog(string killer, string killed, string killerCard)
 	{
 		Show();
-		AddMessage($"[System]: {killer} killed {killed} as a {killerCard}");
+		AddMessage($"[Kill]: {killer} killed {killed} as a {killerCard}");
 	}
 
 	private void Show()
@@ -115,8 +114,9 @@ public class Chat : MonoBehaviour
 		canvasGroup.alpha = 0;
 	}
 
-	public void EnableChatNetworking(ChatNetworkHelper chatNetworkHelper)
+	public void EnableChatNetworking(ChatNetworkHelper chatNetworkHelper, Player player)
 	{
 		_chatNetworkHelper = chatNetworkHelper;
+		_playerScript = player;
 	}
 }

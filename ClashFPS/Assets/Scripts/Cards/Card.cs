@@ -30,30 +30,25 @@ public abstract class Card : NetworkBehaviour
 		_player = player;
 		_playerScript = player.GetComponent<Player>();
 		_elixirEarned = 0f;
-
-		if (!_started)
-			_health = cardParams.health;
-
 		_topSliderName = topSlider;
+		_health = cardParams.health;
+
 		if (!IsOwner)
+			return;
+
+		if (_started)
 		{
 			SetModelRpc();
 			return;
 		}
 
+		_started = true;
+
 		_playerScript.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
 			cardParams.colliderYOffset);
+		_attackTimer = 1 / cardParams.attackRate;
 
-		if (!_started)
-			CreateModelRpc();
-
-		if (!_started)
-			_attackTimer = 1 / cardParams.attackRate;
-	}
-
-	public bool IsStarted()
-	{
-		return _started;
+		CreateModelRpc();
 	}
 
 	public virtual void UpdateCard()
@@ -61,7 +56,7 @@ public abstract class Card : NetworkBehaviour
 		if (_health <= 0)
 			return;
 
-		_elixirEarned += Time.deltaTime * 0.025f;
+		_elixirEarned += Time.deltaTime * 0.25f;
 
 		_playerScript.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
 
@@ -90,16 +85,20 @@ public abstract class Card : NetworkBehaviour
 		if (!IsOwner)
 		{
 			_healthSlider = GameObject.Find(topSlider).GetComponent<Slider>();
-			_healthSlider.transform.parent.position = new Vector3(_healthSlider.transform.position.x,
-				_model.localScale.y * 4f + 2.1f, _healthSlider.transform.position.z);
+			Chat.Get.Log($"{_model.localScale.y * 4f + 2.1f}");
+			Chat.Get.Log($"{_healthSlider.name}");
+			Chat.Get.Log($"before {_healthSlider.transform.parent.position}");
+			Chat.Get.Log(
+				$"want {new Vector3(_healthSlider.transform.parent.position.x, _model.localScale.y * 4f + 2.1f, _healthSlider.transform.parent.position.z)}");
+			_healthSlider.transform.parent.position = new Vector3(_healthSlider.transform.parent.position.x,
+				_model.localScale.y * 4f + 2.1f, _healthSlider.transform.parent.position.z);
+			Chat.Get.Log($"after {_healthSlider.transform.parent.position}");
 		}
 		else
 			_healthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
 
 		_healthSlider.maxValue = _health;
 		_healthSlider.value = _health;
-
-		_started = true;
 	}
 
 	public Side GetSide()
@@ -204,8 +203,10 @@ public abstract class Card : NetworkBehaviour
 	[Rpc(SendTo.Owner)]
 	protected virtual void OnDeathRpc()
 	{
+		_started = false;
 		_animator.SetTrigger("Death");
 
+		_playerScript.EnableColliderRpc(false);
 		_playerScript.EarnElixir((int)_elixirEarned);
 		_playerScript.Respawn();
 	}

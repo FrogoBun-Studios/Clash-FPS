@@ -70,7 +70,7 @@ public class Player : NetworkBehaviour
 		gameManager = GameObject.Find("GameManager(Clone)").GetComponent<NetworkObject>();
 
 		chatNetworkHelper = GameObject.Find("ChatNetworkHelper(Clone)").GetComponent<NetworkObject>();
-		Chat.Get.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>());
+		Chat.Get.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>(), this);
 		Chat.Get.Log($"Player {OwnerClientId} logged in");
 
 		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 1;
@@ -180,6 +180,12 @@ public class Player : NetworkBehaviour
 		controller.center = Vector3.up * yOffset;
 	}
 
+	[Rpc(SendTo.Everyone)]
+	public void EnableColliderRpc(bool enable)
+	{
+		controller.enabled = enable;
+	}
+
 	public void SetCameraFollow(Vector3 pos)
 	{
 		cameraFollow.localPosition = pos;
@@ -241,6 +247,8 @@ public class Player : NetworkBehaviour
 			card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform,
 				GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide(), $"Slider{i}");
 		}
+
+		EnableColliderRpc(true);
 	}
 
 	[Rpc(SendTo.Everyone)]
