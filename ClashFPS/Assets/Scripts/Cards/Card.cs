@@ -85,14 +85,8 @@ public abstract class Card : NetworkBehaviour
 		if (!IsOwner)
 		{
 			_healthSlider = GameObject.Find(topSlider).GetComponent<Slider>();
-			Chat.Get.Log($"{_model.localScale.y * 4f + 2.1f}");
-			Chat.Get.Log($"{_healthSlider.name}");
-			Chat.Get.Log($"before {_healthSlider.transform.parent.position}");
-			Chat.Get.Log(
-				$"want {new Vector3(_healthSlider.transform.parent.position.x, _model.localScale.y * 4f + 2.1f, _healthSlider.transform.parent.position.z)}");
 			_healthSlider.transform.parent.position = new Vector3(_healthSlider.transform.parent.position.x,
 				_model.localScale.y * 4f + 2.1f, _healthSlider.transform.parent.position.z);
-			Chat.Get.Log($"after {_healthSlider.transform.parent.position}");
 		}
 		else
 			_healthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();

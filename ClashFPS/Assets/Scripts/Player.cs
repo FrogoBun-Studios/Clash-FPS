@@ -24,21 +24,44 @@ public class Player : NetworkBehaviour
 	private CardSelection _cardSelection;
 	private int _elixir = 5;
 	private int _jumpsLeft;
-
 	private string _playerName;
 	private Vector3 _resetedCameraPosition;
 	private Quaternion _resetedCameraRotation;
+	private SettingsMenu _settingsMenu;
 	private Side _side;
 	private SideSelection _sideSelection;
 	private bool _spawned;
 	private float _yVelocity;
 
+	public PlayerSettings PlayerSettings;
+
 	private void Update()
 	{
-		if (!IsOwner || !_spawned)
+		if (!IsOwner)
 			return;
 
-		_card.UpdateCard();
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			if (_settingsMenu.IsShowen())
+			{
+				_spawned = true;
+				Cursor.lockState = CursorLockMode.Locked;
+				Cursor.visible = false;
+
+				StartCoroutine(_settingsMenu.Hide());
+			}
+			else
+			{
+				_spawned = false;
+				Cursor.lockState = CursorLockMode.None;
+				Cursor.visible = true;
+
+				StartCoroutine(_settingsMenu.Show());
+			}
+		}
+
+		if (_spawned)
+			_card.UpdateCard();
 	}
 
 	private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -49,12 +72,12 @@ public class Player : NetworkBehaviour
 
 	public override void OnNetworkSpawn()
 	{
-		_playerName = $"Player {OwnerClientId}";
-		playerNameText.text = _playerName;
 		healthSlider.name = $"Slider{OwnerClientId}";
 
 		if (!IsOwner)
 			return;
+
+		LoadSettings();
 
 		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0.75f;
 
@@ -88,8 +111,39 @@ public class Player : NetworkBehaviour
 		_sideSelection.Set(this);
 		_cardSelection = FindFirstObjectByType<CardSelection>();
 		_cardSelection.Set(this);
+		_settingsMenu = FindFirstObjectByType<SettingsMenu>();
+		_settingsMenu.Set(this);
 
 		ChooseSide();
+	}
+
+	public void UpdateSettings(PlayerSettings playerSettings)
+	{
+		PlayerSettings = playerSettings;
+		sensitivity = playerSettings.mouseSensitivity;
+		UpdateNameRpc(playerSettings.playerName);
+		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Lens.FieldOfView = playerSettings.FOV;
+	}
+
+	private void LoadSettings()
+	{
+		PlayerSettings loadedSettings = new();
+		loadedSettings.playerName = PlayerPrefs.GetString("playerName", $"Player {OwnerClientId}");
+		loadedSettings.volume = PlayerPrefs.GetFloat("volume", 1);
+		loadedSettings.mouseSensitivity = PlayerPrefs.GetFloat("mouseSensitivity", 1.5f);
+		loadedSettings.quality = PlayerPrefs.GetInt("quality", 0);
+		loadedSettings.FOV = PlayerPrefs.GetFloat("FOV", 90);
+
+		UpdateSettings(loadedSettings);
+	}
+
+	[Rpc(SendTo.Everyone)]
+	public void UpdateNameRpc(string newName)
+	{
+		_playerName = newName;
+
+		if (!IsOwner)
+			playerNameText.text = _playerName;
 	}
 
 	public void ChooseSide()
