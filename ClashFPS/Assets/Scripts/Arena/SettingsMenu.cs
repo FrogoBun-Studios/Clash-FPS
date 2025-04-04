@@ -24,7 +24,7 @@ public class SettingsMenu : MonoBehaviour
 		if (_playerScript == null)
 			return;
 
-		ObtainSettings();
+		GetUISettings();
 		saveButton.interactable = !_playerScript.PlayerSettings.Equals(_playerSettings);
 	}
 
@@ -32,7 +32,11 @@ public class SettingsMenu : MonoBehaviour
 	{
 		_showen = true;
 
+		Cursor.lockState = CursorLockMode.None;
+		Cursor.visible = true;
+
 		_playerSettings = _playerScript.PlayerSettings;
+		SetUISettings();
 		saveButton.interactable = false;
 
 		canvasGroup.interactable = false;
@@ -54,6 +58,9 @@ public class SettingsMenu : MonoBehaviour
 	public IEnumerator Hide()
 	{
 		_showen = false;
+
+		Cursor.lockState = CursorLockMode.Locked;
+		Cursor.visible = false;
 
 		canvasGroup.interactable = false;
 		canvasGroup.blocksRaycasts = false;
@@ -77,7 +84,7 @@ public class SettingsMenu : MonoBehaviour
 		_playerScript = playerScript;
 	}
 
-	private void ObtainSettings()
+	private void GetUISettings()
 	{
 		_playerSettings.playerName = playerNameInput.text;
 		_playerSettings.volume = volumeInput.value;
@@ -86,9 +93,18 @@ public class SettingsMenu : MonoBehaviour
 		_playerSettings.FOV = fovInput.value;
 	}
 
+	private void SetUISettings()
+	{
+		playerNameInput.text = _playerSettings.playerName;
+		volumeInput.value = _playerSettings.volume;
+		mouseSensitivityInput.value = _playerSettings.mouseSensitivity;
+		qualityInput.value = _playerSettings.quality;
+		fovInput.value = _playerSettings.FOV;
+	}
+
 	public void SaveButton()
 	{
-		ObtainSettings();
+		GetUISettings();
 		_playerScript.UpdateSettings(_playerSettings);
 
 		PlayerPrefs.SetString("playerName", _playerSettings.playerName);
@@ -97,6 +113,8 @@ public class SettingsMenu : MonoBehaviour
 		PlayerPrefs.SetInt("quality", _playerSettings.quality);
 		PlayerPrefs.SetFloat("FOV", _playerSettings.FOV);
 		PlayerPrefs.Save();
+
+		StartCoroutine(Hide());
 	}
 
 	public void ChangeSideButton()
@@ -106,7 +124,7 @@ public class SettingsMenu : MonoBehaviour
 		else
 			GameManager.Get.UpdateRedPlayersCountRpc(-1);
 
-		_playerScript.ChooseSide();
 		StartCoroutine(Hide());
+		_playerScript.ChooseSide();
 	}
 }

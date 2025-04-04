@@ -45,19 +45,9 @@ public class Player : NetworkBehaviour
 		if (Input.GetKeyDown(KeyCode.Escape) && !_sideSelection.IsShowen() && !_cardSelection.IsShowen())
 		{
 			if (_settingsMenu.IsShowen())
-			{
-				Cursor.lockState = CursorLockMode.Locked;
-				Cursor.visible = false;
-
 				StartCoroutine(_settingsMenu.Hide());
-			}
 			else
-			{
-				Cursor.lockState = CursorLockMode.None;
-				Cursor.visible = true;
-
 				StartCoroutine(_settingsMenu.Show());
-			}
 		}
 
 		if (_card != null)
