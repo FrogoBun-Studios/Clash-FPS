@@ -19,6 +19,7 @@ public class Player : NetworkBehaviour
 	[SerializeField] private NetworkObject chatNetworkHelper;
 	[SerializeField] private float timeToRespawn;
 	[SerializeField] private float sensitivity;
+	[SerializeField] private float acceleration;
 	private Animator _animator;
 	private Card _card;
 	private CardSelection _cardSelection;
@@ -31,8 +32,9 @@ public class Player : NetworkBehaviour
 	private Side _side;
 	private SideSelection _sideSelection;
 	private bool _spawned;
+	private SlewRateLimiter _xAccelerationLimiter;
 	private float _yVelocity;
-
+	private SlewRateLimiter _zAccelerationLimiter;
 	public PlayerSettings PlayerSettings;
 
 	private void Update()
@@ -40,11 +42,10 @@ public class Player : NetworkBehaviour
 		if (!IsOwner)
 			return;
 
-		if (Input.GetKeyDown(KeyCode.Escape))
+		if (Input.GetKeyDown(KeyCode.Escape) && !_sideSelection.IsShowen() && !_cardSelection.IsShowen())
 		{
 			if (_settingsMenu.IsShowen())
 			{
-				_spawned = true;
 				Cursor.lockState = CursorLockMode.Locked;
 				Cursor.visible = false;
 
@@ -52,7 +53,6 @@ public class Player : NetworkBehaviour
 			}
 			else
 			{
-				_spawned = false;
 				Cursor.lockState = CursorLockMode.None;
 				Cursor.visible = true;
 
@@ -60,8 +60,8 @@ public class Player : NetworkBehaviour
 			}
 		}
 
-		if (_spawned)
-			_card.UpdateCard();
+		if (_card != null)
+			_card.UpdateCard(_spawned);
 	}
 
 	private void OnControllerColliderHit(ControllerColliderHit hit)
@@ -76,6 +76,9 @@ public class Player : NetworkBehaviour
 
 		if (!IsOwner)
 			return;
+
+		_xAccelerationLimiter = new SlewRateLimiter(acceleration);
+		_zAccelerationLimiter = new SlewRateLimiter(acceleration);
 
 		LoadSettings();
 
@@ -320,7 +323,7 @@ public class Player : NetworkBehaviour
 		Move(speed);
 		Look();
 
-		if (Input.GetButtonDown("Jump"))
+		if (Input.GetButtonDown("Jump") && _spawned && !_settingsMenu.IsShowen())
 		{
 			if (controller.isGrounded)
 				_jumpsLeft = jumps;
@@ -336,12 +339,22 @@ public class Player : NetworkBehaviour
 
 	private void Move(float speed)
 	{
-		Vector3 movementDir = new(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
+		Vector3 movementDir = new();
+		if (_spawned && !_settingsMenu.IsShowen())
+			movementDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
 
+		// _xAccelerationLimiter.SetRateLimit(controller.isGrounded ? acceleration : acceleration / 5f);
+		// _zAccelerationLimiter.SetRateLimit(controller.isGrounded ? acceleration : acceleration / 5f);
+		_xAccelerationLimiter.SetRateLimit(Mathf.Infinity);
+		_zAccelerationLimiter.SetRateLimit(Mathf.Infinity);
+
+		float xMove = _xAccelerationLimiter.Calculate(movementDir.x * speed) * Time.deltaTime;
 		_yVelocity += Physics.gravity.y * Time.deltaTime;
-		controller.Move(transform.right * (movementDir.x * speed * Time.deltaTime)
+		float zMove = _zAccelerationLimiter.Calculate(movementDir.z * speed) * Time.deltaTime;
+
+		controller.Move(transform.right * xMove
 		                + Vector3.up * (_yVelocity * Time.deltaTime)
-		                + transform.forward * (movementDir.z * speed * Time.deltaTime));
+		                + transform.forward * zMove);
 
 		if (controller.isGrounded)
 			_yVelocity = 0;
@@ -356,6 +369,9 @@ public class Player : NetworkBehaviour
 
 	private void Look()
 	{
+		if (!_spawned || _settingsMenu.IsShowen())
+			return;
+
 		transform.localEulerAngles =
 			new Vector3(0, transform.rotation.eulerAngles.y + Input.GetAxis("Mouse X") * sensitivity, 0);
 

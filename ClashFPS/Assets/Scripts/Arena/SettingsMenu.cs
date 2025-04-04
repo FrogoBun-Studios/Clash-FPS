@@ -101,5 +101,12 @@ public class SettingsMenu : MonoBehaviour
 
 	public void ChangeSideButton()
 	{
+		if (_playerScript.GetSide() == Side.Blue)
+			GameManager.Get.UpdateBluePlayersCountRpc(-1);
+		else
+			GameManager.Get.UpdateRedPlayersCountRpc(-1);
+
+		_playerScript.ChooseSide();
+		StartCoroutine(Hide());
 	}
 }

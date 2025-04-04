@@ -51,9 +51,9 @@ public abstract class Card : NetworkBehaviour
 		CreateModelRpc();
 	}
 
-	public virtual void UpdateCard()
+	public virtual void UpdateCard(bool spawned)
 	{
-		if (_health <= 0)
+		if (_health <= 0 || !spawned)
 			return;
 
 		_elixirEarned += Time.deltaTime * 0.25f;

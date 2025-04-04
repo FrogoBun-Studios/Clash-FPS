@@ -22,9 +22,12 @@ public class CardSelection : MonoBehaviour
 	private string _middleCardName;
 	private Player _playerScript;
 	private string _rightCardName;
+	private bool _showen;
 
 	public IEnumerator Show(float delay)
 	{
+		_showen = true;
+
 		elixirText.GetChild(0).GetComponent<TextMeshProUGUI>().text = _playerScript.GetElixir().ToString();
 		elixirText.GetChild(1).GetComponent<TextMeshProUGUI>().text = _playerScript.GetElixir().ToString();
 
@@ -62,6 +65,8 @@ public class CardSelection : MonoBehaviour
 
 	public IEnumerator Hide()
 	{
+		_showen = false;
+
 		canvasGroup.interactable = false;
 		canvasGroup.blocksRaycasts = false;
 
@@ -72,6 +77,11 @@ public class CardSelection : MonoBehaviour
 		}
 
 		canvasGroup.alpha = 0;
+	}
+
+	public bool IsShowen()
+	{
+		return _showen;
 	}
 
 	public void Set(Player playerScript)

@@ -14,9 +14,12 @@ public class SideSelection : MonoBehaviour
 	[SerializeField] private TextMeshProUGUI blueCount;
 	[SerializeField] private TextMeshProUGUI redCount;
 	private Player _playerScript;
+	private bool _showen;
 
 	public IEnumerator Show()
 	{
+		_showen = true;
+
 		blueCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.bluePlayersCount.Value}/4";
 		redCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.redPlayersCount.Value}/4";
 
@@ -41,6 +44,8 @@ public class SideSelection : MonoBehaviour
 
 	public IEnumerator Hide()
 	{
+		_showen = false;
+
 		canvasGroup.interactable = false;
 		canvasGroup.blocksRaycasts = false;
 
@@ -51,6 +56,11 @@ public class SideSelection : MonoBehaviour
 		}
 
 		canvasGroup.alpha = 0;
+	}
+
+	public bool IsShowen()
+	{
+		return _showen;
 	}
 
 	public void Set(Player playerScript)
