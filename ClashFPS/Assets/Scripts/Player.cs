@@ -20,8 +20,11 @@ public class Player : NetworkBehaviour
 	[SerializeField] private float timeToRespawn;
 	[SerializeField] private float sensitivity;
 	[SerializeField] private float acceleration;
+
 	private Animator _animator;
-	private Card _card;
+
+	// private Card _card;
+	private readonly NetworkVariable<NetworkObjectReference> _card = new();
 	private CardSelection _cardSelection;
 	private int _elixir = 5;
 	private int _jumpsLeft;
@@ -50,19 +53,20 @@ public class Player : NetworkBehaviour
 				StartCoroutine(_settingsMenu.Show());
 		}
 
-		if (_card != null)
-			_card.UpdateCard(_spawned);
+		if (GetCard() != null)
+			GetCard().UpdateCard(_spawned);
 	}
 
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
 		if (IsOwner && hit.gameObject.CompareTag("WaterCols"))
-			_card.Damage(Mathf.Infinity);
+			GetCard().Damage(Mathf.Infinity);
 	}
 
 	public override void OnNetworkSpawn()
 	{
 		healthSlider.name = $"Slider{OwnerClientId}";
+		gameObject.name = $"Player{OwnerClientId}";
 
 		if (!IsOwner)
 			return;
@@ -87,7 +91,7 @@ public class Player : NetworkBehaviour
 
 		chatNetworkHelper = GameObject.Find("ChatNetworkHelper(Clone)").GetComponent<NetworkObject>();
 		Chat.Get.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>(), this);
-		Chat.Get.Log($"Player {OwnerClientId} logged in");
+		Chat.Get.Log($"{_playerName} logged in");
 
 		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 1;
 		Destroy(GameObject.Find("LoadingBar"), 0.25f);
@@ -169,7 +173,9 @@ public class Player : NetworkBehaviour
 
 	public Card GetCard()
 	{
-		return _card;
+		if (_card.Value.TryGet(out NetworkObject card, NetworkManager.Singleton))
+			return card.GetComponent<Card>();
+		return null;
 	}
 
 	public Side GetSide()
@@ -190,11 +196,6 @@ public class Player : NetworkBehaviour
 	public void EarnElixir(int amount)
 	{
 		_elixir += amount;
-	}
-
-	public void SetCard(Card card)
-	{
-		_card = card;
 	}
 
 	public Quaternion GetCameraRotation()
@@ -257,10 +258,10 @@ public class Player : NetworkBehaviour
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
 
-		if (_card != null)
+		if (GetCard() != null)
 		{
-			_card.DespawnCardRpc();
-			yield return new WaitUntil(() => _card == null);
+			GetCard().DespawnCardRpc();
+			yield return new WaitUntil(() => GetCard() == null);
 		}
 
 		Teleport(new Vector3(0, 2, _side == Side.Blue ? -34 : 34),
@@ -273,30 +274,56 @@ public class Player : NetworkBehaviour
 	{
 		GameObject card = Instantiate(Cards.CardPrefabs[cardName]);
 		card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+		GameObject.Find($"Player{OwnerClientId}").GetComponent<Player>()._card.Value = card;
+		Chat.Get.Log($"Spawned {cardName} card for player {OwnerClientId}");
 
-		SetCardRpc();
+		StartCardRpc();
+
+		// SetCardRpc();
 	}
 
-	[Rpc(SendTo.Everyone)]
-	private void SetCardRpc()
+	[Rpc(SendTo.Owner)]
+	private void StartCardRpc()
 	{
-		foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
-		{
-			int i = (int)cardGo.GetComponent<NetworkObject>().OwnerClientId;
-
-			cardGo.name = $"Card{i}";
-			Card card = cardGo.GetComponent<Card>();
-			GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
-
-			Chat.Get.Log(
-				$"Starting card {i} with side {GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide()}");
-
-			card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform,
-				GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide(), $"Slider{i}");
-		}
-
-		EnableColliderRpc(true);
+		StartCoroutine(StartCard());
 	}
+
+	private IEnumerator StartCard()
+	{
+		Chat.Get.Log($"Starting card for player {OwnerClientId}");
+
+		yield return new WaitUntil(() => GetCard() != null);
+
+		GetCard().StartCard(transform, _side, $"Slider{OwnerClientId}");
+		Chat.Get.Log($"Card started for player {OwnerClientId}");
+	}
+
+	// [Rpc(SendTo.Everyone)]
+	// private void SetCardRpc()
+	// {
+	// 	foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
+	// 	{
+	// 		int i = (int)cardGo.GetComponent<NetworkObject>().OwnerClientId;
+	// 	
+	// 		cardGo.name = $"Card{i}";
+	// 		Card card = cardGo.GetComponent<Card>();
+	// 		GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
+	// 	
+	// 		Chat.Get.Log(
+	// 			$"Starting card {i} with side {GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide()}");
+	// 	
+	// 		if (!card.IsStarted)
+	// 		{
+	// 			if(cardGo.GetComponent<NetworkObject>().IsOwner)
+	// 				card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform,
+	// 					GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide(), $"Slider{i}");
+	// 			else
+	// 				card.
+	// 		}
+	// 	}
+	//
+	// 	EnableColliderRpc(true);
+	// }
 
 	[Rpc(SendTo.Everyone)]
 	public void SetAnimatorRpc(string modelName)

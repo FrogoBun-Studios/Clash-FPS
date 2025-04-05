@@ -20,11 +20,14 @@ public abstract class Card : NetworkBehaviour
 	protected Transform _player;
 	protected Player _playerScript;
 	protected Side _side;
-	private bool _started;
 	private string _topSliderName;
+
+	public bool IsStarted { get; private set; }
 
 	public virtual void StartCard(Transform player, Side side, string topSlider)
 	{
+		Chat.Get.Log("1");
+
 		_side = side;
 		_modelPrefab = cardParams.modelPrefab;
 		_player = player;
@@ -36,17 +39,25 @@ public abstract class Card : NetworkBehaviour
 		if (!IsOwner)
 			return;
 
-		if (_started)
+		Chat.Get.Log("2");
+
+		if (IsStarted)
 		{
+			Chat.Get.Log("3");
+
 			SetModelRpc();
 			return;
 		}
 
-		_started = true;
+		Chat.Get.Log("4");
+
+		IsStarted = true;
 
 		_playerScript.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
 			cardParams.colliderYOffset);
 		_attackTimer = 1 / cardParams.attackRate;
+
+		Chat.Get.Log("5");
 
 		CreateModelRpc();
 	}
@@ -133,8 +144,12 @@ public abstract class Card : NetworkBehaviour
 	[Rpc(SendTo.Server)]
 	private void CreateModelRpc()
 	{
+		Chat.Get.Log("6");
+
 		GameObject model = Instantiate(_modelPrefab, new Vector3(), Quaternion.identity, _player);
 		model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+
+		Chat.Get.Log("7");
 
 		SetModelRpc();
 	}
@@ -197,7 +212,7 @@ public abstract class Card : NetworkBehaviour
 	[Rpc(SendTo.Owner)]
 	protected virtual void OnDeathRpc()
 	{
-		_started = false;
+		IsStarted = false;
 		_animator.SetTrigger("Death");
 
 		_playerScript.EnableColliderRpc(false);
