@@ -29,11 +29,13 @@ public class Bullet : NetworkBehaviour
 		foreach (Collider col in cols)
 		{
 			if (col.gameObject.CompareTag("Player"))
-				if (col.gameObject.GetComponent<Player>().GetCard().GetSide() != _side)
+				if (col.gameObject.GetComponent<Player>().Side != _side)
 				{
 					_earnElixir(_damage * 0.005f);
-					if (col.gameObject.GetComponent<Player>().GetCard().Damage(_damage))
-						_killedPlayer(col.gameObject.GetComponent<Player>());
+
+					// if (col.gameObject.GetComponent<Player>().Card.DamageRpc(_damage))
+					// 	_killedPlayer(col.gameObject.GetComponent<Player>());
+					col.gameObject.GetComponent<Player>().Card.DamageRpc(_damage);
 				}
 
 			if (col.gameObject.CompareTag("Tower"))

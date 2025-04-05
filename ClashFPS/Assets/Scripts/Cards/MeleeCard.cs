@@ -18,6 +18,8 @@ public class MeleeCard : Card
 
 	protected override void Attack()
 	{
+		Chat.Get.Log("1");
+
 		base.Attack();
 
 		Vector3 attackPos = _player.position
@@ -27,15 +29,21 @@ public class MeleeCard : Card
 
 		Collider[] colliders = Physics.OverlapBox(attackPos, GetParamsAsMelee().attackZone.size / 2);
 
+		Chat.Get.Log("2");
 		foreach (Collider col in colliders)
 		{
 			if (col.CompareTag("Player"))
 			{
-				if (col.GetComponent<Player>().GetCard().GetSide() != _side)
+				if (col.GetComponent<Player>().Side != _playerScript.Side)
 				{
-					_elixirEarned += cardParams.damage * 0.005f;
-					if (col.GetComponent<Player>().GetCard().Damage(cardParams.damage))
-						KilledPlayer(col.GetComponent<Player>());
+					Chat.Get.Log("3");
+					_playerScript.Elixir += cardParams.damage * 0.005f;
+
+					// if (col.GetComponent<Player>().Card.DamageRpc(cardParams.damage))
+					// 	KilledPlayer(col.GetComponent<Player>());
+					Chat.Get.Log("4");
+					col.GetComponent<Player>().Card.DamageRpc(cardParams.damage);
+					Chat.Get.Log("5");
 				}
 			}
 

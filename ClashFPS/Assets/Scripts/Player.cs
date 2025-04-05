@@ -6,6 +6,7 @@ using Unity.Cinemachine;
 using Unity.Netcode;
 
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 
@@ -13,29 +14,35 @@ public class Player : NetworkBehaviour
 {
 	[SerializeField] private CharacterController controller;
 	[SerializeField] private Transform cameraFollow;
-	[SerializeField] private Slider healthSlider;
+
+	[FormerlySerializedAs("healthSlider")] [SerializeField]
+	private Slider topHealthSlider;
+
 	[SerializeField] private TextMeshProUGUI playerNameText;
 	[SerializeField] private NetworkObject gameManager;
 	[SerializeField] private NetworkObject chatNetworkHelper;
 	[SerializeField] private float timeToRespawn;
 	[SerializeField] private float sensitivity;
 	[SerializeField] private float acceleration;
-	private Animator _animator;
-	private Card _card;
+	public Card Card { get; private set; }
 	private CardSelection _cardSelection;
-	private int _elixir = 5;
+	public float Elixir = 5;
 	private int _jumpsLeft;
 	private string _playerName;
 	private Vector3 _resetedCameraPosition;
 	private Quaternion _resetedCameraRotation;
 	private SettingsMenu _settingsMenu;
-	private Side _side;
+	public Side Side { get; private set; }
 	private SideSelection _sideSelection;
 	private bool _spawned;
 	private SlewRateLimiter _xAccelerationLimiter;
 	private float _yVelocity;
 	private SlewRateLimiter _zAccelerationLimiter;
 	public PlayerSettings PlayerSettings;
+
+	private Transform _model;
+	private Animator _animator;
+	private Slider _currentHealthSlider;
 
 	private void Update()
 	{
@@ -50,19 +57,19 @@ public class Player : NetworkBehaviour
 				StartCoroutine(_settingsMenu.Show());
 		}
 
-		if (_card != null)
-			_card.UpdateCard(_spawned);
+		if (Card != null)
+			Card.UpdateCard(_spawned);
 	}
 
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
 		if (IsOwner && hit.gameObject.CompareTag("WaterCols"))
-			_card.Damage(Mathf.Infinity);
+			Card.DamageRpc(Mathf.Infinity);
 	}
 
 	public override void OnNetworkSpawn()
 	{
-		healthSlider.name = $"Slider{OwnerClientId}";
+		topHealthSlider.name = $"Slider{OwnerClientId}";
 
 		if (!IsOwner)
 			return;
@@ -92,7 +99,7 @@ public class Player : NetworkBehaviour
 		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 1;
 		Destroy(GameObject.Find("LoadingBar"), 0.25f);
 
-		Destroy(healthSlider.gameObject);
+		Destroy(topHealthSlider.gameObject);
 		Destroy(playerNameText.gameObject);
 
 		Application.targetFrameRate = 120;
@@ -159,42 +166,12 @@ public class Player : NetworkBehaviour
 	[Rpc(SendTo.Everyone)]
 	public void UpdateSideRpc(Side side)
 	{
-		_side = side;
+		Side = side;
 	}
 
 	public string GetPlayerName()
 	{
 		return _playerName;
-	}
-
-	public Card GetCard()
-	{
-		return _card;
-	}
-
-	public Side GetSide()
-	{
-		return _side;
-	}
-
-	public int GetElixir()
-	{
-		return _elixir;
-	}
-
-	public void SpendElixir(int amount)
-	{
-		_elixir -= amount;
-	}
-
-	public void EarnElixir(int amount)
-	{
-		_elixir += amount;
-	}
-
-	public void SetCard(Card card)
-	{
-		_card = card;
 	}
 
 	public Quaternion GetCameraRotation()
@@ -205,11 +182,6 @@ public class Player : NetworkBehaviour
 	public Vector3 GetCameraForward()
 	{
 		return cameraFollow.forward;
-	}
-
-	public void Spawned()
-	{
-		_spawned = true;
 	}
 
 	private void ResetCamera()
@@ -257,15 +229,22 @@ public class Player : NetworkBehaviour
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
 
-		if (_card != null)
+		if (Card != null)
 		{
-			_card.DespawnCardRpc();
-			yield return new WaitUntil(() => _card == null);
+			DespawnCardRpc();
+			yield return new WaitUntil(() => Card == null);
 		}
 
-		Teleport(new Vector3(0, 2, _side == Side.Blue ? -34 : 34),
-			Quaternion.Euler(0, _side == Side.Blue ? 0 : 180, 0));
+		Teleport(new Vector3(0, 2, Side == Side.Blue ? -34 : 34),
+			Quaternion.Euler(0, Side == Side.Blue ? 0 : 180, 0));
 		SpawnCardRpc(cardName);
+	}
+
+	[Rpc(SendTo.Server)]
+	public void DespawnCardRpc()
+	{
+		_model.GetComponent<NetworkObject>().Despawn();
+		Card.GetComponent<NetworkObject>().Despawn();
 	}
 
 	[Rpc(SendTo.Server)]
@@ -274,11 +253,14 @@ public class Player : NetworkBehaviour
 		GameObject card = Instantiate(Cards.CardPrefabs[cardName]);
 		card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-		SetCardRpc();
+		GameObject model = Instantiate(Cards.CardParams[cardName].modelPrefab);
+		model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+
+		SetCardRpc(cardName);
 	}
 
 	[Rpc(SendTo.Everyone)]
-	private void SetCardRpc()
+	private void SetCardRpc(string cardName)
 	{
 		foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
 		{
@@ -286,25 +268,90 @@ public class Player : NetworkBehaviour
 
 			cardGo.name = $"Card{i}";
 			Card card = cardGo.GetComponent<Card>();
-			GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().SetCard(card);
+			Player player = GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>();
+			player.Card = card;
 
-			Chat.Get.Log(
-				$"Starting card {i} with side {GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide()}");
-
-			card.StartCard(GameObject.FindGameObjectsWithTag("Player")[i].transform,
-				GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>().GetSide(), $"Slider{i}");
+			if (card.IsOwner)
+			{
+				if (!card.Started)
+					card.StartCard(player.transform);
+			}
+			else
+			{
+				card.SetCardForNonOwners(player.transform);
+			}
 		}
 
 		EnableColliderRpc(true);
+		SetModel(cardName);
 	}
 
-	[Rpc(SendTo.Everyone)]
-	public void SetAnimatorRpc(string modelName)
+	private void SetModel(string cardName)
 	{
-		_animator = GameObject.Find(modelName).GetComponent<Animator>();
+		foreach (GameObject model in GameObject.FindGameObjectsWithTag("Model"))
+			model.name = $"Model{model.GetComponent<NetworkObject>().OwnerClientId}";
+
+		_model = GameObject.Find($"Model{OwnerClientId}").transform;
+		_animator = _model.GetComponent<Animator>();
+
+		SetCameraFollow(new Vector3(0, 4.625f * _model.localScale.y - 2.375f,
+			-2.5f * _model.localScale.y + 2.5f));
+		SetHealthSlider(cardName);
+	}
+
+	public void SetHealthSlider(string cardName)
+	{
+		if (!IsOwner)
+		{
+			_currentHealthSlider = GameObject.Find($"Slider{OwnerClientId}").GetComponent<Slider>();
+			_currentHealthSlider.transform.parent.position = new Vector3(
+				_currentHealthSlider.transform.parent.position.x,
+				_model.localScale.y * 4f + 2.1f, _currentHealthSlider.transform.parent.position.z);
+		}
+		else
+		{
+			_currentHealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
+		}
+
+		_currentHealthSlider.maxValue = Cards.CardParams[cardName].health;
+		_currentHealthSlider.value = Card.GetHealth();
+
+		_spawned = true;
 	}
 
 	#endregion
+
+	[Rpc(SendTo.Everyone)]
+	public void UpdateHealthSliderRpc(float health)
+	{
+		StartCoroutine(UpdateHealthSlider(health));
+	}
+
+	private IEnumerator UpdateHealthSlider(float health)
+	{
+		if (health <= 0)
+		{
+			_currentHealthSlider.value = 0;
+			yield break;
+		}
+
+		float stepSize = 2f;
+		float dir = health > _currentHealthSlider.value ? stepSize : -stepSize;
+		float wait = 0.5f / (Mathf.Abs(_currentHealthSlider.value - health) / stepSize);
+
+		for (float v = _currentHealthSlider.value; Mathf.Abs(health - v) > stepSize; v += dir)
+		{
+			_currentHealthSlider.value = v;
+			yield return new WaitForSeconds(wait);
+		}
+
+		_currentHealthSlider.value = health;
+	}
+
+	public void SetAnimatorTrigger(string triggerName)
+	{
+		_animator.SetTrigger(triggerName);
+	}
 
 	#region Movement
 
@@ -325,6 +372,9 @@ public class Player : NetworkBehaviour
 				_jumpsLeft--;
 			}
 		}
+
+		_model.position = transform.position;
+		_model.localEulerAngles = transform.localEulerAngles;
 	}
 
 	private void Move(float speed)

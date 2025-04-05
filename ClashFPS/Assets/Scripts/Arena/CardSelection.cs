@@ -28,8 +28,8 @@ public class CardSelection : MonoBehaviour
 	{
 		_showen = true;
 
-		elixirText.GetChild(0).GetComponent<TextMeshProUGUI>().text = _playerScript.GetElixir().ToString();
-		elixirText.GetChild(1).GetComponent<TextMeshProUGUI>().text = _playerScript.GetElixir().ToString();
+		elixirText.GetChild(0).GetComponent<TextMeshProUGUI>().text = Mathf.FloorToInt(_playerScript.Elixir).ToString();
+		elixirText.GetChild(1).GetComponent<TextMeshProUGUI>().text = Mathf.FloorToInt(_playerScript.Elixir).ToString();
 
 		PutCards();
 
@@ -58,9 +58,9 @@ public class CardSelection : MonoBehaviour
 		canvasGroup.interactable = true;
 		canvasGroup.blocksRaycasts = true;
 
-		leftCardButton.interactable = Cards.CardParams[_leftCardName].elixir <= _playerScript.GetElixir();
-		middleCardButton.interactable = Cards.CardParams[_middleCardName].elixir <= _playerScript.GetElixir();
-		rightCardButton.interactable = Cards.CardParams[_rightCardName].elixir <= _playerScript.GetElixir();
+		leftCardButton.interactable = Cards.CardParams[_leftCardName].elixir <= _playerScript.Elixir;
+		middleCardButton.interactable = Cards.CardParams[_middleCardName].elixir <= _playerScript.Elixir;
+		rightCardButton.interactable = Cards.CardParams[_rightCardName].elixir <= _playerScript.Elixir;
 	}
 
 	public IEnumerator Hide()
@@ -129,21 +129,21 @@ public class CardSelection : MonoBehaviour
 
 	public void LeftCard()
 	{
-		_playerScript.SpendElixir(Cards.CardParams[_leftCardName].elixir);
+		_playerScript.Elixir += Cards.CardParams[_leftCardName].elixir;
 		StartCoroutine(_playerScript.ChooseCard(_leftCardName));
 		StartCoroutine(Hide());
 	}
 
 	public void MiddleCard()
 	{
-		_playerScript.SpendElixir(Cards.CardParams[_middleCardName].elixir);
+		_playerScript.Elixir += Cards.CardParams[_middleCardName].elixir;
 		StartCoroutine(_playerScript.ChooseCard(_middleCardName));
 		StartCoroutine(Hide());
 	}
 
 	public void RightCard()
 	{
-		_playerScript.SpendElixir(Cards.CardParams[_rightCardName].elixir);
+		_playerScript.Elixir += Cards.CardParams[_rightCardName].elixir;
 		StartCoroutine(_playerScript.ChooseCard(_rightCardName));
 		StartCoroutine(Hide());
 	}
