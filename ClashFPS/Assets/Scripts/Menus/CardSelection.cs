@@ -29,7 +29,7 @@ public class CardSelection : MonoBehaviour
 	public void Show(float delay)
 	{
 		NetworkQuery.Instance.Request<float>(
-			$"Get Elixir {playerScript.GetComponent<NetworkBehaviour>().OwnerClientId}",
+			$"Get Elixir {playerScript.GetComponent<NetworkObject>().OwnerClientId}",
 			elixir => StartCoroutine(ShowI(delay, elixir)));
 	}
 

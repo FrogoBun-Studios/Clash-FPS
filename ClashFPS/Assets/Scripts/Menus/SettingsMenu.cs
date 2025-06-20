@@ -121,7 +121,7 @@ public class SettingsMenu : MonoBehaviour
 
 	public void ChangeSideButton()
 	{
-		NetworkQuery.Instance.Request<int>($"Get Side {playerScript.GetComponent<NetworkBehaviour>().OwnerClientId}",
+		NetworkQuery.Instance.Request<int>($"Get Side {playerScript.GetComponent<NetworkObject>().OwnerClientId}",
 			side =>
 			{
 				if ((Side)side == Side.Blue)

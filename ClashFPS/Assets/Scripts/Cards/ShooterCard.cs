@@ -23,7 +23,7 @@ public class ShooterCard : Card
 		StartCoroutine(SpawnBullet());
 	}
 
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	private void SpawnBulletServerRpc()
 	{
 		Bullet bullet = Instantiate(GetParamsAsShooter().bulletPrefab,

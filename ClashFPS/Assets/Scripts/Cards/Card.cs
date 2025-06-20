@@ -75,7 +75,7 @@ public abstract class Card : NetworkBehaviour
 	/// <summary>
 	///     Damage this card on SERVER
 	/// </summary>
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	public void DamageServerRpc(ulong sourcePlayerID, float amount)
 	{
 		if (GetHealth() <= 0)

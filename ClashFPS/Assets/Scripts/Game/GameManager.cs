@@ -2,12 +2,15 @@ using System.Collections.Generic;
 
 using Unity.Netcode;
 
+using UnityEngine;
+
 
 public class GameManager : NetworkBehaviour
 {
 	private readonly NetworkVariable<int> bluePlayersCount = new();
 	private readonly NetworkVariable<int> redPlayersCount = new();
 	private readonly Dictionary<ulong, Player> playerIDToPlayer = new();
+	private readonly List<Player> players = new();
 
 	public static GameManager Get { get; private set; }
 
@@ -38,9 +41,13 @@ public class GameManager : NetworkBehaviour
 		return bluePlayersCount.Value;
 	}
 
-	public void AddPlayerToMap(ulong playerID, Player player)
+	public void InitOnOwner()
 	{
-		playerIDToPlayer.Add(playerID, player);
+		foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player"))
+		{
+			players.Add(player.GetComponent<Player>());
+			playerIDToPlayer.Add(player.GetComponent<NetworkObject>().OwnerClientId, player.GetComponent<Player>());
+		}
 	}
 
 	public Player GetPlayerByID(ulong playerID)

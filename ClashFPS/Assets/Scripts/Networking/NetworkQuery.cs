@@ -38,11 +38,12 @@ public class NetworkQuery : NetworkBehaviour
 		SendRequestServerRpc(queryKey, requestId);
 	}
 
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	private void SendRequestServerRpc(string key, int requestId, ServerRpcParams rpcParams = default)
 	{
 		if (serverHandlers.TryGetValue(key, out Func<ulong, byte[]> handler))
 		{
+			Chat.Get.Log($"New request from client: {key}");
 			byte[] response = handler(rpcParams.Receive.SenderClientId);
 			SendResponseClientRpc(key, requestId, response, rpcParams.Receive.SenderClientId);
 		}
@@ -52,6 +53,8 @@ public class NetworkQuery : NetworkBehaviour
 	private void SendResponseClientRpc(string key, int requestId, byte[] response, ulong clientId)
 	{
 		if (clientId != localClientId) return;
+
+		Chat.Get.Log($"Got response from server: {key}");
 
 		if (clientCallbacks.TryGetValue(requestId, out Action<byte[]> callback))
 		{
@@ -77,14 +80,25 @@ public class NetworkQuery : NetworkBehaviour
 	// Utility
 	// -----------------------
 
+
+	[Serializable]
+	public struct Wrapper<T>
+	{
+		public T value;
+	}
+
+
 	private byte[] Serialize<T>(T obj)
 	{
-		return Encoding.UTF8.GetBytes(JsonUtility.ToJson(obj));
+		Wrapper<T> wrapped = new() { value = obj };
+		string json = JsonUtility.ToJson(wrapped);
+		return Encoding.UTF8.GetBytes(json);
 	}
 
 	private T Deserialize<T>(byte[] bytes)
 	{
 		string json = Encoding.UTF8.GetString(bytes);
-		return JsonUtility.FromJson<T>(json);
+		Wrapper<T> wrapped = JsonUtility.FromJson<Wrapper<T>>(json);
+		return wrapped.value;
 	}
 }

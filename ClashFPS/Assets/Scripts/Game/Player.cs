@@ -80,14 +80,17 @@ public class Player : NetworkBehaviour
 		{
 			NetworkQuery.Instance.Register($"Get Elixir {OwnerClientId}", _ => elixir);
 			NetworkQuery.Instance.Register($"Get Side {OwnerClientId}", _ => (int)side);
+			NetworkQuery.Instance.Register($"Get Top Slider Height {OwnerClientId}",
+				_ => model.localScale.y * 4f + 2.1f);
 		}
 
 		topHealthSlider.name = $"TopSlider{OwnerClientId}";
-		GameManager.Get.AddPlayerToMap(OwnerClientId, this);
 		playerName.OnValueChanged += (value, newValue) => playerNameText.text = newValue.ToString();
 
 		if (!IsOwner)
 			return;
+
+		GameManager.Get.InitOnOwner();
 
 		LoadSettings();
 
@@ -118,7 +121,7 @@ public class Player : NetworkBehaviour
 	/// <summary>
 	///     Adds the amount to the elixir of the player on SERVER.
 	/// </summary>
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	public void UpdateElixirServerRpc(float amount)
 	{
 		elixir += amount;
@@ -184,7 +187,7 @@ public class Player : NetworkBehaviour
 	/// <summary>
 	///     Updates side of player on SERVER.
 	/// </summary>
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	public void UpdateSideServerRpc(Side side)
 	{
 		this.side = side;
@@ -227,7 +230,7 @@ public class Player : NetworkBehaviour
 	/// <summary>
 	///     Deletes the old card and spawn a new one ready to go (respawn) on SERVER.
 	/// </summary>
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	public void ChooseCardServerRpc(string cardName)
 	{
 		StartCoroutine(ChooseCard(cardName));
@@ -235,9 +238,7 @@ public class Player : NetworkBehaviour
 
 	private IEnumerator ChooseCard(string cardName)
 	{
-		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = movementController.GetCameraTransform();
-		Cursor.lockState = CursorLockMode.Locked;
-		Cursor.visible = false;
+		SetCameraOnCardCreationRpc();
 
 		if (card != null)
 		{
@@ -261,6 +262,14 @@ public class Player : NetworkBehaviour
 		SetCardsRpc(OwnerClientId);
 	}
 
+	[Rpc(SendTo.Owner)]
+	public void SetCameraOnCardCreationRpc()
+	{
+		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = movementController.GetCameraTransform();
+		Cursor.lockState = CursorLockMode.Locked;
+		Cursor.visible = false;
+	}
+
 	/// <summary>
 	///     Sets for every player, every player's card, runs on EVERYONE.
 	///     <br /><br />For example,
@@ -274,10 +283,10 @@ public class Player : NetworkBehaviour
 	{
 		foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
 		{
-			ulong cardID = cardGo.GetComponent<NetworkBehaviour>().OwnerClientId;
 			Card card = cardGo.GetComponent<Card>();
+			ulong cardID = card.OwnerClientId;
 
-			cardGo.name = $"Card{OwnerClientId}";
+			cardGo.name = $"Card{cardID}";
 			GameManager.Get.GetPlayerByID(cardID).card = card;
 
 			if (IsServer && cardID == newPlayerID)
@@ -290,8 +299,6 @@ public class Player : NetworkBehaviour
 	public void SetModel()
 	{
 		movementController.SetModel();
-		movementController.SetCameraRelativePos(new Vector3(0, 4.625f * model.localScale.y - 2.375f,
-			-2.5f * model.localScale.y + 2.5f));
 		movementController.EnableColliderRpc(true);
 
 		SetHealthSliders();
@@ -315,12 +322,15 @@ public class Player : NetworkBehaviour
 
 		foreach (GameObject topSliderGo in GameObject.FindGameObjectsWithTag("TopSlider"))
 		{
-			Player player = GameManager.Get.GetPlayerByID(topSliderGo.GetComponent<NetworkBehaviour>().OwnerClientId);
+			Player player = topSliderGo.transform.parent.parent.GetComponent<Player>();
 			player.currentHealthSlider = topSliderGo.GetComponent<Slider>();
-			player.currentHealthSlider.transform.parent.position = new Vector3(
-				currentHealthSlider.transform.parent.position.x,
-				model.localScale.y * 4f + 2.1f, currentHealthSlider.transform.parent.position.z
-			);
+			NetworkQuery.Instance.Request<float>($"Get Top Slider Height {player.OwnerClientId}", height =>
+			{
+				player.currentHealthSlider.transform.parent.position = new Vector3(
+					currentHealthSlider.transform.parent.position.x,
+					height, currentHealthSlider.transform.parent.position.z
+				);
+			});
 
 			player.currentHealthSlider.maxValue = Cards.CardParams[player.card.GetCardName()].health;
 			player.currentHealthSlider.value = card.GetHealth();

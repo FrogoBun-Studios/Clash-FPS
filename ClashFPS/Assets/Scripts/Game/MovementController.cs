@@ -88,7 +88,7 @@ public class MovementController : NetworkBehaviour
 			new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y") * sensitivity, -40, 75), 0, 0);
 	}
 
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	public void TeleportServerRpc(Vector3 position, Quaternion rotation)
 	{
 		controller.enabled = false;
@@ -97,7 +97,7 @@ public class MovementController : NetworkBehaviour
 		controller.enabled = true;
 	}
 
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	public void TeleportServerRpc(Vector3 position)
 	{
 		controller.enabled = false;
@@ -105,7 +105,7 @@ public class MovementController : NetworkBehaviour
 		controller.enabled = true;
 	}
 
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	public void SetAnimatorTriggerServerRpc(string triggerName)
 	{
 		animator.SetTrigger(triggerName);
@@ -143,6 +143,9 @@ public class MovementController : NetworkBehaviour
 				break;
 			}
 		}
+
+		cameraFollow.localPosition =
+			new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f);
 	}
 
 	public Transform GetCameraTransform()
@@ -156,11 +159,6 @@ public class MovementController : NetworkBehaviour
 		controller.radius = radius;
 		controller.height = height;
 		controller.center = Vector3.up * yOffset;
-	}
-
-	public void SetCameraRelativePos(Vector3 pos)
-	{
-		cameraFollow.localPosition = pos;
 	}
 
 	public void UpdateSensitivity(float sensitivity)

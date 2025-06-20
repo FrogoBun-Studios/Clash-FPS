@@ -24,7 +24,7 @@ public class MeleeCard : Card
 		AttackServerRpc();
 	}
 
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	private void AttackServerRpc()
 	{
 		Vector3 attackPos = player.position
