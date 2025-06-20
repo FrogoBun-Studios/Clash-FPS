@@ -6,76 +6,66 @@ using Unity.Cinemachine;
 using Unity.Netcode;
 
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 
 public class Player : NetworkBehaviour
 {
-	[SerializeField] private CharacterController controller;
-	[SerializeField] private Transform cameraFollow;
-
-	[FormerlySerializedAs("healthSlider")] [SerializeField]
-	private Slider topHealthSlider;
+	[SerializeField] private Slider topHealthSlider;
 
 	[SerializeField] private TextMeshProUGUI playerNameText;
 	[SerializeField] private NetworkObject gameManager;
 	[SerializeField] private NetworkObject chatNetworkHelper;
+	[SerializeField] private NetworkObject networkQuery;
 	[SerializeField] private float timeToRespawn;
-	[SerializeField] private float sensitivity;
-	[SerializeField] private float acceleration;
-	public Card Card { get; private set; }
-	private CardSelection _cardSelection;
-	public float Elixir = 5;
-	private int _jumpsLeft;
-	private string _playerName;
-	private Vector3 _resetedCameraPosition;
-	private Quaternion _resetedCameraRotation;
-	private SettingsMenu _settingsMenu;
-	public Side Side { get; private set; }
-	private SideSelection _sideSelection;
-	private bool _spawned;
-	private SlewRateLimiter _xAccelerationLimiter;
-	private float _yVelocity;
-	private SlewRateLimiter _zAccelerationLimiter;
-	public PlayerSettings PlayerSettings;
+	[SerializeField] private MovementController movementController;
 
-	private Transform _model;
-	private Animator _animator;
-	private Slider _currentHealthSlider;
+	private Side side;
+	private Card card;
+	private readonly NetworkVariable<string> playerName = new(writePerm: NetworkVariableWritePermission.Owner);
+	private float elixir = 5;
+
+	private SideSelection sideSelection;
+	private CardSelection cardSelection;
+	private SettingsMenu settingsMenu;
+
+	private bool spawned;
+	public PlayerSettings playerSettings;
+	private Transform model;
+	private Slider currentHealthSlider;
 
 	private void Update()
 	{
 		if (!IsOwner)
 			return;
 
-		if (Input.GetKeyDown(KeyCode.Escape) && !_sideSelection.IsShowen() && !_cardSelection.IsShowen())
+		if (Input.GetKeyDown(KeyCode.Escape) && !sideSelection.IsShowen() && !cardSelection.IsShowen())
 		{
-			if (_settingsMenu.IsShowen())
-				StartCoroutine(_settingsMenu.Hide());
+			if (settingsMenu.IsShowen())
+				StartCoroutine(settingsMenu.Hide());
 			else
-				StartCoroutine(_settingsMenu.Show());
+				StartCoroutine(settingsMenu.Show());
 		}
 
-		if (Card != null)
-			Card.UpdateCard(_spawned);
+		movementController.Enable(spawned && !settingsMenu.IsShowen());
+		if (card != null && spawned)
+			card.UpdateCard();
 	}
 
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
-		if (IsOwner && hit.gameObject.CompareTag("WaterCols"))
-			Card.DamageRpc(Mathf.Infinity);
+		if (IsServer && hit.gameObject.CompareTag("WaterCols"))
+			card.DamageServerRpc(999999999ul, Mathf.Infinity);
 	}
 
 	public override void OnNetworkSpawn()
 	{
-		topHealthSlider.name = $"Slider{OwnerClientId}";
+		topHealthSlider.name = $"TopSlider{OwnerClientId}";
+		GameManager.Get.AddPlayerToMap(OwnerClientId, this);
+		playerName.OnValueChanged += (value, newValue) => playerNameText.text = newValue;
 
 		if (!IsOwner)
 			return;
-
-		_xAccelerationLimiter = new SlewRateLimiter(acceleration);
-		_zAccelerationLimiter = new SlewRateLimiter(acceleration);
 
 		LoadSettings();
 
@@ -88,6 +78,12 @@ public class Player : NetworkBehaviour
 
 			chatNetworkHelper = Instantiate(chatNetworkHelper.gameObject).GetComponent<NetworkObject>();
 			chatNetworkHelper.Spawn();
+
+			networkQuery = Instantiate(networkQuery.gameObject).GetComponent<NetworkObject>();
+			networkQuery.Spawn();
+
+			NetworkQuery.Instance.Register($"Get Elixir {OwnerClientId}", _ => elixir);
+			NetworkQuery.Instance.Register($"Get Side {OwnerClientId}", _ => (int)side);
 		}
 
 		gameManager = GameObject.Find("GameManager(Clone)").GetComponent<NetworkObject>();
@@ -104,24 +100,27 @@ public class Player : NetworkBehaviour
 
 		Application.targetFrameRate = 120;
 
-		_resetedCameraPosition = GameObject.Find("CineCam").transform.position;
-		_resetedCameraRotation = GameObject.Find("CineCam").transform.rotation;
-
-		_sideSelection = FindFirstObjectByType<SideSelection>();
-		_sideSelection.Set(this);
-		_cardSelection = FindFirstObjectByType<CardSelection>();
-		_cardSelection.Set(this);
-		_settingsMenu = FindFirstObjectByType<SettingsMenu>();
-		_settingsMenu.Set(this);
+		sideSelection = FindFirstObjectByType<SideSelection>();
+		sideSelection.Set(this);
+		cardSelection = FindFirstObjectByType<CardSelection>();
+		cardSelection.Set(this);
+		settingsMenu = FindFirstObjectByType<SettingsMenu>();
+		settingsMenu.Set(this);
 
 		ChooseSide();
 	}
 
+	[ServerRpc]
+	public void UpdateElixirServerRpc(float amount)
+	{
+		elixir += amount;
+	}
+
 	public void UpdateSettings(PlayerSettings playerSettings)
 	{
-		PlayerSettings = playerSettings;
+		this.playerSettings = playerSettings;
 		sensitivity = playerSettings.mouseSensitivity;
-		UpdateNameRpc(playerSettings.playerName);
+		playerName.Value = playerSettings.playerName;
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Lens.FieldOfView = playerSettings.FOV;
 	}
 
@@ -137,24 +136,15 @@ public class Player : NetworkBehaviour
 		UpdateSettings(loadedSettings);
 	}
 
-	[Rpc(SendTo.Everyone)]
-	public void UpdateNameRpc(string newName)
-	{
-		_playerName = newName;
-
-		if (!IsOwner)
-			playerNameText.text = _playerName;
-	}
-
 	public void ChooseSide()
 	{
-		_spawned = false;
+		spawned = false;
 
 		Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
-		ResetCamera();
+		movementController.ResetCamera();
 
-		StartCoroutine(_sideSelection.Show());
+		StartCoroutine(sideSelection.Show());
 	}
 
 	public void SetSide(Side side)
@@ -166,277 +156,223 @@ public class Player : NetworkBehaviour
 	[Rpc(SendTo.Everyone)]
 	public void UpdateSideRpc(Side side)
 	{
-		Side = side;
+		this.side = side;
 	}
 
 	public string GetPlayerName()
 	{
-		return _playerName;
+		return playerName;
 	}
 
-	public Quaternion GetCameraRotation()
+	/// <returns>
+	///     Returns the card of this player on EVERYONE.
+	///     If you are not in the server, this card is brain-dead, and exists to call server RPCs.
+	/// </returns>
+	public Card GetCard()
 	{
-		return cameraFollow.rotation;
-	}
-
-	public Vector3 GetCameraForward()
-	{
-		return cameraFollow.forward;
-	}
-
-	private void ResetCamera()
-	{
-		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = null;
-		GameObject.Find("CineCam").transform.position = _resetedCameraPosition;
-		GameObject.Find("CineCam").transform.rotation = _resetedCameraRotation;
-	}
-
-	[Rpc(SendTo.Everyone)]
-	public void SetColliderSizeRpc(float radius, float height, float yOffset)
-	{
-		controller.radius = radius;
-		controller.height = height;
-		controller.center = Vector3.up * yOffset;
-	}
-
-	[Rpc(SendTo.Everyone)]
-	public void EnableColliderRpc(bool enable)
-	{
-		controller.enabled = enable;
-	}
-
-	public void SetCameraFollow(Vector3 pos)
-	{
-		cameraFollow.localPosition = pos;
+		return card;
 	}
 
 	#region CardCreation
 
-	public void Respawn(bool delay = true)
+	/// <summary>
+	///     Resets camera and shows card selection screen to respawn on OWNER.
+	/// </summary>
+	[Rpc(SendTo.Owner)]
+	public void RespawnRpc(bool delay = true)
 	{
-		_spawned = false;
+		spawned = false;
 
 		Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
-		ResetCamera();
+		movementController.ResetCamera();
 
-		StartCoroutine(_cardSelection.Show(delay ? timeToRespawn : 0));
+		StartCoroutine(cardSelection.Show(delay ? timeToRespawn : 0));
 	}
 
-	public IEnumerator ChooseCard(string cardName)
+	/// <summary>
+	///     Deletes the old card and spawn a new one ready to go (respawn) on SERVER.
+	/// </summary>
+	[ServerRpc]
+	public IEnumerator ChooseCardServerRpc(string cardName)
 	{
-		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = cameraFollow;
+		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = movementController.GetCameraTransform();
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
 
-		if (Card != null)
+		if (card != null)
 		{
-			DespawnCardRpc();
-			yield return new WaitUntil(() => Card == null);
+			// DespawnCardRpc();
+			model.GetComponent<NetworkObject>().Despawn();
+			card.GetComponent<NetworkObject>().Despawn();
+			yield return new WaitUntil(() => card == null);
 		}
 
-		Teleport(new Vector3(0, 2, Side == Side.Blue ? -34 : 34),
-			Quaternion.Euler(0, Side == Side.Blue ? 0 : 180, 0));
-		SpawnCardRpc(cardName);
-	}
+		movementController.TeleportServerRpc(new Vector3(0, 2, side == Side.Blue ? -34 : 34),
+			Quaternion.Euler(0, side == Side.Blue ? 0 : 180, 0));
 
-	[Rpc(SendTo.Server)]
-	public void DespawnCardRpc()
-	{
-		_model.GetComponent<NetworkObject>().Despawn();
-		Card.GetComponent<NetworkObject>().Despawn();
-	}
+		// SpawnCardRpc(cardName);
+		GameObject cardGo = Instantiate(Cards.CardPrefabs[cardName]);
+		cardGo.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-	[Rpc(SendTo.Server)]
-	private void SpawnCardRpc(string cardName)
-	{
-		GameObject card = Instantiate(Cards.CardPrefabs[cardName]);
-		card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
-
-		GameObject model = Instantiate(Cards.CardParams[cardName].modelPrefab);
+		model = Instantiate(Cards.CardParams[cardName].modelPrefab).transform;
 		model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-		SetCardRpc(cardName);
+		// SetCardRpc(cardName);
+		card.StartCard(transform);
+		SetCardsRpc();
+
+		// SetModel(cardName);
+		movementController.SetModelRpc();
+		movementController.SetCameraRelativePos(new Vector3(0, 4.625f * model.localScale.y - 2.375f,
+			-2.5f * model.localScale.y + 2.5f));
+		movementController.EnableColliderRpc(true);
 	}
 
+	/// <summary>
+	///     Sets for every player, every player's card, runs on EVERYONE.
+	///     <br /><br />For example,
+	///     <br />If a third player joins, he will set the cards of the 2 other players on his machine,
+	///     <br />and set his own card on his own machine too.
+	///     <br />Every other player will do the same.
+	///     <br /><br />*Notice: the cards that are set in clients are brain-dead and only exist to call server RPCs.
+	/// </summary>
 	[Rpc(SendTo.Everyone)]
-	private void SetCardRpc(string cardName)
+	public void SetCardsRpc()
 	{
 		foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
 		{
-			int i = (int)cardGo.GetComponent<NetworkObject>().OwnerClientId;
-
-			cardGo.name = $"Card{i}";
-			Card card = cardGo.GetComponent<Card>();
-			Player player = GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>();
-			player.Card = card;
-
-			if (card.IsOwner)
-			{
-				if (!card.Started)
-					card.StartCard(player.transform);
-			}
-			else
-			{
-				card.SetCardForNonOwners(player.transform);
-			}
+			cardGo.name = $"Card{OwnerClientId}";
+			GameManager.Get.GetPlayerByID(cardGo.GetComponent<NetworkBehaviour>().OwnerClientId).card =
+				cardGo.GetComponent<Card>();
 		}
 
-		EnableColliderRpc(true);
-		SetModel(cardName);
+		SetHealthSliders();
 	}
 
-	private void SetModel(string cardName)
+	// [Rpc(SendTo.Server)]
+	// public void DespawnCardRpc()
+	// {
+	// 	_model.GetComponent<NetworkObject>().Despawn();
+	// 	Card.GetComponent<NetworkObject>().Despawn();
+	// }
+
+	// [Rpc(SendTo.Server)]
+	// private void SpawnCardRpc(string cardName)
+	// {
+	// 	GameObject card = Instantiate(Cards.CardPrefabs[cardName]);
+	// 	card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+	//
+	// 	GameObject model = Instantiate(Cards.CardParams[cardName].modelPrefab);
+	// 	model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+	//
+	// 	SetCardRpc(cardName);
+	// }
+
+	// [Rpc(SendTo.Everyone)]
+	// private void SetCardRpc(string cardName)
+	// {
+	// 	foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
+	// 	{
+	// 		int i = (int)cardGo.GetComponent<NetworkObject>().OwnerClientId;
+	//
+	// 		cardGo.name = $"Card{i}";
+	// 		Card card = cardGo.GetComponent<Card>();
+	// 		Player player = GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>();
+	// 		player.Card = card;
+	//
+	// 		if (card.IsOwner)
+	// 		{
+	// 			if (!card.Started)
+	// 				card.StartCard(player.transform);
+	// 		}
+	// 		else
+	// 		{
+	// 			card.SetCardForNonOwners(player.transform);
+	// 		}
+	// 	}
+	//
+	// 	EnableColliderRpc(true);
+	// 	SetModel(cardName);
+	// }
+
+	// private void SetModel(string cardName)
+	// {
+	// 	foreach (GameObject model in GameObject.FindGameObjectsWithTag("Model"))
+	// 		model.name = $"Model{model.GetComponent<NetworkObject>().OwnerClientId}";
+	//
+	// 	_model = GameObject.Find($"Model{OwnerClientId}").transform;
+	// 	_animator = _model.GetComponent<Animator>();
+	//
+	// 	SetCameraFollow(new Vector3(0, 4.625f * _model.localScale.y - 2.375f,
+	// 		-2.5f * _model.localScale.y + 2.5f));
+	// 	SetHealthSlider(cardName);
+	// }
+
+	/// <summary>
+	///     Sets for every player, every player's health slider, runs on EVERYONE.
+	///     <br /><br />For example,
+	///     <br />If a third player joins, he will set the health sliders of the 2 other players on his machine,
+	///     <br />and set his own health slider on his machine to be the ui one instead of the top one.
+	///     <br />Every other player will do the same.
+	/// </summary>
+	public void SetHealthSliders()
 	{
-		foreach (GameObject model in GameObject.FindGameObjectsWithTag("Model"))
-			model.name = $"Model{model.GetComponent<NetworkObject>().OwnerClientId}";
-
-		_model = GameObject.Find($"Model{OwnerClientId}").transform;
-		_animator = _model.GetComponent<Animator>();
-
-		SetCameraFollow(new Vector3(0, 4.625f * _model.localScale.y - 2.375f,
-			-2.5f * _model.localScale.y + 2.5f));
-		SetHealthSlider(cardName);
-	}
-
-	public void SetHealthSlider(string cardName)
-	{
-		if (!IsOwner)
+		if (IsOwner)
 		{
-			_currentHealthSlider = GameObject.Find($"Slider{OwnerClientId}").GetComponent<Slider>();
-			_currentHealthSlider.transform.parent.position = new Vector3(
-				_currentHealthSlider.transform.parent.position.x,
-				_model.localScale.y * 4f + 2.1f, _currentHealthSlider.transform.parent.position.z);
-		}
-		else
-		{
-			_currentHealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
+			currentHealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
+			currentHealthSlider.maxValue = Cards.CardParams[card.GetCardName()].health;
+			currentHealthSlider.value = card.GetHealth();
 		}
 
-		_currentHealthSlider.maxValue = Cards.CardParams[cardName].health;
-		_currentHealthSlider.value = Card.GetHealth();
+		foreach (GameObject topSliderGo in GameObject.FindGameObjectsWithTag("TopSlider"))
+		{
+			Player player = GameManager.Get.GetPlayerByID(topSliderGo.GetComponent<NetworkBehaviour>().OwnerClientId);
+			player.currentHealthSlider = topSliderGo.GetComponent<Slider>();
+			player.currentHealthSlider.transform.parent.position = new Vector3(
+				currentHealthSlider.transform.parent.position.x,
+				model.localScale.y * 4f + 2.1f, currentHealthSlider.transform.parent.position.z
+			);
 
-		_spawned = true;
+			player.currentHealthSlider.maxValue = Cards.CardParams[player.card.GetCardName()].health;
+			player.currentHealthSlider.value = card.GetHealth();
+		}
+
+		spawned = true;
 	}
 
 	#endregion
 
+	/// <summary>
+	///     Calls the UpdateHealthSlider func on EVERYONE
+	/// </summary>
 	[Rpc(SendTo.Everyone)]
 	public void UpdateHealthSliderRpc(float health)
 	{
 		StartCoroutine(UpdateHealthSlider(health));
 	}
 
+	/// <summary>
+	///     Updates health slider of this player to given health, supposed to run on EVERYONE
+	/// </summary>
 	private IEnumerator UpdateHealthSlider(float health)
 	{
 		if (health <= 0)
 		{
-			_currentHealthSlider.value = 0;
+			currentHealthSlider.value = 0;
 			yield break;
 		}
 
 		float stepSize = 2f;
-		float dir = health > _currentHealthSlider.value ? stepSize : -stepSize;
-		float wait = 0.5f / (Mathf.Abs(_currentHealthSlider.value - health) / stepSize);
+		float dir = health > currentHealthSlider.value ? stepSize : -stepSize;
+		float wait = 0.5f / (Mathf.Abs(currentHealthSlider.value - health) / stepSize);
 
-		for (float v = _currentHealthSlider.value; Mathf.Abs(health - v) > stepSize; v += dir)
+		for (float v = currentHealthSlider.value; Mathf.Abs(health - v) > stepSize; v += dir)
 		{
-			_currentHealthSlider.value = v;
+			currentHealthSlider.value = v;
 			yield return new WaitForSeconds(wait);
 		}
 
-		_currentHealthSlider.value = health;
+		currentHealthSlider.value = health;
 	}
-
-	public void SetAnimatorTrigger(string triggerName)
-	{
-		_animator.SetTrigger(triggerName);
-	}
-
-	#region Movement
-
-	public void ControlCharacter(float speed, int jumps, float jumpStrength)
-	{
-		Move(speed);
-		Look();
-
-		if (Input.GetButtonDown("Jump") && _spawned && !_settingsMenu.IsShowen())
-		{
-			if (controller.isGrounded)
-				_jumpsLeft = jumps;
-
-			if (_jumpsLeft > 0)
-			{
-				_yVelocity = jumpStrength;
-				_animator.SetTrigger("Jump");
-				_jumpsLeft--;
-			}
-		}
-
-		_model.position = transform.position;
-		_model.localEulerAngles = transform.localEulerAngles;
-	}
-
-	private void Move(float speed)
-	{
-		Vector3 movementDir = new();
-		if (_spawned && !_settingsMenu.IsShowen())
-			movementDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
-
-		// _xAccelerationLimiter.SetRateLimit(controller.isGrounded ? acceleration : acceleration / 5f);
-		// _zAccelerationLimiter.SetRateLimit(controller.isGrounded ? acceleration : acceleration / 5f);
-		_xAccelerationLimiter.SetRateLimit(Mathf.Infinity);
-		_zAccelerationLimiter.SetRateLimit(Mathf.Infinity);
-
-		float xMove = _xAccelerationLimiter.Calculate(movementDir.x * speed) * Time.deltaTime;
-		_yVelocity += Physics.gravity.y * Time.deltaTime;
-		float zMove = _zAccelerationLimiter.Calculate(movementDir.z * speed) * Time.deltaTime;
-
-		controller.Move(transform.right * xMove
-		                + Vector3.up * (_yVelocity * Time.deltaTime)
-		                + transform.forward * zMove);
-
-		if (controller.isGrounded)
-			_yVelocity = 0;
-
-		_animator.SetBool("Moving", movementDir != Vector3.zero);
-		if (movementDir.z != 0)
-			_animator.SetFloat("Speed", Utils.MagnitudeInDirection(controller.velocity, transform.forward) / 6.6f);
-		else
-			_animator.SetFloat("Speed",
-				Mathf.Abs(Utils.MagnitudeInDirection(controller.velocity, transform.right)) >= 0.2f ? 1 : 0);
-	}
-
-	private void Look()
-	{
-		if (!_spawned || _settingsMenu.IsShowen())
-			return;
-
-		transform.localEulerAngles =
-			new Vector3(0, transform.rotation.eulerAngles.y + Input.GetAxis("Mouse X") * sensitivity, 0);
-
-		float xAngle = cameraFollow.rotation.eulerAngles.x;
-		if (xAngle >= 180)
-			xAngle -= 360;
-
-		cameraFollow.localEulerAngles =
-			new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y") * sensitivity, -40, 75), 0, 0);
-	}
-
-	private void Teleport(Vector3 position, Quaternion rotation)
-	{
-		controller.enabled = false;
-		transform.position = position;
-		transform.rotation = rotation;
-		controller.enabled = true;
-	}
-
-	private void Teleport(Vector3 position)
-	{
-		controller.enabled = false;
-		transform.position = position;
-		controller.enabled = true;
-	}
-
-	#endregion
 }

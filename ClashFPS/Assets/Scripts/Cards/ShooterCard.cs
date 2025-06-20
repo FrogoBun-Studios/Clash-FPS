@@ -14,7 +14,7 @@ public class ShooterCard : Card
 			return;
 
 		Gizmos.color = Color.red;
-		Gizmos.DrawRay(_player.position + _player.forward * 0.5f + _player.up * 2f, _playerScript.GetCameraForward());
+		Gizmos.DrawRay(player.position + player.forward * 0.5f + player.up * 2f, playerScript.GetCameraForward());
 	}
 
 	protected override void Attack()
@@ -28,7 +28,7 @@ public class ShooterCard : Card
 	protected void SpawnBulletRpc()
 	{
 		Bullet bullet = Instantiate(GetParamsAsShooter().bulletPrefab,
-				_player.position + _player.forward * 0.5f + _player.up * 2f, _playerScript.GetCameraRotation(), _player)
+				player.position + player.forward * 0.5f + player.up * 2f, playerScript.GetCameraRotation(), player)
 			.GetComponent<Bullet>();
 		bullet.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 		SetBulletRpc();
@@ -42,8 +42,8 @@ public class ShooterCard : Card
 		Bullet bullet = GameObject.FindGameObjectsWithTag("Bullet").Last().GetComponent<Bullet>();
 
 		bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage,
-			GetParamsAsShooter().bulletPiercing, _playerScript.Side,
-			_playerScript.GetCameraForward(), amount => _playerScript.Elixir += amount, KilledPlayer, _playerScript);
+			GetParamsAsShooter().bulletPiercing, playerScript.side,
+			playerScript.GetCameraForward(), amount => playerScript.Elixir += amount, KilledPlayer, playerScript);
 	}
 
 	protected IEnumerator SpawnBullet()

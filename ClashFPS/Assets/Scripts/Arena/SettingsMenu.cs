@@ -25,7 +25,7 @@ public class SettingsMenu : MonoBehaviour
 			return;
 
 		GetUISettings();
-		saveButton.interactable = !_playerScript.PlayerSettings.Equals(_playerSettings);
+		saveButton.interactable = !_playerScript.playerSettings.Equals(_playerSettings);
 	}
 
 	public IEnumerator Show()
@@ -35,7 +35,7 @@ public class SettingsMenu : MonoBehaviour
 		Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
 
-		_playerSettings = _playerScript.PlayerSettings;
+		_playerSettings = _playerScript.playerSettings;
 		SetUISettings();
 		saveButton.interactable = false;
 
@@ -119,7 +119,7 @@ public class SettingsMenu : MonoBehaviour
 
 	public void ChangeSideButton()
 	{
-		if (_playerScript.Side == Side.Blue)
+		if (_playerScript.side == Side.Blue)
 			GameManager.Get.UpdateBluePlayersCountRpc(-1);
 		else
 			GameManager.Get.UpdateRedPlayersCountRpc(-1);

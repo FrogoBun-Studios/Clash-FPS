@@ -7,99 +7,123 @@ public abstract class Card : NetworkBehaviour
 {
 	[SerializeField] protected CardParams cardParams;
 
-	protected NetworkVariable<float> _health = new(writePerm: NetworkVariableWritePermission.Owner);
-	protected Transform _player;
-	protected Player _playerScript;
-	protected float _attackTimer;
-	public bool Started { get; private set; }
+	protected NetworkVariable<float> health = new();
+	protected Transform player;
+	protected Player playerScript;
+	protected float attackTimer;
+	protected MovementController movementController;
 
+	/// <summary>
+	///     Start and setup card on SERVER
+	/// </summary>
 	public virtual void StartCard(Transform player)
 	{
-		Started = true;
+		this.player = player;
+		playerScript = player.GetComponent<Player>();
+		movementController = player.GetComponent<MovementController>();
 
-		_player = player;
-		_playerScript = player.GetComponent<Player>();
-
-		_health.Value = cardParams.health;
-
-		_playerScript.UpdateHealthSliderRpc(_health.Value);
-
-		_playerScript.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
+		health.Value = cardParams.health;
+		playerScript.UpdateHealthSliderRpc(health.Value);
+		movementController.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
 			cardParams.colliderYOffset);
-		_attackTimer = 1 / cardParams.attackRate;
+		attackTimer = 1 / cardParams.attackRate;
 	}
 
-	public void SetCardForNonOwners(Transform player)
+	/// <summary>
+	///     This card updates and moves on OWNER
+	/// </summary>
+	public virtual void UpdateCard()
 	{
-		_player = player;
-		_playerScript = player.GetComponent<Player>();
-	}
-
-	public virtual void UpdateCard(bool spawned)
-	{
-		if (GetHealth() <= 0 || !spawned)
+		if (GetHealth() <= 0)
 			return;
 
-		_playerScript.Elixir += Time.deltaTime * 0.25f;
+		playerScript.UpdateElixirServerRpc(Time.deltaTime * 0.25f);
 
-		_playerScript.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
-
-		_attackTimer -= Time.deltaTime;
-		if (Input.GetButtonDown("Fire") && _attackTimer <= 0)
+		movementController.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
+		attackTimer -= Time.deltaTime;
+		if (Input.GetButtonDown("Fire") && attackTimer <= 0)
 		{
-			_attackTimer = 1 / cardParams.attackRate;
-			Attack();
+			attackTimer = 1 / cardParams.attackRate;
+			AttackServerRpc();
 		}
 	}
 
-	protected virtual void Attack()
+	/// <summary>
+	///     This card attacks on SERVER
+	/// </summary>
+	[ServerRpc]
+	protected virtual void AttackServerRpc()
 	{
-		_playerScript.SetAnimatorTrigger("Attack");
+		movementController.SetAnimatorTriggerServerRpc("Attack");
 	}
 
+	/// <summary>
+	///     This card damaging a tower on EVERYONE because the towers aren't networked
+	/// </summary>
 	[Rpc(SendTo.Everyone)]
 	protected void DamageTowerRpc(string towerName)
 	{
 		Tower t = GameObject.Find(towerName).GetComponent<Tower>();
 
-		if (t.GetSide() != _playerScript.Side)
+		NetworkQuery.Instance.Request<int>($"Get Side {OwnerClientId}", side =>
 		{
-			if (t.Damage(cardParams.damage))
-				_playerScript.Elixir += 10;
-		}
+			if (t.GetSide() != (Side)side)
+				if (t.Damage(cardParams.damage))
+					playerScript.UpdateElixirServerRpc(10);
+		});
 	}
 
-	[Rpc(SendTo.Owner)]
-	public void DamageRpc(float amount)
+	/// <summary>
+	///     Damage this card on SERVER
+	/// </summary>
+	[ServerRpc]
+	public void DamageServerRpc(ulong sourcePlayerID, float amount)
 	{
 		if (GetHealth() <= 0)
 			return;
 
-		Chat.Get.Log($"{_health.Value}");
-		_health.Value -= amount;
-		Chat.Get.Log($"{_health.Value}");
-		_playerScript.UpdateHealthSliderRpc(GetHealth());
+		health.Value -= amount;
+		playerScript.UpdateHealthSliderRpc(GetHealth());
 		if (GetHealth() <= 0)
+		{
+			if (sourcePlayerID != 999999999ul)
+				GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard().KilledPlayer(playerScript);
 			OnDeath();
+		}
 	}
 
-	public void KilledPlayer(Player killedPlayer)
+	/// <summary>
+	///     Runs when this card killed another card on SERVER
+	/// </summary>
+	protected void KilledPlayer(Player killedPlayer)
 	{
-		_playerScript.Elixir += 3;
-		Chat.Get.KillLog(_playerScript.GetPlayerName(), killedPlayer.GetPlayerName(), cardParams.cardName);
+		playerScript.UpdateElixirServerRpc(3);
+		Chat.Get.KillLog(playerScript.GetPlayerName(), killedPlayer.GetPlayerName(), cardParams.cardName);
 	}
 
+	/// <summary>
+	///     Runs when this card dies on SERVER
+	/// </summary>
 	protected virtual void OnDeath()
 	{
-		Started = false;
-		_playerScript.SetAnimatorTrigger("Death");
-
-		_playerScript.EnableColliderRpc(false);
-		_playerScript.Respawn();
+		movementController.SetAnimatorTriggerServerRpc("Death");
+		movementController.EnableColliderRpc(false);
+		playerScript.RespawnRpc();
 	}
 
+	/// <returns>
+	///     Returns the health of the card, works on EVERYONE
+	/// </returns>
 	public float GetHealth()
 	{
-		return _health.Value;
+		return health.Value;
+	}
+
+	/// <returns>
+	///     Returns the name of the card (Wizard, Giant...), works on EVERYONE
+	/// </returns>
+	public string GetCardName()
+	{
+		return cardParams.cardName;
 	}
 }

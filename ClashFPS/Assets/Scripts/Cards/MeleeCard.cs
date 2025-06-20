@@ -9,10 +9,10 @@ public class MeleeCard : Card
 			return;
 
 		Gizmos.color = Color.red;
-		Gizmos.DrawWireCube(_player.position
-		                    + _player.right * GetParamsAsMelee().attackZone.center.x
-		                    + _player.up * GetParamsAsMelee().attackZone.center.y
-		                    + _player.forward * GetParamsAsMelee().attackZone.center.z,
+		Gizmos.DrawWireCube(player.position
+		                    + player.right * GetParamsAsMelee().attackZone.center.x
+		                    + player.up * GetParamsAsMelee().attackZone.center.y
+		                    + player.forward * GetParamsAsMelee().attackZone.center.z,
 			GetParamsAsMelee().attackZone.size);
 	}
 
@@ -22,10 +22,10 @@ public class MeleeCard : Card
 
 		base.Attack();
 
-		Vector3 attackPos = _player.position
-		                    + _player.right * GetParamsAsMelee().attackZone.center.x
-		                    + _player.up * GetParamsAsMelee().attackZone.center.y
-		                    + _player.forward * GetParamsAsMelee().attackZone.center.z;
+		Vector3 attackPos = player.position
+		                    + player.right * GetParamsAsMelee().attackZone.center.x
+		                    + player.up * GetParamsAsMelee().attackZone.center.y
+		                    + player.forward * GetParamsAsMelee().attackZone.center.z;
 
 		Collider[] colliders = Physics.OverlapBox(attackPos, GetParamsAsMelee().attackZone.size / 2);
 
@@ -34,15 +34,15 @@ public class MeleeCard : Card
 		{
 			if (col.CompareTag("Player"))
 			{
-				if (col.GetComponent<Player>().Side != _playerScript.Side)
+				if (col.GetComponent<Player>().side != playerScript.side)
 				{
 					Chat.Get.Log("3");
-					_playerScript.Elixir += cardParams.damage * 0.005f;
+					playerScript.Elixir += cardParams.damage * 0.005f;
 
 					// if (col.GetComponent<Player>().Card.DamageRpc(cardParams.damage))
 					// 	KilledPlayer(col.GetComponent<Player>());
 					Chat.Get.Log("4");
-					col.GetComponent<Player>().Card.DamageRpc(cardParams.damage);
+					col.GetComponent<Player>().card.DamageRpc(cardParams.damage);
 					Chat.Get.Log("5");
 				}
 			}
