@@ -9,6 +9,7 @@ TagManager:
   - WaterCols
   - Tower
   - Bullet
+  - TopSlider
   layers:
   - Default
   - TransparentFX

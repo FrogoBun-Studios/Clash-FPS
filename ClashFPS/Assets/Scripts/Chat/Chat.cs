@@ -71,7 +71,7 @@ public class Chat : MonoBehaviour
 		}
 	}
 
-	public void Log(string message)
+	public void Log(object message)
 	{
 		Show();
 		if (_chatNetworkHelper is not null)

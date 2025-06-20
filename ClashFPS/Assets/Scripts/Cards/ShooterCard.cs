@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Linq;
 
 using Unity.Netcode;
 
@@ -14,46 +13,57 @@ public class ShooterCard : Card
 			return;
 
 		Gizmos.color = Color.red;
-		Gizmos.DrawRay(player.position + player.forward * 0.5f + player.up * 2f, playerScript.GetCameraForward());
+		Gizmos.DrawRay(player.position + player.forward * 0.5f + player.up * 2f,
+			movementController.GetCameraTransform().forward);
 	}
 
 	protected override void Attack()
 	{
 		base.Attack();
-
 		StartCoroutine(SpawnBullet());
 	}
 
-	[Rpc(SendTo.Server)]
-	protected void SpawnBulletRpc()
+	[ServerRpc]
+	private void SpawnBulletServerRpc()
 	{
 		Bullet bullet = Instantiate(GetParamsAsShooter().bulletPrefab,
-				player.position + player.forward * 0.5f + player.up * 2f, playerScript.GetCameraRotation(), player)
+				player.position + player.forward * 0.5f + player.up * 2f,
+				movementController.GetCameraTransform().rotation, player)
 			.GetComponent<Bullet>();
 		bullet.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
-		SetBulletRpc();
+
+		// SetBulletRpc();
+		bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage,
+			GetParamsAsShooter().bulletPiercing, playerScript.GetSide(),
+			movementController.GetCameraTransform().forward,
+			amount => playerScript.UpdateElixirServerRpc(amount),
+			KilledPlayer, playerScript
+		);
 
 		StartCoroutine(DestroyBullet(bullet.GetComponent<NetworkObject>()));
 	}
 
-	[Rpc(SendTo.Everyone)]
-	protected void SetBulletRpc()
-	{
-		Bullet bullet = GameObject.FindGameObjectsWithTag("Bullet").Last().GetComponent<Bullet>();
+	// [Rpc(SendTo.Everyone)]
+	// private void SetBulletRpc()
+	// {
+	// 	Bullet bullet = GameObject.FindGameObjectsWithTag("Bullet").Last().GetComponent<Bullet>();
+	//
+	// 	bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage,
+	// 		GetParamsAsShooter().bulletPiercing, playerScript.side,
+	// 		movementController.GetCameraTransform().forward,
+	// 		amount => playerScript.UpdateElixirServerRpc(amount),
+	// 		KilledPlayer, playerScript
+	// 	);
+	// }
 
-		bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage,
-			GetParamsAsShooter().bulletPiercing, playerScript.side,
-			playerScript.GetCameraForward(), amount => playerScript.Elixir += amount, KilledPlayer, playerScript);
-	}
-
-	protected IEnumerator SpawnBullet()
+	private IEnumerator SpawnBullet()
 	{
 		yield return new WaitForSeconds(0.25f);
 
-		SpawnBulletRpc();
+		SpawnBulletServerRpc();
 	}
 
-	protected IEnumerator DestroyBullet(NetworkObject bullet)
+	private IEnumerator DestroyBullet(NetworkObject bullet)
 	{
 		yield return new WaitForSeconds(3f);
 

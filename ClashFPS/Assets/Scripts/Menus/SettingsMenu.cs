@@ -2,6 +2,8 @@ using System.Collections;
 
 using TMPro;
 
+using Unity.Netcode;
+
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,27 +17,27 @@ public class SettingsMenu : MonoBehaviour
 	[SerializeField] private TMP_Dropdown qualityInput;
 	[SerializeField] private Slider fovInput;
 	[SerializeField] private Button saveButton;
-	private Player _playerScript;
-	private PlayerSettings _playerSettings;
-	private bool _showen;
+	private Player playerScript;
+	private PlayerSettings playerSettings;
+	private bool showen;
 
 	private void Update()
 	{
-		if (_playerScript == null)
+		if (playerScript == null)
 			return;
 
 		GetUISettings();
-		saveButton.interactable = !_playerScript.playerSettings.Equals(_playerSettings);
+		saveButton.interactable = !playerScript.playerSettings.Equals(playerSettings);
 	}
 
 	public IEnumerator Show()
 	{
-		_showen = true;
+		showen = true;
 
 		Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
 
-		_playerSettings = _playerScript.playerSettings;
+		playerSettings = playerScript.playerSettings;
 		SetUISettings();
 		saveButton.interactable = false;
 
@@ -57,7 +59,7 @@ public class SettingsMenu : MonoBehaviour
 
 	public IEnumerator Hide()
 	{
-		_showen = false;
+		showen = false;
 
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
@@ -76,42 +78,42 @@ public class SettingsMenu : MonoBehaviour
 
 	public bool IsShowen()
 	{
-		return _showen;
+		return showen;
 	}
 
 	public void Set(Player playerScript)
 	{
-		_playerScript = playerScript;
+		this.playerScript = playerScript;
 	}
 
 	private void GetUISettings()
 	{
-		_playerSettings.playerName = playerNameInput.text;
-		_playerSettings.volume = volumeInput.value;
-		_playerSettings.mouseSensitivity = mouseSensitivityInput.value;
-		_playerSettings.quality = qualityInput.value;
-		_playerSettings.FOV = fovInput.value;
+		playerSettings.playerName = playerNameInput.text;
+		playerSettings.volume = volumeInput.value;
+		playerSettings.mouseSensitivity = mouseSensitivityInput.value;
+		playerSettings.quality = qualityInput.value;
+		playerSettings.FOV = fovInput.value;
 	}
 
 	private void SetUISettings()
 	{
-		playerNameInput.text = _playerSettings.playerName;
-		volumeInput.value = _playerSettings.volume;
-		mouseSensitivityInput.value = _playerSettings.mouseSensitivity;
-		qualityInput.value = _playerSettings.quality;
-		fovInput.value = _playerSettings.FOV;
+		playerNameInput.text = playerSettings.playerName;
+		volumeInput.value = playerSettings.volume;
+		mouseSensitivityInput.value = playerSettings.mouseSensitivity;
+		qualityInput.value = playerSettings.quality;
+		fovInput.value = playerSettings.FOV;
 	}
 
 	public void SaveButton()
 	{
 		GetUISettings();
-		_playerScript.UpdateSettings(_playerSettings);
+		playerScript.UpdateGameToSettings(playerSettings);
 
-		PlayerPrefs.SetString("playerName", _playerSettings.playerName);
-		PlayerPrefs.SetFloat("volume", _playerSettings.volume);
-		PlayerPrefs.SetFloat("mouseSensitivity", _playerSettings.mouseSensitivity);
-		PlayerPrefs.SetInt("quality", _playerSettings.quality);
-		PlayerPrefs.SetFloat("FOV", _playerSettings.FOV);
+		PlayerPrefs.SetString("playerName", playerSettings.playerName);
+		PlayerPrefs.SetFloat("volume", playerSettings.volume);
+		PlayerPrefs.SetFloat("mouseSensitivity", playerSettings.mouseSensitivity);
+		PlayerPrefs.SetInt("quality", playerSettings.quality);
+		PlayerPrefs.SetFloat("FOV", playerSettings.FOV);
 		PlayerPrefs.Save();
 
 		StartCoroutine(Hide());
@@ -119,12 +121,16 @@ public class SettingsMenu : MonoBehaviour
 
 	public void ChangeSideButton()
 	{
-		if (_playerScript.side == Side.Blue)
-			GameManager.Get.UpdateBluePlayersCountRpc(-1);
-		else
-			GameManager.Get.UpdateRedPlayersCountRpc(-1);
+		NetworkQuery.Instance.Request<int>($"Get Side {playerScript.GetComponent<NetworkBehaviour>().OwnerClientId}",
+			side =>
+			{
+				if ((Side)side == Side.Blue)
+					GameManager.Get.UpdateBluePlayersCountRpc(-1);
+				else
+					GameManager.Get.UpdateRedPlayersCountRpc(-1);
 
-		StartCoroutine(Hide());
-		_playerScript.ChooseSide();
+				StartCoroutine(Hide());
+				playerScript.ChooseSide();
+			});
 	}
 }

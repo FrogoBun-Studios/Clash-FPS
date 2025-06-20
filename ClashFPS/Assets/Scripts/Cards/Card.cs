@@ -44,15 +44,14 @@ public abstract class Card : NetworkBehaviour
 		if (Input.GetButtonDown("Fire") && attackTimer <= 0)
 		{
 			attackTimer = 1 / cardParams.attackRate;
-			AttackServerRpc();
+			Attack();
 		}
 	}
 
 	/// <summary>
-	///     This card attacks on SERVER
+	///     This card attacks. Runs by OWNER, supposed to run on SERVER, that means this func will call server RPCs.
 	/// </summary>
-	[ServerRpc]
-	protected virtual void AttackServerRpc()
+	protected virtual void Attack()
 	{
 		movementController.SetAnimatorTriggerServerRpc("Attack");
 	}
@@ -86,7 +85,7 @@ public abstract class Card : NetworkBehaviour
 		playerScript.UpdateHealthSliderRpc(GetHealth());
 		if (GetHealth() <= 0)
 		{
-			if (sourcePlayerID != 999999999ul)
+			if (sourcePlayerID != 999ul)
 				GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard().KilledPlayer(playerScript);
 			OnDeath();
 		}

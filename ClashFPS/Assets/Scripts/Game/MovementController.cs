@@ -7,7 +7,6 @@ using UnityEngine;
 public class MovementController : NetworkBehaviour
 {
 	[SerializeField] private CharacterController controller;
-	[SerializeField] private Transform player;
 	[SerializeField] private float sensitivity;
 	[SerializeField] private Transform cameraFollow;
 	private Animator animator;
@@ -16,13 +15,13 @@ public class MovementController : NetworkBehaviour
 	private float yVelocity;
 	private bool movementEnabled;
 	private Transform model;
-	private Vector3 _resetedCameraPosition;
-	private Quaternion _resetedCameraRotation;
+	private Vector3 resetedCameraPosition;
+	private Quaternion resetedCameraRotation;
 
 	public override void OnNetworkSpawn()
 	{
-		_resetedCameraPosition = GameObject.Find("CineCam").transform.position;
-		_resetedCameraRotation = GameObject.Find("CineCam").transform.rotation;
+		resetedCameraPosition = GameObject.Find("CineCam").transform.position;
+		resetedCameraRotation = GameObject.Find("CineCam").transform.rotation;
 	}
 
 	public void ControlCharacter(float speed, int jumps, float jumpStrength)
@@ -120,8 +119,8 @@ public class MovementController : NetworkBehaviour
 	public void ResetCamera()
 	{
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = null;
-		GameObject.Find("CineCam").transform.position = _resetedCameraPosition;
-		GameObject.Find("CineCam").transform.rotation = _resetedCameraRotation;
+		GameObject.Find("CineCam").transform.position = resetedCameraPosition;
+		GameObject.Find("CineCam").transform.rotation = resetedCameraRotation;
 	}
 
 	[Rpc(SendTo.Everyone)]
@@ -130,19 +129,20 @@ public class MovementController : NetworkBehaviour
 		controller.enabled = enable;
 	}
 
-	[Rpc(SendTo.Everyone)]
-	public void SetModelRpc()
+	public void SetModel()
 	{
 		if (!(IsServer || IsOwner))
 			return;
 
 		foreach (GameObject m in GameObject.FindGameObjectsWithTag("Model"))
+		{
 			if (m.GetComponent<NetworkObject>().OwnerClientId == OwnerClientId)
 			{
 				model = m.transform;
 				animator = model.gameObject.GetComponent<Animator>();
 				break;
 			}
+		}
 	}
 
 	public Transform GetCameraTransform()
@@ -161,5 +161,10 @@ public class MovementController : NetworkBehaviour
 	public void SetCameraRelativePos(Vector3 pos)
 	{
 		cameraFollow.localPosition = pos;
+	}
+
+	public void UpdateSensitivity(float sensitivity)
+	{
+		this.sensitivity = sensitivity;
 	}
 }

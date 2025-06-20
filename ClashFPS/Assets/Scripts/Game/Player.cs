@@ -3,6 +3,7 @@ using System.Collections;
 using TMPro;
 
 using Unity.Cinemachine;
+using Unity.Collections;
 using Unity.Netcode;
 
 using UnityEngine;
@@ -22,7 +23,10 @@ public class Player : NetworkBehaviour
 
 	private Side side;
 	private Card card;
-	private readonly NetworkVariable<string> playerName = new(writePerm: NetworkVariableWritePermission.Owner);
+
+	private readonly NetworkVariable<FixedString32Bytes> playerName =
+		new(writePerm: NetworkVariableWritePermission.Owner);
+
 	private float elixir = 5;
 
 	private SideSelection sideSelection;
@@ -55,23 +59,12 @@ public class Player : NetworkBehaviour
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
 		if (IsServer && hit.gameObject.CompareTag("WaterCols"))
-			card.DamageServerRpc(999999999ul, Mathf.Infinity);
+			card.DamageServerRpc(999ul, Mathf.Infinity);
 	}
 
 	public override void OnNetworkSpawn()
 	{
-		topHealthSlider.name = $"TopSlider{OwnerClientId}";
-		GameManager.Get.AddPlayerToMap(OwnerClientId, this);
-		playerName.OnValueChanged += (value, newValue) => playerNameText.text = newValue;
-
-		if (!IsOwner)
-			return;
-
-		LoadSettings();
-
-		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0.75f;
-
-		if (IsServer)
+		if (IsServer && IsOwner)
 		{
 			gameManager = Instantiate(gameManager.gameObject).GetComponent<NetworkObject>();
 			gameManager.Spawn();
@@ -81,12 +74,24 @@ public class Player : NetworkBehaviour
 
 			networkQuery = Instantiate(networkQuery.gameObject).GetComponent<NetworkObject>();
 			networkQuery.Spawn();
+		}
 
+		if (IsServer)
+		{
 			NetworkQuery.Instance.Register($"Get Elixir {OwnerClientId}", _ => elixir);
 			NetworkQuery.Instance.Register($"Get Side {OwnerClientId}", _ => (int)side);
 		}
 
-		gameManager = GameObject.Find("GameManager(Clone)").GetComponent<NetworkObject>();
+		topHealthSlider.name = $"TopSlider{OwnerClientId}";
+		GameManager.Get.AddPlayerToMap(OwnerClientId, this);
+		playerName.OnValueChanged += (value, newValue) => playerNameText.text = newValue.ToString();
+
+		if (!IsOwner)
+			return;
+
+		LoadSettings();
+
+		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 0.75f;
 
 		chatNetworkHelper = GameObject.Find("ChatNetworkHelper(Clone)").GetComponent<NetworkObject>();
 		Chat.Get.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>(), this);
@@ -110,20 +115,29 @@ public class Player : NetworkBehaviour
 		ChooseSide();
 	}
 
+	/// <summary>
+	///     Adds the amount to the elixir of the player on SERVER.
+	/// </summary>
 	[ServerRpc]
 	public void UpdateElixirServerRpc(float amount)
 	{
 		elixir += amount;
 	}
 
-	public void UpdateSettings(PlayerSettings playerSettings)
+	/// <summary>
+	///     Updates game to the given settings (makes the settings actually work) on OWNER.
+	/// </summary>
+	public void UpdateGameToSettings(PlayerSettings playerSettings)
 	{
 		this.playerSettings = playerSettings;
-		sensitivity = playerSettings.mouseSensitivity;
+		movementController.UpdateSensitivity(playerSettings.mouseSensitivity);
 		playerName.Value = playerSettings.playerName;
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Lens.FieldOfView = playerSettings.FOV;
 	}
 
+	/// <summary>
+	///     Loads player settings on OWNER.
+	/// </summary>
 	private void LoadSettings()
 	{
 		PlayerSettings loadedSettings = new();
@@ -133,9 +147,12 @@ public class Player : NetworkBehaviour
 		loadedSettings.quality = PlayerPrefs.GetInt("quality", 0);
 		loadedSettings.FOV = PlayerPrefs.GetFloat("FOV", 90);
 
-		UpdateSettings(loadedSettings);
+		UpdateGameToSettings(loadedSettings);
 	}
 
+	/// <summary>
+	///     Opens side selection menu. Can be called from EVERYONE.
+	/// </summary>
 	public void ChooseSide()
 	{
 		spawned = false;
@@ -147,21 +164,38 @@ public class Player : NetworkBehaviour
 		StartCoroutine(sideSelection.Show());
 	}
 
+	/// <summary>
+	///     Sets side of player and respawns. Can be called from EVERYONE.
+	/// </summary>
 	public void SetSide(Side side)
 	{
-		UpdateSideRpc(side);
-		Respawn(false);
+		UpdateSideServerRpc(side);
+		RespawnRpc(false);
 	}
 
-	[Rpc(SendTo.Everyone)]
-	public void UpdateSideRpc(Side side)
+	/// <returns>
+	///     Returns the side (blue/red) of this player. Only works on SERVER.
+	/// </returns>
+	public Side GetSide()
+	{
+		return side;
+	}
+
+	/// <summary>
+	///     Updates side of player on SERVER.
+	/// </summary>
+	[ServerRpc]
+	public void UpdateSideServerRpc(Side side)
 	{
 		this.side = side;
 	}
 
+	/// <returns>
+	///     Returns the name of the player on EVERYONE.
+	/// </returns>
 	public string GetPlayerName()
 	{
-		return playerName;
+		return playerName.Value.ToString();
 	}
 
 	/// <returns>
@@ -187,14 +221,19 @@ public class Player : NetworkBehaviour
 		Cursor.visible = true;
 		movementController.ResetCamera();
 
-		StartCoroutine(cardSelection.Show(delay ? timeToRespawn : 0));
+		cardSelection.Show(delay ? timeToRespawn : 0);
 	}
 
 	/// <summary>
 	///     Deletes the old card and spawn a new one ready to go (respawn) on SERVER.
 	/// </summary>
 	[ServerRpc]
-	public IEnumerator ChooseCardServerRpc(string cardName)
+	public void ChooseCardServerRpc(string cardName)
+	{
+		StartCoroutine(ChooseCard(cardName));
+	}
+
+	private IEnumerator ChooseCard(string cardName)
 	{
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = movementController.GetCameraTransform();
 		Cursor.lockState = CursorLockMode.Locked;
@@ -205,7 +244,8 @@ public class Player : NetworkBehaviour
 			// DespawnCardRpc();
 			model.GetComponent<NetworkObject>().Despawn();
 			card.GetComponent<NetworkObject>().Despawn();
-			yield return new WaitUntil(() => card == null);
+
+			yield return new WaitUntil(() => card == null && model == null);
 		}
 
 		movementController.TeleportServerRpc(new Vector3(0, 2, side == Side.Blue ? -34 : 34),
@@ -218,15 +258,7 @@ public class Player : NetworkBehaviour
 		model = Instantiate(Cards.CardParams[cardName].modelPrefab).transform;
 		model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-		// SetCardRpc(cardName);
-		card.StartCard(transform);
-		SetCardsRpc();
-
-		// SetModel(cardName);
-		movementController.SetModelRpc();
-		movementController.SetCameraRelativePos(new Vector3(0, 4.625f * model.localScale.y - 2.375f,
-			-2.5f * model.localScale.y + 2.5f));
-		movementController.EnableColliderRpc(true);
+		SetCardsRpc(OwnerClientId);
 	}
 
 	/// <summary>
@@ -238,16 +270,63 @@ public class Player : NetworkBehaviour
 	///     <br /><br />*Notice: the cards that are set in clients are brain-dead and only exist to call server RPCs.
 	/// </summary>
 	[Rpc(SendTo.Everyone)]
-	public void SetCardsRpc()
+	public void SetCardsRpc(ulong newPlayerID)
 	{
 		foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
 		{
+			ulong cardID = cardGo.GetComponent<NetworkBehaviour>().OwnerClientId;
+			Card card = cardGo.GetComponent<Card>();
+
 			cardGo.name = $"Card{OwnerClientId}";
-			GameManager.Get.GetPlayerByID(cardGo.GetComponent<NetworkBehaviour>().OwnerClientId).card =
-				cardGo.GetComponent<Card>();
+			GameManager.Get.GetPlayerByID(cardID).card = card;
+
+			if (IsServer && cardID == newPlayerID)
+				card.StartCard(transform);
 		}
 
+		SetModel();
+	}
+
+	public void SetModel()
+	{
+		movementController.SetModel();
+		movementController.SetCameraRelativePos(new Vector3(0, 4.625f * model.localScale.y - 2.375f,
+			-2.5f * model.localScale.y + 2.5f));
+		movementController.EnableColliderRpc(true);
+
 		SetHealthSliders();
+	}
+
+	/// <summary>
+	///     Sets for every player, every player's health slider, runs on EVERYONE.
+	///     <br /><br />For example,
+	///     <br />If a third player joins, he will set the health sliders of the 2 other players on his machine,
+	///     <br />and set his own health slider on his machine to be the ui one instead of the top one.
+	///     <br />Every other player will do the same.
+	/// </summary>
+	public void SetHealthSliders()
+	{
+		if (IsOwner)
+		{
+			currentHealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
+			currentHealthSlider.maxValue = Cards.CardParams[card.GetCardName()].health;
+			currentHealthSlider.value = card.GetHealth();
+		}
+
+		foreach (GameObject topSliderGo in GameObject.FindGameObjectsWithTag("TopSlider"))
+		{
+			Player player = GameManager.Get.GetPlayerByID(topSliderGo.GetComponent<NetworkBehaviour>().OwnerClientId);
+			player.currentHealthSlider = topSliderGo.GetComponent<Slider>();
+			player.currentHealthSlider.transform.parent.position = new Vector3(
+				currentHealthSlider.transform.parent.position.x,
+				model.localScale.y * 4f + 2.1f, currentHealthSlider.transform.parent.position.z
+			);
+
+			player.currentHealthSlider.maxValue = Cards.CardParams[player.card.GetCardName()].health;
+			player.currentHealthSlider.value = card.GetHealth();
+		}
+
+		spawned = true;
 	}
 
 	// [Rpc(SendTo.Server)]
@@ -308,38 +387,6 @@ public class Player : NetworkBehaviour
 	// 		-2.5f * _model.localScale.y + 2.5f));
 	// 	SetHealthSlider(cardName);
 	// }
-
-	/// <summary>
-	///     Sets for every player, every player's health slider, runs on EVERYONE.
-	///     <br /><br />For example,
-	///     <br />If a third player joins, he will set the health sliders of the 2 other players on his machine,
-	///     <br />and set his own health slider on his machine to be the ui one instead of the top one.
-	///     <br />Every other player will do the same.
-	/// </summary>
-	public void SetHealthSliders()
-	{
-		if (IsOwner)
-		{
-			currentHealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
-			currentHealthSlider.maxValue = Cards.CardParams[card.GetCardName()].health;
-			currentHealthSlider.value = card.GetHealth();
-		}
-
-		foreach (GameObject topSliderGo in GameObject.FindGameObjectsWithTag("TopSlider"))
-		{
-			Player player = GameManager.Get.GetPlayerByID(topSliderGo.GetComponent<NetworkBehaviour>().OwnerClientId);
-			player.currentHealthSlider = topSliderGo.GetComponent<Slider>();
-			player.currentHealthSlider.transform.parent.position = new Vector3(
-				currentHealthSlider.transform.parent.position.x,
-				model.localScale.y * 4f + 2.1f, currentHealthSlider.transform.parent.position.z
-			);
-
-			player.currentHealthSlider.maxValue = Cards.CardParams[player.card.GetCardName()].health;
-			player.currentHealthSlider.value = card.GetHealth();
-		}
-
-		spawned = true;
-	}
 
 	#endregion
 

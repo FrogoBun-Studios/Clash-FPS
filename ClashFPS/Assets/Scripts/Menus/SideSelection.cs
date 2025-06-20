@@ -20,8 +20,8 @@ public class SideSelection : MonoBehaviour
 	{
 		_showen = true;
 
-		blueCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.bluePlayersCount.Value}/4";
-		redCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.redPlayersCount.Value}/4";
+		blueCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.GetBluePlayersCount()}/4";
+		redCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.GetRedPlayersCount()}/4";
 
 		canvasGroup.interactable = false;
 		canvasGroup.blocksRaycasts = false;
@@ -38,8 +38,8 @@ public class SideSelection : MonoBehaviour
 		canvasGroup.interactable = true;
 		canvasGroup.blocksRaycasts = true;
 
-		blueSide.interactable = GameManager.Get.bluePlayersCount.Value < 4;
-		redSide.interactable = GameManager.Get.redPlayersCount.Value < 4;
+		blueSide.interactable = GameManager.Get.GetBluePlayersCount() < 4;
+		redSide.interactable = GameManager.Get.GetRedPlayersCount() < 4;
 	}
 
 	public IEnumerator Hide()

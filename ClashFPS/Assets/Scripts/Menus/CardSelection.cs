@@ -4,6 +4,8 @@ using System.Linq;
 
 using TMPro;
 
+using Unity.Netcode;
+
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,18 +20,25 @@ public class CardSelection : MonoBehaviour
 	[SerializeField] private Button rightCardButton;
 	[SerializeField] private TextMeshProUGUI waitText;
 	[SerializeField] private Transform elixirText;
-	private string _leftCardName;
-	private string _middleCardName;
-	private Player _playerScript;
-	private string _rightCardName;
-	private bool _showen;
+	private string leftCardName;
+	private string middleCardName;
+	private Player playerScript;
+	private string rightCardName;
+	private bool showen;
 
-	public IEnumerator Show(float delay)
+	public void Show(float delay)
 	{
-		_showen = true;
+		NetworkQuery.Instance.Request<float>(
+			$"Get Elixir {playerScript.GetComponent<NetworkBehaviour>().OwnerClientId}",
+			elixir => StartCoroutine(ShowI(delay, elixir)));
+	}
 
-		elixirText.GetChild(0).GetComponent<TextMeshProUGUI>().text = Mathf.FloorToInt(_playerScript.Elixir).ToString();
-		elixirText.GetChild(1).GetComponent<TextMeshProUGUI>().text = Mathf.FloorToInt(_playerScript.Elixir).ToString();
+	public IEnumerator ShowI(float delay, float elixir)
+	{
+		showen = true;
+
+		elixirText.GetChild(0).GetComponent<TextMeshProUGUI>().text = Mathf.FloorToInt(elixir).ToString();
+		elixirText.GetChild(1).GetComponent<TextMeshProUGUI>().text = Mathf.FloorToInt(elixir).ToString();
 
 		PutCards();
 
@@ -58,14 +67,14 @@ public class CardSelection : MonoBehaviour
 		canvasGroup.interactable = true;
 		canvasGroup.blocksRaycasts = true;
 
-		leftCardButton.interactable = Cards.CardParams[_leftCardName].elixir <= _playerScript.Elixir;
-		middleCardButton.interactable = Cards.CardParams[_middleCardName].elixir <= _playerScript.Elixir;
-		rightCardButton.interactable = Cards.CardParams[_rightCardName].elixir <= _playerScript.Elixir;
+		leftCardButton.interactable = Cards.CardParams[leftCardName].elixir <= elixir;
+		middleCardButton.interactable = Cards.CardParams[middleCardName].elixir <= elixir;
+		rightCardButton.interactable = Cards.CardParams[rightCardName].elixir <= elixir;
 	}
 
 	public IEnumerator Hide()
 	{
-		_showen = false;
+		showen = false;
 
 		canvasGroup.interactable = false;
 		canvasGroup.blocksRaycasts = false;
@@ -81,76 +90,76 @@ public class CardSelection : MonoBehaviour
 
 	public bool IsShowen()
 	{
-		return _showen;
+		return showen;
 	}
 
 	public void Set(Player playerScript)
 	{
-		_playerScript = playerScript;
+		this.playerScript = playerScript;
 	}
 
 	private void PutCards()
 	{
 		List<string> cards = Cards.CardParams.Keys.ToList();
 
-		_leftCardName = cards[Random.Range(0, cards.Count)];
-		cards.Remove(_leftCardName);
+		leftCardName = cards[Random.Range(0, cards.Count)];
+		cards.Remove(leftCardName);
 
-		_middleCardName = cards[Random.Range(0, cards.Count)];
-		cards.Remove(_middleCardName);
+		middleCardName = cards[Random.Range(0, cards.Count)];
+		cards.Remove(middleCardName);
 
-		_rightCardName = cards[Random.Range(0, cards.Count)];
-		cards.Remove(_rightCardName);
+		rightCardName = cards[Random.Range(0, cards.Count)];
+		cards.Remove(rightCardName);
 
-		leftCardButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = _leftCardName;
+		leftCardButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = leftCardName;
 		leftCardButton.transform.GetChild(0).GetComponent<RawImage>().texture =
-			Cards.CardParams[_leftCardName].cardImage;
+			Cards.CardParams[leftCardName].cardImage;
 		leftCardButton.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text =
-			Cards.CardParams[_leftCardName].elixir.ToString();
+			Cards.CardParams[leftCardName].elixir.ToString();
 		leftCardButton.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text =
-			Cards.CardParams[_leftCardName].elixir.ToString();
+			Cards.CardParams[leftCardName].elixir.ToString();
 
-		middleCardButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = _middleCardName;
+		middleCardButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = middleCardName;
 		middleCardButton.transform.GetChild(0).GetComponent<RawImage>().texture =
-			Cards.CardParams[_middleCardName].cardImage;
+			Cards.CardParams[middleCardName].cardImage;
 		middleCardButton.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text =
-			Cards.CardParams[_middleCardName].elixir.ToString();
+			Cards.CardParams[middleCardName].elixir.ToString();
 		middleCardButton.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text =
-			Cards.CardParams[_middleCardName].elixir.ToString();
+			Cards.CardParams[middleCardName].elixir.ToString();
 
-		rightCardButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = _rightCardName;
+		rightCardButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = rightCardName;
 		rightCardButton.transform.GetChild(0).GetComponent<RawImage>().texture =
-			Cards.CardParams[_rightCardName].cardImage;
+			Cards.CardParams[rightCardName].cardImage;
 		rightCardButton.transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>().text =
-			Cards.CardParams[_rightCardName].elixir.ToString();
+			Cards.CardParams[rightCardName].elixir.ToString();
 		rightCardButton.transform.GetChild(0).GetChild(1).GetComponent<TextMeshProUGUI>().text =
-			Cards.CardParams[_rightCardName].elixir.ToString();
+			Cards.CardParams[rightCardName].elixir.ToString();
 	}
 
 	public void LeftCard()
 	{
-		_playerScript.Elixir += Cards.CardParams[_leftCardName].elixir;
-		StartCoroutine(_playerScript.ChooseCard(_leftCardName));
+		playerScript.UpdateElixirServerRpc(-Cards.CardParams[leftCardName].elixir);
+		playerScript.ChooseCardServerRpc(leftCardName);
 		StartCoroutine(Hide());
 	}
 
 	public void MiddleCard()
 	{
-		_playerScript.Elixir += Cards.CardParams[_middleCardName].elixir;
-		StartCoroutine(_playerScript.ChooseCard(_middleCardName));
+		playerScript.UpdateElixirServerRpc(-Cards.CardParams[middleCardName].elixir);
+		playerScript.ChooseCardServerRpc(middleCardName);
 		StartCoroutine(Hide());
 	}
 
 	public void RightCard()
 	{
-		_playerScript.Elixir += Cards.CardParams[_rightCardName].elixir;
-		StartCoroutine(_playerScript.ChooseCard(_rightCardName));
+		playerScript.UpdateElixirServerRpc(-Cards.CardParams[rightCardName].elixir);
+		playerScript.ChooseCardServerRpc(rightCardName);
 		StartCoroutine(Hide());
 	}
 
 	public void FreeCard()
 	{
-		StartCoroutine(_playerScript.ChooseCard("Wizard"));
+		playerScript.ChooseCardServerRpc("Wizard");
 		StartCoroutine(Hide());
 	}
 }
