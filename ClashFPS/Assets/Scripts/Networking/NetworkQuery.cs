@@ -43,7 +43,6 @@ public class NetworkQuery : NetworkBehaviour
 	{
 		if (serverHandlers.TryGetValue(key, out Func<ulong, byte[]> handler))
 		{
-			Chat.Get.Log($"New request from client: {key}");
 			byte[] response = handler(rpcParams.Receive.SenderClientId);
 			SendResponseClientRpc(key, requestId, response, rpcParams.Receive.SenderClientId);
 		}
@@ -53,8 +52,6 @@ public class NetworkQuery : NetworkBehaviour
 	private void SendResponseClientRpc(string key, int requestId, byte[] response, ulong clientId)
 	{
 		if (clientId != localClientId) return;
-
-		Chat.Get.Log($"Got response from server: {key}");
 
 		if (clientCallbacks.TryGetValue(requestId, out Action<byte[]> callback))
 		{

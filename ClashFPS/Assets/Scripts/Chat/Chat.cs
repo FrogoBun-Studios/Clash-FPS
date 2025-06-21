@@ -15,7 +15,7 @@ public class Chat : MonoBehaviour
 	private readonly List<string> _chatMessages = new();
 	private ChatNetworkHelper _chatNetworkHelper;
 	private bool _isShown;
-	private Player _playerScript;
+	private Player playerScript;
 	private float _time;
 
 	public static Chat Get { get; private set; }
@@ -71,11 +71,11 @@ public class Chat : MonoBehaviour
 		}
 	}
 
-	public void Log(object message)
+	public void Log(params object[] message)
 	{
 		Show();
 		if (_chatNetworkHelper is not null)
-			AddMessage($"[{_playerScript.GetPlayerName()}'s System]: {message}");
+			AddMessage($"[{playerScript.GetPlayerName()}'s System]: {string.Join(' ', message)}");
 		else
 			AddMessage($"[System]: {message}");
 	}
@@ -83,7 +83,7 @@ public class Chat : MonoBehaviour
 	public void PlayerWrite(string message)
 	{
 		Show();
-		AddMessage($"[{_playerScript.GetPlayerName()}]: {message}");
+		AddMessage($"[{playerScript.GetPlayerName()}]: {message}");
 	}
 
 	public void KillLog(string killer, string killed, string killerCard)
@@ -117,6 +117,6 @@ public class Chat : MonoBehaviour
 	public void EnableChatNetworking(ChatNetworkHelper chatNetworkHelper, Player player)
 	{
 		_chatNetworkHelper = chatNetworkHelper;
-		_playerScript = player;
+		playerScript = player;
 	}
 }

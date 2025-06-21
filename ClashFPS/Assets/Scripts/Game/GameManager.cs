@@ -41,17 +41,26 @@ public class GameManager : NetworkBehaviour
 		return bluePlayersCount.Value;
 	}
 
-	public void InitOnOwner()
+	public void Init()
 	{
-		foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player"))
+		foreach (GameObject playerGo in GameObject.FindGameObjectsWithTag("Player"))
 		{
-			players.Add(player.GetComponent<Player>());
-			playerIDToPlayer.Add(player.GetComponent<NetworkObject>().OwnerClientId, player.GetComponent<Player>());
+			Player player = playerGo.GetComponent<Player>();
+			if (!playerIDToPlayer.ContainsKey(player.OwnerClientId))
+			{
+				players.Add(player.GetComponent<Player>());
+				playerIDToPlayer.Add(player.GetComponent<NetworkObject>().OwnerClientId, player.GetComponent<Player>());
+			}
 		}
 	}
 
 	public Player GetPlayerByID(ulong playerID)
 	{
 		return playerIDToPlayer[playerID];
+	}
+
+	public List<Player> GetPlayers()
+	{
+		return players;
 	}
 }

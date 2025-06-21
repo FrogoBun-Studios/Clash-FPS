@@ -22,11 +22,19 @@ public abstract class Card : NetworkBehaviour
 		playerScript = player.GetComponent<Player>();
 		movementController = player.GetComponent<MovementController>();
 
+		Chat.Get.Log($"Starting card {OwnerClientId} as {NetworkManager.Singleton.LocalClientId}");
 		health.Value = cardParams.health;
 		playerScript.UpdateHealthSliderRpc(health.Value);
 		movementController.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
 			cardParams.colliderYOffset);
 		attackTimer = 1 / cardParams.attackRate;
+	}
+
+	public void SetPlayerForNonServer(Transform player)
+	{
+		this.player = player;
+		playerScript = player.GetComponent<Player>();
+		movementController = player.GetComponent<MovementController>();
 	}
 
 	/// <summary>
@@ -53,7 +61,7 @@ public abstract class Card : NetworkBehaviour
 	/// </summary>
 	protected virtual void Attack()
 	{
-		movementController.SetAnimatorTriggerServerRpc("Attack");
+		movementController.SetAnimatorTriggerRpc("Attack");
 	}
 
 	/// <summary>
@@ -105,7 +113,7 @@ public abstract class Card : NetworkBehaviour
 	/// </summary>
 	protected virtual void OnDeath()
 	{
-		movementController.SetAnimatorTriggerServerRpc("Death");
+		movementController.SetAnimatorTriggerRpc("Death");
 		movementController.EnableColliderRpc(false);
 		playerScript.RespawnRpc();
 	}

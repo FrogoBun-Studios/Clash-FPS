@@ -37,7 +37,7 @@ public class MovementController : NetworkBehaviour
 			if (jumpsLeft > 0)
 			{
 				yVelocity = jumpStrength;
-				SetAnimatorTriggerServerRpc("Jump");
+				SetAnimatorTriggerRpc("Jump");
 				jumpsLeft--;
 			}
 		}
@@ -88,8 +88,8 @@ public class MovementController : NetworkBehaviour
 			new Vector3(Mathf.Clamp(xAngle - Input.GetAxis("Mouse Y") * sensitivity, -40, 75), 0, 0);
 	}
 
-	[ServerRpc(RequireOwnership = false)]
-	public void TeleportServerRpc(Vector3 position, Quaternion rotation)
+	[Rpc(SendTo.Owner)]
+	public void TeleportRpc(Vector3 position, Quaternion rotation)
 	{
 		controller.enabled = false;
 		transform.position = position;
@@ -97,16 +97,16 @@ public class MovementController : NetworkBehaviour
 		controller.enabled = true;
 	}
 
-	[ServerRpc(RequireOwnership = false)]
-	public void TeleportServerRpc(Vector3 position)
+	[Rpc(SendTo.Owner)]
+	public void TeleportRpc(Vector3 position)
 	{
 		controller.enabled = false;
 		transform.position = position;
 		controller.enabled = true;
 	}
 
-	[ServerRpc(RequireOwnership = false)]
-	public void SetAnimatorTriggerServerRpc(string triggerName)
+	[Rpc(SendTo.Owner)]
+	public void SetAnimatorTriggerRpc(string triggerName)
 	{
 		animator.SetTrigger(triggerName);
 	}

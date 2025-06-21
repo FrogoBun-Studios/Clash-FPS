@@ -13,7 +13,6 @@ using UnityEngine.UI;
 public class Player : NetworkBehaviour
 {
 	[SerializeField] private Slider topHealthSlider;
-
 	[SerializeField] private TextMeshProUGUI playerNameText;
 	[SerializeField] private NetworkObject gameManager;
 	[SerializeField] private NetworkObject chatNetworkHelper;
@@ -86,11 +85,10 @@ public class Player : NetworkBehaviour
 
 		topHealthSlider.name = $"TopSlider{OwnerClientId}";
 		playerName.OnValueChanged += (value, newValue) => playerNameText.text = newValue.ToString();
+		StartCoroutine(InitGameManager());
 
 		if (!IsOwner)
 			return;
-
-		GameManager.Get.InitOnOwner();
 
 		LoadSettings();
 
@@ -116,6 +114,12 @@ public class Player : NetworkBehaviour
 		settingsMenu.Set(this);
 
 		ChooseSide();
+	}
+
+	private IEnumerator InitGameManager()
+	{
+		yield return new WaitUntil(() => gameManager != null);
+		GameManager.Get.Init();
 	}
 
 	/// <summary>
@@ -249,7 +253,7 @@ public class Player : NetworkBehaviour
 			yield return new WaitUntil(() => card == null && model == null);
 		}
 
-		movementController.TeleportServerRpc(new Vector3(0, 2, side == Side.Blue ? -34 : 34),
+		movementController.TeleportRpc(new Vector3(0, 2, side == Side.Blue ? -34 : 34),
 			Quaternion.Euler(0, side == Side.Blue ? 0 : 180, 0));
 
 		// SpawnCardRpc(cardName);
@@ -259,11 +263,11 @@ public class Player : NetworkBehaviour
 		model = Instantiate(Cards.CardParams[cardName].modelPrefab).transform;
 		model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-		SetCardsRpc(OwnerClientId);
+		SetCardsRpc();
 	}
 
 	[Rpc(SendTo.Owner)]
-	public void SetCameraOnCardCreationRpc()
+	private void SetCameraOnCardCreationRpc()
 	{
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = movementController.GetCameraTransform();
 		Cursor.lockState = CursorLockMode.Locked;
@@ -279,7 +283,7 @@ public class Player : NetworkBehaviour
 	///     <br /><br />*Notice: the cards that are set in clients are brain-dead and only exist to call server RPCs.
 	/// </summary>
 	[Rpc(SendTo.Everyone)]
-	public void SetCardsRpc(ulong newPlayerID)
+	private void SetCardsRpc()
 	{
 		foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
 		{
@@ -288,15 +292,13 @@ public class Player : NetworkBehaviour
 
 			cardGo.name = $"Card{cardID}";
 			GameManager.Get.GetPlayerByID(cardID).card = card;
-
-			if (IsServer && cardID == newPlayerID)
-				card.StartCard(transform);
+			card.SetPlayerForNonServer(GameManager.Get.GetPlayerByID(cardID).transform);
 		}
 
 		SetModel();
 	}
 
-	public void SetModel()
+	private void SetModel()
 	{
 		movementController.SetModel();
 		movementController.EnableColliderRpc(true);
@@ -311,7 +313,7 @@ public class Player : NetworkBehaviour
 	///     <br />and set his own health slider on his machine to be the ui one instead of the top one.
 	///     <br />Every other player will do the same.
 	/// </summary>
-	public void SetHealthSliders()
+	private void SetHealthSliders()
 	{
 		if (IsOwner)
 		{
@@ -336,6 +338,30 @@ public class Player : NetworkBehaviour
 			player.currentHealthSlider.value = card.GetHealth();
 		}
 
+
+		Chat.Get.Log(NetworkManager.Singleton.LocalClientId, "Ready");
+		StartCardServerRpc();
+	}
+
+	private int clientReadyCounter;
+
+	[ServerRpc(RequireOwnership = false)]
+	private void StartCardServerRpc()
+	{
+		clientReadyCounter++;
+
+		Chat.Get.Log(clientReadyCounter, GameManager.Get.GetPlayers().Count);
+		if (clientReadyCounter == GameManager.Get.GetPlayers().Count)
+		{
+			GameManager.Get.GetPlayerByID(OwnerClientId).card.StartCard(transform);
+			clientReadyCounter = 0;
+			SpawnedRpc();
+		}
+	}
+
+	[Rpc(SendTo.Everyone)]
+	private void SpawnedRpc()
+	{
 		spawned = true;
 	}
 
