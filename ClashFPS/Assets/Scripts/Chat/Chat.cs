@@ -13,7 +13,7 @@ public class Chat : MonoBehaviour
 	[SerializeField] private CanvasGroup canvasGroup;
 	[SerializeField] private int maxMessages;
 	private readonly List<string> _chatMessages = new();
-	private ChatNetworkHelper _chatNetworkHelper;
+	private ChatNetworkHelper chatNetworkHelper;
 	private bool _isShown;
 	private Player playerScript;
 	private float _time;
@@ -30,9 +30,9 @@ public class Chat : MonoBehaviour
 		if (Input.GetKeyUp(KeyCode.Return))
 			Show();
 
-		if (_chatNetworkHelper is not null)
+		if (chatNetworkHelper is not null)
 		{
-			string messages = string.Join("\n", _chatNetworkHelper.GetChatMessages());
+			string messages = string.Join("\n", chatNetworkHelper.GetChatMessages());
 
 			if (chatText.text != messages)
 				Show();
@@ -57,7 +57,7 @@ public class Chat : MonoBehaviour
 	{
 		Debug.Log(message);
 
-		if (_chatNetworkHelper is null)
+		if (chatNetworkHelper is null)
 		{
 			_chatMessages.Add(message);
 			for (int i = 0; i < _chatMessages.Count - maxMessages; i++) _chatMessages.RemoveAt(0);
@@ -65,19 +65,19 @@ public class Chat : MonoBehaviour
 		}
 		else
 		{
-			_chatNetworkHelper.AddMessage(message);
-			for (int i = 0; i < _chatNetworkHelper.GetChatMessages().Length - maxMessages; i++)
-				_chatNetworkHelper.RemoveMessage(0);
+			chatNetworkHelper.AddMessage(message);
+			for (int i = 0; i < chatNetworkHelper.GetChatMessages().Length - maxMessages; i++)
+				chatNetworkHelper.RemoveMessage(0);
 		}
 	}
 
 	public void Log(params object[] message)
 	{
 		Show();
-		if (_chatNetworkHelper is not null)
+		if (chatNetworkHelper is not null)
 			AddMessage($"[{playerScript.GetPlayerName()}'s System]: {string.Join(' ', message)}");
 		else
-			AddMessage($"[System]: {message}");
+			AddMessage($"[System]: {string.Join(' ', message)}");
 	}
 
 	public void PlayerWrite(string message)
@@ -116,7 +116,7 @@ public class Chat : MonoBehaviour
 
 	public void EnableChatNetworking(ChatNetworkHelper chatNetworkHelper, Player player)
 	{
-		_chatNetworkHelper = chatNetworkHelper;
+		this.chatNetworkHelper = chatNetworkHelper;
 		playerScript = player;
 	}
 }

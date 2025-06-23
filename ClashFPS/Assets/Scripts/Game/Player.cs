@@ -52,12 +52,15 @@ public class Player : NetworkBehaviour
 
 		movementController.Enable(spawned && !settingsMenu.IsShowen());
 		if (card != null && spawned)
-			card.UpdateCard();
+			card.UpdateCard(settingsMenu.IsShowen());
 	}
 
+	/// <summary>
+	///     Runs probably only on the OWNER because it runs by the one that initiates Move of the controller.
+	/// </summary>
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
-		if (IsServer && hit.gameObject.CompareTag("WaterCols"))
+		if (IsOwner && hit.gameObject.CompareTag("WaterCols"))
 			card.DamageServerRpc(999ul, Mathf.Infinity);
 	}
 
@@ -79,13 +82,13 @@ public class Player : NetworkBehaviour
 		{
 			NetworkQuery.Instance.Register($"Get Elixir {OwnerClientId}", _ => elixir);
 			NetworkQuery.Instance.Register($"Get Side {OwnerClientId}", _ => (int)side);
-			NetworkQuery.Instance.Register($"Get Top Slider Height {OwnerClientId}",
-				_ => model.localScale.y * 4f + 2.1f);
+			NetworkQuery.Instance.Register($"Get Canvas Height {OwnerClientId}", _ => model.localScale.y * 4f + 2.1f);
 		}
 
 		topHealthSlider.name = $"TopSlider{OwnerClientId}";
-		playerName.OnValueChanged += (value, newValue) => playerNameText.text = newValue.ToString();
+		playerName.OnValueChanged += (value, newValue) => UpdatePlayerNameTextRpc();
 		StartCoroutine(InitGameManager());
+		movementController.SetRestedCameraPosition();
 
 		if (!IsOwner)
 			return;
@@ -120,6 +123,12 @@ public class Player : NetworkBehaviour
 	{
 		yield return new WaitUntil(() => gameManager != null);
 		GameManager.Get.Init();
+
+		if (IsOwner)
+		{
+			yield return new WaitUntil(() => spawned);
+			GameManager.Get.UpdateAllNamesAndHealthSliders();
+		}
 	}
 
 	/// <summary>
@@ -131,6 +140,50 @@ public class Player : NetworkBehaviour
 		elixir += amount;
 	}
 
+	/// <returns>
+	///     Returns the card of this player on EVERYONE.
+	///     If you are not in the server, this card is brain-dead, and exists to call server RPCs.
+	/// </returns>
+	public Card GetCard()
+	{
+		return card;
+	}
+
+	/// <summary>
+	///     Calls the UpdateHealthSlider func on EVERYONE
+	/// </summary>
+	[Rpc(SendTo.Everyone)]
+	public void UpdateHealthSliderRpc(float health)
+	{
+		StartCoroutine(UpdateHealthSlider(health));
+	}
+
+	/// <summary>
+	///     Updates health slider of this player to given health, supposed to run on EVERYONE
+	/// </summary>
+	private IEnumerator UpdateHealthSlider(float health)
+	{
+		if (health <= 0)
+		{
+			currentHealthSlider.value = 0;
+			yield break;
+		}
+
+		float stepSize = 2f;
+		float dir = health > currentHealthSlider.value ? stepSize : -stepSize;
+		float wait = 0.5f / (Mathf.Abs(currentHealthSlider.value - health) / stepSize);
+
+		for (float v = currentHealthSlider.value; Mathf.Abs(health - v) > stepSize; v += dir)
+		{
+			currentHealthSlider.value = v;
+			yield return new WaitForSeconds(wait);
+		}
+
+		currentHealthSlider.value = health;
+	}
+
+	#region Settings
+
 	/// <summary>
 	///     Updates game to the given settings (makes the settings actually work) on OWNER.
 	/// </summary>
@@ -138,7 +191,7 @@ public class Player : NetworkBehaviour
 	{
 		this.playerSettings = playerSettings;
 		movementController.UpdateSensitivity(playerSettings.mouseSensitivity);
-		playerName.Value = playerSettings.playerName;
+		playerName.Value = new FixedString32Bytes(playerSettings.playerName);
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Lens.FieldOfView = playerSettings.FOV;
 	}
 
@@ -156,6 +209,10 @@ public class Player : NetworkBehaviour
 
 		UpdateGameToSettings(loadedSettings);
 	}
+
+	#endregion
+
+	#region SideSelection
 
 	/// <summary>
 	///     Opens side selection menu. Can be called from EVERYONE.
@@ -197,6 +254,10 @@ public class Player : NetworkBehaviour
 		this.side = side;
 	}
 
+	#endregion
+
+	#region Name
+
 	/// <returns>
 	///     Returns the name of the player on EVERYONE.
 	/// </returns>
@@ -205,14 +266,13 @@ public class Player : NetworkBehaviour
 		return playerName.Value.ToString();
 	}
 
-	/// <returns>
-	///     Returns the card of this player on EVERYONE.
-	///     If you are not in the server, this card is brain-dead, and exists to call server RPCs.
-	/// </returns>
-	public Card GetCard()
+	[Rpc(SendTo.Everyone)]
+	public void UpdatePlayerNameTextRpc()
 	{
-		return card;
+		playerNameText.text = playerName.Value.ToString();
 	}
+
+	#endregion
 
 	#region CardCreation
 
@@ -326,20 +386,14 @@ public class Player : NetworkBehaviour
 		{
 			Player player = topSliderGo.transform.parent.parent.GetComponent<Player>();
 			player.currentHealthSlider = topSliderGo.GetComponent<Slider>();
-			NetworkQuery.Instance.Request<float>($"Get Top Slider Height {player.OwnerClientId}", height =>
-			{
-				player.currentHealthSlider.transform.parent.position = new Vector3(
-					currentHealthSlider.transform.parent.position.x,
-					height, currentHealthSlider.transform.parent.position.z
-				);
-			});
+			NetworkQuery.Instance.Request<float>($"Get Canvas Height {player.OwnerClientId}",
+				height => { player.currentHealthSlider.transform.parent.localPosition = new Vector3(0, height, 0); });
 
 			player.currentHealthSlider.maxValue = Cards.CardParams[player.card.GetCardName()].health;
-			player.currentHealthSlider.value = card.GetHealth();
+
+			// player.currentHealthSlider.value = ;
 		}
 
-
-		Chat.Get.Log(NetworkManager.Singleton.LocalClientId, "Ready");
 		StartCardServerRpc();
 	}
 
@@ -350,7 +404,6 @@ public class Player : NetworkBehaviour
 	{
 		clientReadyCounter++;
 
-		Chat.Get.Log(clientReadyCounter, GameManager.Get.GetPlayers().Count);
 		if (clientReadyCounter == GameManager.Get.GetPlayers().Count)
 		{
 			GameManager.Get.GetPlayerByID(OwnerClientId).card.StartCard(transform);
@@ -365,97 +418,5 @@ public class Player : NetworkBehaviour
 		spawned = true;
 	}
 
-	// [Rpc(SendTo.Server)]
-	// public void DespawnCardRpc()
-	// {
-	// 	_model.GetComponent<NetworkObject>().Despawn();
-	// 	Card.GetComponent<NetworkObject>().Despawn();
-	// }
-
-	// [Rpc(SendTo.Server)]
-	// private void SpawnCardRpc(string cardName)
-	// {
-	// 	GameObject card = Instantiate(Cards.CardPrefabs[cardName]);
-	// 	card.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
-	//
-	// 	GameObject model = Instantiate(Cards.CardParams[cardName].modelPrefab);
-	// 	model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
-	//
-	// 	SetCardRpc(cardName);
-	// }
-
-	// [Rpc(SendTo.Everyone)]
-	// private void SetCardRpc(string cardName)
-	// {
-	// 	foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
-	// 	{
-	// 		int i = (int)cardGo.GetComponent<NetworkObject>().OwnerClientId;
-	//
-	// 		cardGo.name = $"Card{i}";
-	// 		Card card = cardGo.GetComponent<Card>();
-	// 		Player player = GameObject.FindGameObjectsWithTag("Player")[i].GetComponent<Player>();
-	// 		player.Card = card;
-	//
-	// 		if (card.IsOwner)
-	// 		{
-	// 			if (!card.Started)
-	// 				card.StartCard(player.transform);
-	// 		}
-	// 		else
-	// 		{
-	// 			card.SetCardForNonOwners(player.transform);
-	// 		}
-	// 	}
-	//
-	// 	EnableColliderRpc(true);
-	// 	SetModel(cardName);
-	// }
-
-	// private void SetModel(string cardName)
-	// {
-	// 	foreach (GameObject model in GameObject.FindGameObjectsWithTag("Model"))
-	// 		model.name = $"Model{model.GetComponent<NetworkObject>().OwnerClientId}";
-	//
-	// 	_model = GameObject.Find($"Model{OwnerClientId}").transform;
-	// 	_animator = _model.GetComponent<Animator>();
-	//
-	// 	SetCameraFollow(new Vector3(0, 4.625f * _model.localScale.y - 2.375f,
-	// 		-2.5f * _model.localScale.y + 2.5f));
-	// 	SetHealthSlider(cardName);
-	// }
-
 	#endregion
-
-	/// <summary>
-	///     Calls the UpdateHealthSlider func on EVERYONE
-	/// </summary>
-	[Rpc(SendTo.Everyone)]
-	public void UpdateHealthSliderRpc(float health)
-	{
-		StartCoroutine(UpdateHealthSlider(health));
-	}
-
-	/// <summary>
-	///     Updates health slider of this player to given health, supposed to run on EVERYONE
-	/// </summary>
-	private IEnumerator UpdateHealthSlider(float health)
-	{
-		if (health <= 0)
-		{
-			currentHealthSlider.value = 0;
-			yield break;
-		}
-
-		float stepSize = 2f;
-		float dir = health > currentHealthSlider.value ? stepSize : -stepSize;
-		float wait = 0.5f / (Mathf.Abs(currentHealthSlider.value - health) / stepSize);
-
-		for (float v = currentHealthSlider.value; Mathf.Abs(health - v) > stepSize; v += dir)
-		{
-			currentHealthSlider.value = v;
-			yield return new WaitForSeconds(wait);
-		}
-
-		currentHealthSlider.value = health;
-	}
 }

@@ -22,7 +22,6 @@ public abstract class Card : NetworkBehaviour
 		playerScript = player.GetComponent<Player>();
 		movementController = player.GetComponent<MovementController>();
 
-		Chat.Get.Log($"Starting card {OwnerClientId} as {NetworkManager.Singleton.LocalClientId}");
 		health.Value = cardParams.health;
 		playerScript.UpdateHealthSliderRpc(health.Value);
 		movementController.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
@@ -40,7 +39,7 @@ public abstract class Card : NetworkBehaviour
 	/// <summary>
 	///     This card updates and moves on OWNER
 	/// </summary>
-	public virtual void UpdateCard()
+	public virtual void UpdateCard(bool settingsOpened)
 	{
 		if (GetHealth() <= 0)
 			return;
@@ -49,7 +48,7 @@ public abstract class Card : NetworkBehaviour
 
 		movementController.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
 		attackTimer -= Time.deltaTime;
-		if (Input.GetButtonDown("Fire") && attackTimer <= 0)
+		if (!settingsOpened && Input.GetButtonDown("Fire") && attackTimer <= 0)
 		{
 			attackTimer = 1 / cardParams.attackRate;
 			Attack();

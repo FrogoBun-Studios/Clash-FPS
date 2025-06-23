@@ -18,7 +18,7 @@ public class MovementController : NetworkBehaviour
 	private Vector3 resetedCameraPosition;
 	private Quaternion resetedCameraRotation;
 
-	public override void OnNetworkSpawn()
+	public void SetRestedCameraPosition()
 	{
 		resetedCameraPosition = GameObject.Find("CineCam").transform.position;
 		resetedCameraRotation = GameObject.Find("CineCam").transform.rotation;
