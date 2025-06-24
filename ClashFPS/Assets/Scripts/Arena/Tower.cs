@@ -9,12 +9,13 @@ using UnityEngine.UI;
 public class Tower : NetworkBehaviour
 {
 	[SerializeField] private float startingHealth = 1000f;
-	[SerializeField] private NetworkVariable<float> health = new();
-	[SerializeField] private GameObject deathPrefab;
+	[SerializeField] private NetworkObject deathPrefab;
 	[SerializeField] private bool isKing;
 	[SerializeField] private Side side;
 	[SerializeField] private Slider healthSlider;
 	[SerializeField] private Pose pose;
+
+	private readonly NetworkVariable<float> health = new();
 
 	public override void OnNetworkSpawn()
 	{
@@ -38,8 +39,11 @@ public class Tower : NetworkBehaviour
 		{
 			GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard().OnDestroyedTower();
 
-			Instantiate(deathPrefab, transform.position + Vector3.down * (isKing ? 8.3f : 5.8f), Quaternion.identity);
-			Destroy(gameObject, 0.01f);
+			deathPrefab =
+				Instantiate(deathPrefab.gameObject, transform.position + Vector3.down * (isKing ? 8.3f : 5.8f),
+					Quaternion.identity).GetComponent<NetworkObject>();
+			deathPrefab.Spawn();
+			GetComponent<NetworkObject>().Despawn();
 		}
 	}
 

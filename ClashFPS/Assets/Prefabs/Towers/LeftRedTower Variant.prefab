@@ -23,7 +23,7 @@ PrefabInstance:
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: deathPrefab
       value: 
-      objectReference: {fileID: 3052787266206628275, guid: 7d29cfb951e7dca4db9255d905d312e5, type: 3}
+      objectReference: {fileID: -1251742842387631320, guid: 7d29cfb951e7dca4db9255d905d312e5, type: 3}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: pose.position.x
       value: -32
@@ -126,7 +126,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7359158304945160307, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2541405183
+      value: 33110653
       objectReference: {fileID: 0}
     - target: {fileID: 7359158304945160307, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: InScenePlacedSourceGlobalObjectIdHash

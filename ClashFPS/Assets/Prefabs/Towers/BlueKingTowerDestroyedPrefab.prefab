@@ -50,7 +50,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: a662d97730efe584f90440a71974712f, type: 3}
       propertyPath: m_Name
-      value: BlueKingTowerDestroyed
+      value: BlueKingTowerDestroyedPrefab
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -59,6 +59,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a662d97730efe584f90440a71974712f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3059501380936468963}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a662d97730efe584f90440a71974712f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6000270602349856851}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a662d97730efe584f90440a71974712f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -8618736871907025006}
   m_SourcePrefab: {fileID: 100100000, guid: a662d97730efe584f90440a71974712f, type: 3}
 --- !u!1 &5145090104409177879 stripped
 GameObject:
@@ -87,3 +93,38 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6000270602349856851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5145090104409177879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 2500983965
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+--- !u!114 &-8618736871907025006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5145090104409177879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8d0727d5ae3244e3b569694d3912374, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TransitionStateInfoList: []
+  m_Animator: {fileID: 3017443811080133497, guid: b2a9d7108f18faf4ba5f41f1b6ef73be, type: 3}

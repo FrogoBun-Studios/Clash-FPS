@@ -35,7 +35,7 @@ PrefabInstance:
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: deathPrefab
       value: 
-      objectReference: {fileID: 5145090104409177879, guid: b3e5bcefaba66a547a2ef8b5364879f4, type: 3}
+      objectReference: {fileID: 6000270602349856851, guid: b3e5bcefaba66a547a2ef8b5364879f4, type: 3}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: healthSlider
       value: 

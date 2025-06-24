@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &2742406358116015073
+--- !u!1001 &7602865940287409140
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -11,19 +11,19 @@ PrefabInstance:
     - target: {fileID: -4883649324643588459, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: -5521159809323618214, guid: 916672b425881c24a84074dca458eaba, type: 3}
+      objectReference: {fileID: -5521159809323618214, guid: aa7f0233e35000e4cb8cfee756e8d9b1, type: 3}
+    - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
+      propertyPath: side
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: DeathPrefab
       value: 
-      objectReference: {fileID: 2923333605833555649, guid: b2a9d7108f18faf4ba5f41f1b6ef73be, type: 3}
+      objectReference: {fileID: 3052787266206628275, guid: 7d29cfb951e7dca4db9255d905d312e5, type: 3}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: deathPrefab
       value: 
-      objectReference: {fileID: 2923333605833555649, guid: b2a9d7108f18faf4ba5f41f1b6ef73be, type: 3}
-    - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
-      propertyPath: healthSlider
-      value: 
-      objectReference: {fileID: 3876573667421007689}
+      objectReference: {fileID: -1251742842387631320, guid: 7d29cfb951e7dca4db9255d905d312e5, type: 3}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: pose.position.x
       value: 32
@@ -34,19 +34,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: pose.position.z
-      value: -53.5
-      objectReference: {fileID: 0}
-    - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
-      propertyPath: pose.rotation.w
-      value: -0.00000004371139
-      objectReference: {fileID: 0}
-    - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
-      propertyPath: pose.rotation.y
-      value: 1
+      value: 53.5
       objectReference: {fileID: 0}
     - target: {fileID: 58545315655077571, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_Name
-      value: RightBlueTower Variant
+      value: RightRedTower Variant
       objectReference: {fileID: 0}
     - target: {fileID: 558222218870630543, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalPosition.x
@@ -58,11 +50,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 558222218870630543, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -53.5
+      value: 53.5
       objectReference: {fileID: 0}
     - target: {fileID: 558222218870630543, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 558222218870630543, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalRotation.x
@@ -70,7 +62,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 558222218870630543, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 558222218870630543, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalRotation.z
@@ -82,7 +74,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 558222218870630543, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 180
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 558222218870630543, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -103,11 +95,11 @@ PrefabInstance:
     - target: {fileID: 2350508693505878024, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: 'm_Materials.Array.data[3]'
       value: 
-      objectReference: {fileID: 4874126678125670354, guid: 916672b425881c24a84074dca458eaba, type: 3}
+      objectReference: {fileID: 4874126678125670354, guid: aa7f0233e35000e4cb8cfee756e8d9b1, type: 3}
     - target: {fileID: 2605646391791793467, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: -5521159809323618214, guid: 916672b425881c24a84074dca458eaba, type: 3}
+      objectReference: {fileID: -5521159809323618214, guid: aa7f0233e35000e4cb8cfee756e8d9b1, type: 3}
     - target: {fileID: 6495345198133914106, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -134,7 +126,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7359158304945160307, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2473546419
+      value: 29844636
       objectReference: {fileID: 0}
     - target: {fileID: 7359158304945160307, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: InScenePlacedSourceGlobalObjectIdHash
@@ -145,14 +137,3 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
---- !u!114 &3876573667421007689 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1423884306950141096, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
-  m_PrefabInstance: {fileID: 2742406358116015073}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
