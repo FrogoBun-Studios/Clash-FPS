@@ -19,6 +19,7 @@ public class Player : NetworkBehaviour
 	[SerializeField] private NetworkObject networkQuery;
 	[SerializeField] private float timeToRespawn;
 	[SerializeField] private MovementController movementController;
+	[SerializeField] private NetworkObject[] towers;
 
 	private Side side;
 	private Card card;
@@ -76,6 +77,12 @@ public class Player : NetworkBehaviour
 
 			networkQuery = Instantiate(networkQuery.gameObject).GetComponent<NetworkObject>();
 			networkQuery.Spawn();
+
+			for (int i = 0; i < towers.Length; i++)
+			{
+				towers[i] = Instantiate(towers[i].gameObject).GetComponent<NetworkObject>();
+				towers[i].Spawn();
+			}
 		}
 
 		if (IsServer)

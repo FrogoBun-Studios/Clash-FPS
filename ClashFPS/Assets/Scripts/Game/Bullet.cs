@@ -42,14 +42,19 @@ public class Bullet : NetworkBehaviour
 		// 		DamageTowerRpc(col.gameObject.name);
 		// }
 		if (other.gameObject.CompareTag("Player"))
+		{
 			if (other.gameObject.GetComponent<Player>().GetSide() != side)
 			{
 				earnElixir(damage * 0.005f);
 				other.gameObject.GetComponent<Player>().GetCard().DamageServerRpc(OwnerClientId, damage);
 			}
+		}
 
 		if (other.gameObject.CompareTag("Tower"))
-			DamageTowerRpc(other.gameObject.name);
+		{
+			if (other.gameObject.GetComponent<Tower>().GetSide() != side)
+				other.gameObject.GetComponent<Tower>().DamageServerRpc(OwnerClientId, damage);
+		}
 
 		// SelfDestroy();
 		piercing--;
@@ -89,16 +94,16 @@ public class Bullet : NetworkBehaviour
 	// 		GetComponent<NetworkObject>().Despawn();
 	// }
 
-	[Rpc(SendTo.Everyone)]
-	protected void DamageTowerRpc(string towerName)
-	{
-		Tower t = GameObject.Find(towerName).GetComponent<Tower>();
-
-		if (t.GetSide() != side)
-		{
-			earnElixir(damage * 0.005f);
-			if (t.Damage(damage))
-				earnElixir(10);
-		}
-	}
+	// [Rpc(SendTo.Everyone)]
+	// protected void DamageTowerRpc(string towerName)
+	// {
+	// 	Tower t = GameObject.Find(towerName).GetComponent<Tower>();
+	//
+	// 	if (t.GetSide() != side)
+	// 	{
+	// 		earnElixir(damage * 0.005f);
+	// 		if (t.Damage(damage))
+	// 			earnElixir(10);
+	// 	}
+	// }
 }

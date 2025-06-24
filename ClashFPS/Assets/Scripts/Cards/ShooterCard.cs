@@ -37,7 +37,7 @@ public class ShooterCard : Card
 			GetParamsAsShooter().bulletPiercing, playerScript.GetSide(),
 			movementController.GetCameraTransform().forward,
 			amount => playerScript.UpdateElixirServerRpc(amount),
-			KilledPlayer, playerScript
+			OnKilledPlayer, playerScript
 		);
 
 		StartCoroutine(DestroyBullet(bullet.GetComponent<NetworkObject>()));

@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 558222218870630543}
+  - component: {fileID: 7359158304945160307}
   - component: {fileID: -2415417726479158838}
   - component: {fileID: -4883649324643588459}
   - component: {fileID: 2605646391791793467}
@@ -36,6 +37,27 @@ Transform:
   - {fileID: 5132259147133631403}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7359158304945160307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 58545315655077571}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 597702511
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!114 &-2415417726479158838
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48,11 +70,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d695bb3609f8ae40acf150917fc41b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 1000
+  startingHealth: 1000
+  health:
+    m_InternalValue: 0
   deathPrefab: {fileID: 0}
   isKing: 0
   side: 0
   healthSlider: {fileID: 1423884306950141096}
+  pose:
+    position: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 0}
 --- !u!64 &-4883649324643588459
 MeshCollider:
   m_ObjectHideFlags: 0

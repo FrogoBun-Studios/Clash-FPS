@@ -1,40 +1,55 @@
 using System.Collections;
 
+using Unity.Netcode;
+
 using UnityEngine;
 using UnityEngine.UI;
 
 
-public class Tower : MonoBehaviour
+public class Tower : NetworkBehaviour
 {
-	[SerializeField] private float health = 1000f;
+	[SerializeField] private float startingHealth = 1000f;
+	[SerializeField] private NetworkVariable<float> health = new();
 	[SerializeField] private GameObject deathPrefab;
 	[SerializeField] private bool isKing;
 	[SerializeField] private Side side;
 	[SerializeField] private Slider healthSlider;
+	[SerializeField] private Pose pose;
 
-	private void Start()
+	public override void OnNetworkSpawn()
 	{
-		healthSlider.maxValue = health;
-		healthSlider.value = health;
+		healthSlider.maxValue = startingHealth;
+		healthSlider.value = startingHealth;
+
+		if (IsServer)
+			health.Value = startingHealth;
+
+		health.OnValueChanged += (value, newValue) => UpdateSliderRpc();
+
+		UpdateSliderRpc();
 	}
 
-	public bool Damage(float amount)
+	[ServerRpc]
+	public void DamageServerRpc(ulong sourcePlayerID, float amount)
 	{
-		health -= amount;
+		health.Value -= amount;
 
-		StartCoroutine(UpdateSlider(health));
-
-		if (health <= 0)
+		if (health.Value <= 0)
 		{
+			GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard().OnDestroyedTower();
+
 			Instantiate(deathPrefab, transform.position + Vector3.down * (isKing ? 8.3f : 5.8f), Quaternion.identity);
 			Destroy(gameObject, 0.01f);
-			return true;
 		}
-
-		return false;
 	}
 
-	protected IEnumerator UpdateSlider(float value)
+	[Rpc(SendTo.Everyone)]
+	private void UpdateSliderRpc()
+	{
+		StartCoroutine(UpdateSlider(health.Value));
+	}
+
+	private IEnumerator UpdateSlider(float value)
 	{
 		if (value <= 0)
 		{

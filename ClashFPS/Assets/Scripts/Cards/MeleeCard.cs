@@ -37,14 +37,20 @@ public class MeleeCard : Card
 		foreach (Collider col in colliders)
 		{
 			if (col.CompareTag("Player"))
+			{
 				if (col.GetComponent<Player>().GetSide() != playerScript.GetSide())
 				{
 					playerScript.UpdateElixirServerRpc(cardParams.damage * 0.005f);
 					col.GetComponent<Player>().GetCard().DamageServerRpc(OwnerClientId, cardParams.damage);
 				}
+			}
 
-			if (col.CompareTag("Tower"))
-				DamageTowerRpc(col.name);
+			if (col.gameObject.CompareTag("Tower"))
+				if (col.gameObject.GetComponent<Tower>().GetSide() != playerScript.GetSide())
+					col.gameObject.GetComponent<Tower>().DamageServerRpc(OwnerClientId, cardParams.damage);
+
+			// if (col.CompareTag("Tower"))
+			// 	DamageTowerRpc(col.name);
 		}
 	}
 

@@ -66,18 +66,17 @@ public abstract class Card : NetworkBehaviour
 	/// <summary>
 	///     This card damaging a tower on EVERYONE because the towers aren't networked
 	/// </summary>
-	[Rpc(SendTo.Everyone)]
-	protected void DamageTowerRpc(string towerName)
-	{
-		Tower t = GameObject.Find(towerName).GetComponent<Tower>();
-
-		NetworkQuery.Instance.Request<int>($"Get Side {OwnerClientId}", side =>
-		{
-			if (t.GetSide() != (Side)side)
-				if (t.Damage(cardParams.damage))
-					playerScript.UpdateElixirServerRpc(10);
-		});
-	}
+	// [Rpc(SendTo.Everyone)]
+	// protected void DamageTowerRpc(string towerName)
+	// {
+	// 	Tower t = GameObject.Find(towerName).GetComponent<Tower>();
+	//
+	// 	NetworkQuery.Instance.Request<int>($"Get Side {OwnerClientId}", side =>
+	// 	{
+	// 		if (t.GetSide() != (Side)side)
+	// 			if (t.Damage(cardParams.damage))
+	// 	});
+	// }
 
 	/// <summary>
 	///     Damage this card on SERVER
@@ -93,7 +92,7 @@ public abstract class Card : NetworkBehaviour
 		if (GetHealth() <= 0)
 		{
 			if (sourcePlayerID != 999ul)
-				GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard().KilledPlayer(playerScript);
+				GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard().OnKilledPlayer(playerScript);
 			OnDeath();
 		}
 	}
@@ -101,10 +100,18 @@ public abstract class Card : NetworkBehaviour
 	/// <summary>
 	///     Runs when this card killed another card on SERVER
 	/// </summary>
-	protected void KilledPlayer(Player killedPlayer)
+	protected void OnKilledPlayer(Player killedPlayer)
 	{
 		playerScript.UpdateElixirServerRpc(3);
 		Chat.Get.KillLog(playerScript.GetPlayerName(), killedPlayer.GetPlayerName(), cardParams.cardName);
+	}
+
+	/// <summary>
+	///     Runs when this card destroyed a tower on SERVER
+	/// </summary>
+	public void OnDestroyedTower()
+	{
+		playerScript.UpdateElixirServerRpc(10);
 	}
 
 	/// <summary>

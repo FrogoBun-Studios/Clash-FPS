@@ -670,7 +670,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3483306873
+  GlobalObjectIdHash: 558133668
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -729,6 +729,13 @@ MonoBehaviour:
   networkQuery: {fileID: 8098982292355404982, guid: c7767461f1300d346b7e615b79b8f92c, type: 3}
   timeToRespawn: 5
   movementController: {fileID: 228336161559725014}
+  towers:
+  - {fileID: 7644158563750991515, guid: 948cf702f37a83446b6bce86378b3d99, type: 3}
+  - {fileID: 6520313177315136506, guid: 8b0f050856ceebc45acf4f65e3837bf1, type: 3}
+  - {fileID: 1126521365417954183, guid: cbe9f3995e1046c409ffdfa4ef424464, type: 3}
+  - {fileID: 3914536318551009866, guid: c8f8028bbecd72e4aa1929594c9d789f, type: 3}
+  - {fileID: 6199723088678170648, guid: 12d96a1de20200f4fbc29fe8cf0ef548, type: 3}
+  - {fileID: 4624642050901957522, guid: 19c8986a6deaa394195cd1ae83f9784f, type: 3}
 --- !u!114 &228336161559725014
 MonoBehaviour:
   m_ObjectHideFlags: 0
