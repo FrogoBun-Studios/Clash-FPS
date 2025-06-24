@@ -24,8 +24,7 @@ public class Player : NetworkBehaviour
 	private Side side;
 	private Card card;
 
-	private readonly NetworkVariable<FixedString32Bytes> playerName =
-		new(writePerm: NetworkVariableWritePermission.Owner);
+	private readonly NetworkVariable<FixedString32Bytes> playerName = new();
 
 	private float elixir = 5;
 
@@ -198,7 +197,7 @@ public class Player : NetworkBehaviour
 	{
 		this.playerSettings = playerSettings;
 		movementController.UpdateSensitivity(playerSettings.mouseSensitivity);
-		playerName.Value = new FixedString32Bytes(playerSettings.playerName);
+		SetPlayerNameServerRpc(playerSettings.playerName);
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Lens.FieldOfView = playerSettings.FOV;
 	}
 
@@ -273,9 +272,16 @@ public class Player : NetworkBehaviour
 		return playerName.Value.ToString();
 	}
 
+	[ServerRpc(RequireOwnership = false)]
+	public void SetPlayerNameServerRpc(string name)
+	{
+		playerName.Value = name;
+	}
+
 	[Rpc(SendTo.Everyone)]
 	public void UpdatePlayerNameTextRpc()
 	{
+		Chat.Get.Log(playerName.Value.ToString());
 		playerNameText.text = playerName.Value.ToString();
 	}
 
