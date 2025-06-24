@@ -3,16 +3,16 @@ using UnityEngine;
 
 public class LookAtCameraScript : MonoBehaviour
 {
-	private Transform _cameraTransform;
+	private Transform cameraTransform;
 
 	private void Start()
 	{
-		_cameraTransform = GameObject.Find("CineCam").transform;
+		cameraTransform = GameObject.Find("CineCam").transform;
 	}
 
 	private void Update()
 	{
-		transform.LookAt(_cameraTransform);
+		transform.LookAt(cameraTransform);
 		transform.Rotate(Vector3.up * 180);
 	}
 }

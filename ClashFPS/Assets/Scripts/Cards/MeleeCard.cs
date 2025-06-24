@@ -1,3 +1,5 @@
+using Unity.Netcode;
+
 using UnityEngine;
 
 
@@ -5,46 +7,48 @@ public class MeleeCard : Card
 {
 	private void OnDrawGizmos()
 	{
-		if (!IsOwner)
-			return;
+		// if (!IsOwner)
+		// 	return;
 
 		Gizmos.color = Color.red;
-		Gizmos.DrawWireCube(_player.position
-		                    + _player.right * GetParamsAsMelee().attackZone.center.x
-		                    + _player.up * GetParamsAsMelee().attackZone.center.y
-		                    + _player.forward * GetParamsAsMelee().attackZone.center.z,
+		Gizmos.DrawWireCube(player.position
+		                    + player.right * GetParamsAsMelee().attackZone.center.x
+		                    + player.up * GetParamsAsMelee().attackZone.center.y
+		                    + player.forward * GetParamsAsMelee().attackZone.center.z,
 			GetParamsAsMelee().attackZone.size);
 	}
 
 	protected override void Attack()
 	{
 		base.Attack();
+		AttackServerRpc();
+	}
 
-		Vector3 attackPos = _player.position
-		                    + _player.right * GetParamsAsMelee().attackZone.center.x
-		                    + _player.up * GetParamsAsMelee().attackZone.center.y
-		                    + _player.forward * GetParamsAsMelee().attackZone.center.z;
+	[ServerRpc(RequireOwnership = false)]
+	private void AttackServerRpc()
+	{
+		Vector3 attackPos = player.position
+		                    + player.right * GetParamsAsMelee().attackZone.center.x
+		                    + player.up * GetParamsAsMelee().attackZone.center.y
+		                    + player.forward * GetParamsAsMelee().attackZone.center.z;
 
 		Collider[] colliders = Physics.OverlapBox(attackPos, GetParamsAsMelee().attackZone.size / 2);
 
 		foreach (Collider col in colliders)
 		{
 			if (col.CompareTag("Player"))
-			{
-				if (col.GetComponent<Player>().GetCard().GetSide() != _side)
+				if (col.GetComponent<Player>().GetSide() != playerScript.GetSide())
 				{
-					_elixirEarned += cardParams.damage * 0.005f;
-					if (col.GetComponent<Player>().GetCard().Damage(cardParams.damage))
-						KilledPlayer(col.GetComponent<Player>());
+					playerScript.UpdateElixirServerRpc(cardParams.damage * 0.005f);
+					col.GetComponent<Player>().GetCard().DamageServerRpc(OwnerClientId, cardParams.damage);
 				}
-			}
 
 			if (col.CompareTag("Tower"))
 				DamageTowerRpc(col.name);
 		}
 	}
 
-	protected MeleeCardParams GetParamsAsMelee()
+	private MeleeCardParams GetParamsAsMelee()
 	{
 		return (MeleeCardParams)cardParams;
 	}
