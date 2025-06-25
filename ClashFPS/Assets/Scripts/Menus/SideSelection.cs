@@ -13,12 +13,12 @@ public class SideSelection : MonoBehaviour
 	[SerializeField] private Button redSide;
 	[SerializeField] private TextMeshProUGUI blueCount;
 	[SerializeField] private TextMeshProUGUI redCount;
-	private Player _playerScript;
-	private bool _showen;
+	private Player playerScript;
+	private bool showen;
 
 	public IEnumerator Show()
 	{
-		_showen = true;
+		showen = true;
 
 		blueCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.GetBluePlayersCount()}/4";
 		redCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.GetRedPlayersCount()}/4";
@@ -44,7 +44,7 @@ public class SideSelection : MonoBehaviour
 
 	public IEnumerator Hide()
 	{
-		_showen = false;
+		showen = false;
 
 		canvasGroup.interactable = false;
 		canvasGroup.blocksRaycasts = false;
@@ -60,24 +60,24 @@ public class SideSelection : MonoBehaviour
 
 	public bool IsShowen()
 	{
-		return _showen;
+		return showen;
 	}
 
 	public void Set(Player playerScript)
 	{
-		_playerScript = playerScript;
+		this.playerScript = playerScript;
 	}
 
 	public void BlueSide()
 	{
-		_playerScript.SetSide(Side.Blue);
+		playerScript.SetSide(Side.Blue);
 		GameManager.Get.UpdateBluePlayersCountRpc(1);
 		StartCoroutine(Hide());
 	}
 
 	public void RedSide()
 	{
-		_playerScript.SetSide(Side.Red);
+		playerScript.SetSide(Side.Red);
 		GameManager.Get.UpdateRedPlayersCountRpc(1);
 		StartCoroutine(Hide());
 	}

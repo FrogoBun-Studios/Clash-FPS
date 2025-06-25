@@ -12,19 +12,19 @@ public class Chat : MonoBehaviour
 	[SerializeField] private float timeToDisappear = 5f;
 	[SerializeField] private CanvasGroup canvasGroup;
 	[SerializeField] private int maxMessages;
-	private readonly List<string> _chatMessages = new();
+	private readonly List<string> chatMessages = new();
 	private ChatNetworkHelper chatNetworkHelper;
 	private bool _isShown;
 	private Player playerScript;
-	private float _time;
+	private float time;
 
 	public static Chat Get { get; private set; }
 
 	private void Update()
 	{
-		_time -= Time.deltaTime;
+		time -= Time.deltaTime;
 
-		if (_time <= 0 && _isShown)
+		if (time <= 0 && _isShown)
 			StartCoroutine(Disappear());
 
 		if (Input.GetKeyUp(KeyCode.Return))
@@ -44,7 +44,7 @@ public class Chat : MonoBehaviour
 	private void OnEnable()
 	{
 		Get = this;
-		_time = timeToDisappear;
+		time = timeToDisappear;
 	}
 
 	private void OnDestroy()
@@ -59,9 +59,9 @@ public class Chat : MonoBehaviour
 
 		if (chatNetworkHelper is null)
 		{
-			_chatMessages.Add(message);
-			for (int i = 0; i < _chatMessages.Count - maxMessages; i++) _chatMessages.RemoveAt(0);
-			chatText.text = string.Join("\n", _chatMessages);
+			chatMessages.Add(message);
+			for (int i = 0; i < chatMessages.Count - maxMessages; i++) chatMessages.RemoveAt(0);
+			chatText.text = string.Join("\n", chatMessages);
 		}
 		else
 		{
@@ -94,7 +94,7 @@ public class Chat : MonoBehaviour
 
 	private void Show()
 	{
-		_time = timeToDisappear;
+		time = timeToDisappear;
 		_isShown = true;
 		canvasGroup.alpha = 1;
 

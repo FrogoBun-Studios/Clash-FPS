@@ -18,7 +18,7 @@ public class MovementController : NetworkBehaviour
 	private Vector3 resetedCameraPosition;
 	private Quaternion resetedCameraRotation;
 
-	public void SetRestedCameraPosition()
+	public void SetResetCameraPosition()
 	{
 		resetedCameraPosition = GameObject.Find("CineCam").transform.position;
 		resetedCameraRotation = GameObject.Find("CineCam").transform.rotation;
@@ -131,9 +131,6 @@ public class MovementController : NetworkBehaviour
 
 	public void SetModel()
 	{
-		if (!(IsServer || IsOwner))
-			return;
-
 		foreach (GameObject m in GameObject.FindGameObjectsWithTag("Model"))
 		{
 			if (m.GetComponent<NetworkObject>().OwnerClientId == OwnerClientId)

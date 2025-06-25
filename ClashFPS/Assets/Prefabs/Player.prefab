@@ -672,6 +672,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GlobalObjectIdHash: 558133668
   InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -679,6 +681,8 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &5540789386702437624
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -691,6 +695,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df2868252ab5c4d1da357e8f11f1b524, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkTransformExpanded: 1
+  AutoOwnerAuthorityTickOffset: 1
+  PositionInterpolationType: 0
+  RotationInterpolationType: 0
+  ScaleInterpolationType: 0
+  PositionLerpSmoothing: 1
+  PositionMaxInterpolationTime: 0.1
+  RotationLerpSmoothing: 1
+  RotationMaxInterpolationTime: 0.1
+  ScaleLerpSmoothing: 1
+  ScaleMaxInterpolationTime: 0.1
+  AuthorityMode: 0
+  TickSyncChildren: 0
   UseUnreliableDeltas: 0
   SyncPositionX: 1
   SyncPositionY: 1
@@ -708,6 +726,7 @@ MonoBehaviour:
   UseQuaternionCompression: 0
   UseHalfFloatPrecision: 0
   InLocalSpace: 0
+  SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
 --- !u!114 &4809827067371089619
@@ -722,6 +741,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b57d6d574de88d45bf646d8d01f841d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   topHealthSlider: {fileID: 188951927054600825}
   playerNameText: {fileID: 6543260067913513965}
   gameManager: {fileID: 1520152453589660899, guid: caca143d6b9bd724ab4516a452ff678b, type: 3}
@@ -748,6 +768,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 153eb44a166342a7850c7c8515ad90c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   controller: {fileID: 7173863885474572805}
   sensitivity: 10
   cameraFollow: {fileID: 5294004677974913342}

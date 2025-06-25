@@ -4,8 +4,6 @@ using System.Linq;
 
 using TMPro;
 
-using Unity.Netcode;
-
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,19 +24,14 @@ public class CardSelection : MonoBehaviour
 	private string rightCardName;
 	private bool showen;
 
-	public void Show(float delay)
-	{
-		NetworkQuery.Instance.Request<float>(
-			$"Get Elixir {playerScript.GetComponent<NetworkObject>().OwnerClientId}",
-			elixir => StartCoroutine(ShowI(delay, elixir)));
-	}
-
-	public IEnumerator ShowI(float delay, float elixir)
+	public IEnumerator Show(float delay)
 	{
 		showen = true;
 
-		elixirText.GetChild(0).GetComponent<TextMeshProUGUI>().text = Mathf.FloorToInt(elixir).ToString();
-		elixirText.GetChild(1).GetComponent<TextMeshProUGUI>().text = Mathf.FloorToInt(elixir).ToString();
+		elixirText.GetChild(0).GetComponent<TextMeshProUGUI>().text =
+			Mathf.FloorToInt(playerScript.GetElixir()).ToString();
+		elixirText.GetChild(1).GetComponent<TextMeshProUGUI>().text =
+			Mathf.FloorToInt(playerScript.GetElixir()).ToString();
 
 		PutCards();
 
@@ -67,9 +60,9 @@ public class CardSelection : MonoBehaviour
 		canvasGroup.interactable = true;
 		canvasGroup.blocksRaycasts = true;
 
-		leftCardButton.interactable = Cards.CardParams[leftCardName].elixir <= elixir;
-		middleCardButton.interactable = Cards.CardParams[middleCardName].elixir <= elixir;
-		rightCardButton.interactable = Cards.CardParams[rightCardName].elixir <= elixir;
+		leftCardButton.interactable = Cards.CardParams[leftCardName].elixir <= playerScript.GetElixir();
+		middleCardButton.interactable = Cards.CardParams[middleCardName].elixir <= playerScript.GetElixir();
+		rightCardButton.interactable = Cards.CardParams[rightCardName].elixir <= playerScript.GetElixir();
 	}
 
 	public IEnumerator Hide()

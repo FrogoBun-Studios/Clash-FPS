@@ -7,6 +7,8 @@ using UnityEngine;
 
 public class ShooterCard : Card
 {
+	private Bullet bullet;
+
 	private void OnDrawGizmos()
 	{
 		if (!IsOwner)
@@ -26,35 +28,33 @@ public class ShooterCard : Card
 	[ServerRpc(RequireOwnership = false)]
 	private void SpawnBulletServerRpc()
 	{
-		Bullet bullet = Instantiate(GetParamsAsShooter().bulletPrefab,
+		bullet = Instantiate(GetParamsAsShooter().bulletPrefab,
 				player.position + player.forward * 0.5f + player.up * 2f,
 				movementController.GetCameraTransform().rotation, player)
 			.GetComponent<Bullet>();
 		bullet.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-		// SetBulletRpc();
-		bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage,
-			GetParamsAsShooter().bulletPiercing, playerScript.GetSide(),
-			movementController.GetCameraTransform().forward,
-			amount => playerScript.UpdateElixirServerRpc(amount),
-			OnKilledPlayer, playerScript
-		);
+		EnableBulletRpc();
 
 		StartCoroutine(DestroyBullet(bullet.GetComponent<NetworkObject>()));
 	}
 
-	// [Rpc(SendTo.Everyone)]
-	// private void SetBulletRpc()
-	// {
-	// 	Bullet bullet = GameObject.FindGameObjectsWithTag("Bullet").Last().GetComponent<Bullet>();
-	//
-	// 	bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage,
-	// 		GetParamsAsShooter().bulletPiercing, playerScript.side,
-	// 		movementController.GetCameraTransform().forward,
-	// 		amount => playerScript.UpdateElixirServerRpc(amount),
-	// 		KilledPlayer, playerScript
-	// 	);
-	// }
+	[Rpc(SendTo.Owner)]
+	private void EnableBulletRpc()
+	{
+		EnableBulletServerRpc(movementController.GetCameraTransform().forward);
+	}
+
+	[ServerRpc(RequireOwnership = false)]
+	private void EnableBulletServerRpc(Vector3 cameraForward)
+	{
+		bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage,
+			GetParamsAsShooter().bulletPiercing, playerScript.GetSide(),
+			cameraForward,
+			amount => playerScript.UpdateElixirServerRpc(amount),
+			OnKilledPlayerServerRpc, playerScript
+		);
+	}
 
 	private IEnumerator SpawnBullet()
 	{

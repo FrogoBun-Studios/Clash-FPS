@@ -63,16 +63,4 @@ public class GameManager : NetworkBehaviour
 	{
 		return players;
 	}
-
-	/// <summary>
-	///     Updates all the names and health sliders of the other player on the new player OWNER.
-	/// </summary>
-	public void UpdateAllNamesAndHealthSliders()
-	{
-		foreach (Player player in players)
-		{
-			player.UpdateHealthSliderRpc(player.GetCard().GetHealth());
-			player.UpdatePlayerNameTextRpc();
-		}
-	}
 }

@@ -4,7 +4,7 @@ using Unity.Netcode;
 
 public class ChatNetworkHelper : NetworkBehaviour
 {
-	private readonly NetworkList<FixedString64Bytes> _chatMessages = new();
+	private readonly NetworkList<FixedString64Bytes> chatMessages = new();
 
 	public void AddMessage(string message)
 	{
@@ -19,20 +19,20 @@ public class ChatNetworkHelper : NetworkBehaviour
 	[Rpc(SendTo.Server)]
 	private void AddMessageRpc(string message)
 	{
-		_chatMessages.Add(message);
+		chatMessages.Add(message);
 	}
 
 	[Rpc(SendTo.Server)]
 	private void RemoveMessageRpc(int index)
 	{
-		_chatMessages.RemoveAt(index);
+		chatMessages.RemoveAt(index);
 	}
 
 	public string[] GetChatMessages()
 	{
-		string[] chatMessages = new string[_chatMessages.Count];
-		for (int i = 0; i < _chatMessages.Count; i++)
-			chatMessages[i] = _chatMessages[i].ToString();
+		string[] chatMessages = new string[this.chatMessages.Count];
+		for (int i = 0; i < this.chatMessages.Count; i++)
+			chatMessages[i] = this.chatMessages[i].ToString();
 
 		return chatMessages;
 	}

@@ -10,7 +10,7 @@ public class Bullet : NetworkBehaviour
 	[SerializeField] private Rigidbody rb;
 	private float damage;
 	private Action<float> earnElixir;
-	private Action<Player> killedPlayer;
+	private Action<ulong> killedPlayer;
 	private int piercing;
 	private Player player;
 	private Side side;
@@ -66,7 +66,7 @@ public class Bullet : NetworkBehaviour
 	///     Enables this bullet to start moving on SERVER.
 	/// </summary>
 	public void Enable(float speed, float damage, int piercing, Side side, Vector3 dir, Action<float> earnElixir,
-		Action<Player> killedPlayer, Player player)
+		Action<ulong> killedPlayer, Player player)
 	{
 		this.speed = speed;
 		this.damage = damage;
@@ -76,34 +76,6 @@ public class Bullet : NetworkBehaviour
 		this.killedPlayer = killedPlayer;
 		this.player = player;
 
-		// SetVelocityRpc(dir);
 		rb.linearVelocity = dir * speed;
 	}
-
-	// [Rpc(SendTo.Server)]
-	// private void SetVelocityRpc(Vector3 dir)
-	// {
-	// 	rb.linearVelocity = dir * speed;
-	// }
-
-	// private void SelfDestroy()
-	// {
-	// 	piercing--;
-	//
-	// 	if (piercing <= 0)
-	// 		GetComponent<NetworkObject>().Despawn();
-	// }
-
-	// [Rpc(SendTo.Everyone)]
-	// protected void DamageTowerRpc(string towerName)
-	// {
-	// 	Tower t = GameObject.Find(towerName).GetComponent<Tower>();
-	//
-	// 	if (t.GetSide() != side)
-	// 	{
-	// 		earnElixir(damage * 0.005f);
-	// 		if (t.Damage(damage))
-	// 			earnElixir(10);
-	// 	}
-	// }
 }

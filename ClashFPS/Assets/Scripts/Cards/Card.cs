@@ -64,21 +64,6 @@ public abstract class Card : NetworkBehaviour
 	}
 
 	/// <summary>
-	///     This card damaging a tower on EVERYONE because the towers aren't networked
-	/// </summary>
-	// [Rpc(SendTo.Everyone)]
-	// protected void DamageTowerRpc(string towerName)
-	// {
-	// 	Tower t = GameObject.Find(towerName).GetComponent<Tower>();
-	//
-	// 	NetworkQuery.Instance.Request<int>($"Get Side {OwnerClientId}", side =>
-	// 	{
-	// 		if (t.GetSide() != (Side)side)
-	// 			if (t.Damage(cardParams.damage))
-	// 	});
-	// }
-
-	/// <summary>
 	///     Damage this card on SERVER
 	/// </summary>
 	[ServerRpc(RequireOwnership = false)]
@@ -92,7 +77,8 @@ public abstract class Card : NetworkBehaviour
 		if (GetHealth() <= 0)
 		{
 			if (sourcePlayerID != 999ul)
-				GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard().OnKilledPlayer(playerScript);
+				GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard()
+					.OnKilledPlayerServerRpc(playerScript.OwnerClientId);
 			OnDeath();
 		}
 	}
@@ -100,9 +86,11 @@ public abstract class Card : NetworkBehaviour
 	/// <summary>
 	///     Runs when this card killed another card on SERVER
 	/// </summary>
-	protected void OnKilledPlayer(Player killedPlayer)
+	[ServerRpc(RequireOwnership = false)]
+	protected void OnKilledPlayerServerRpc(ulong killedPlayerID)
 	{
-		playerScript.UpdateElixirServerRpc(3);
+		Player killedPlayer = GameManager.Get.GetPlayerByID(killedPlayerID);
+		killedPlayer.UpdateElixirServerRpc(3);
 		Chat.Get.KillLog(playerScript.GetPlayerName(), killedPlayer.GetPlayerName(), cardParams.cardName);
 	}
 
