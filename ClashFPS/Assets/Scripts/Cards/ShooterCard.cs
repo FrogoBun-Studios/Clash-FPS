@@ -7,8 +7,6 @@ using UnityEngine;
 
 public class ShooterCard : Card
 {
-	private Bullet bullet;
-
 	private void OnDrawGizmos()
 	{
 		if (!IsOwner)
@@ -26,48 +24,50 @@ public class ShooterCard : Card
 	}
 
 	[ServerRpc(RequireOwnership = false)]
-	private void SpawnBulletServerRpc()
+	private void SpawnBulletServerRpc(Vector3 fwd, Vector3 up, Vector3 right)
 	{
-		bullet = Instantiate(GetParamsAsShooter().bulletPrefab,
-				player.position + player.forward * 0.5f + player.up * 2f,
-				movementController.GetCameraTransform().rotation, player)
-			.GetComponent<Bullet>();
-		bullet.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+		for (int i = 0; i < GetParamsAsShooter().bulletAmount; i++)
+		{
+			float randomRight = Random.Range(-GetParamsAsShooter().bulletSpread, GetParamsAsShooter().bulletSpread);
+			float randomUp = Random.Range(-GetParamsAsShooter().bulletSpread, GetParamsAsShooter().bulletSpread);
+			Vector3 bulletPos = player.position + fwd * 0.5f + up * 2f;
+			bulletPos = bulletPos + right * randomRight + up * randomUp;
+			Vector3 bulletDir = (fwd + right * randomRight + up * randomUp).normalized;
 
-		EnableBulletRpc();
+			Bullet bullet = Instantiate(
+				GetParamsAsShooter().bulletPrefab,
+				bulletPos,
+				Quaternion.Euler(fwd), player
+			).GetComponent<Bullet>();
+			bullet.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
-		StartCoroutine(DestroyBullet(bullet.GetComponent<NetworkObject>()));
-	}
+			bullet.Enable(
+				GetParamsAsShooter().bulletSpeed,
+				GetParamsAsShooter().damage,
+				GetParamsAsShooter().bulletPiercing,
+				playerScript.GetSide(),
+				bulletDir,
+				amount => playerScript.UpdateElixirServerRpc(amount), playerScript
+			);
 
-	[Rpc(SendTo.Owner)]
-	private void EnableBulletRpc()
-	{
-		EnableBulletServerRpc(movementController.GetCameraTransform().forward);
-	}
-
-	[ServerRpc(RequireOwnership = false)]
-	private void EnableBulletServerRpc(Vector3 cameraForward)
-	{
-		bullet.Enable(GetParamsAsShooter().bulletSpeed, GetParamsAsShooter().damage,
-			GetParamsAsShooter().bulletPiercing, playerScript.GetSide(),
-			cameraForward,
-			amount => playerScript.UpdateElixirServerRpc(amount),
-			OnKilledPlayerServerRpc, playerScript
-		);
+			StartCoroutine(DestroyBullet(bullet.GetComponent<NetworkObject>()));
+		}
 	}
 
 	private IEnumerator SpawnBullet()
 	{
 		yield return new WaitForSeconds(0.25f);
 
-		SpawnBulletServerRpc();
+		SpawnBulletServerRpc(movementController.GetCameraTransform().forward,
+			movementController.GetCameraTransform().up,
+			movementController.GetCameraTransform().right);
 	}
 
 	private IEnumerator DestroyBullet(NetworkObject bullet)
 	{
 		yield return new WaitForSeconds(3f);
 
-		if (bullet.IsSpawned)
+		if (bullet != null)
 			bullet.Despawn();
 	}
 

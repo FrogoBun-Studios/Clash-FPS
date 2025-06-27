@@ -196,7 +196,7 @@ public class Player : NetworkBehaviour
 		cardSelection = FindFirstObjectByType<CardSelection>();
 		if (sideSelection != null)
 		{
-			Debug.Log("Found side card menu");
+			Debug.Log("Found card selection menu");
 			cardSelection.Set(this);
 		}
 		else
@@ -207,12 +207,12 @@ public class Player : NetworkBehaviour
 		settingsMenu = FindFirstObjectByType<SettingsMenu>();
 		if (sideSelection != null)
 		{
-			Debug.Log("Found side settings menu");
+			Debug.Log("Found settings menu");
 			settingsMenu.Set(this);
 		}
 		else
 		{
-			Debug.LogError("Could not find side settings menu");
+			Debug.LogError("Could not find settings menu");
 		}
 
 		Destroy(topHealthSlider.gameObject);
@@ -516,11 +516,11 @@ public class Player : NetworkBehaviour
 			Debug.Log($"Set the card to player {OwnerClientId}");
 		}
 
-		SetModelRpc();
+		if (IsOwner)
+			SetModel();
 	}
 
-	[Rpc(SendTo.Owner)]
-	private void SetModelRpc()
+	private void SetModel()
 	{
 		movementController.SetModel();
 		Debug.Log("Set model");

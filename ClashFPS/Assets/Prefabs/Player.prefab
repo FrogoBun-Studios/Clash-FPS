@@ -606,7 +606,7 @@ GameObject:
   - component: {fileID: 219309480709859539}
   - component: {fileID: 7173863885474572805}
   - component: {fileID: 8878631989719329824}
-  - component: {fileID: 5540789386702437624}
+  - component: {fileID: 289966426094744509}
   - component: {fileID: 4809827067371089619}
   - component: {fileID: 228336161559725014}
   m_Layer: 6
@@ -683,7 +683,7 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &5540789386702437624
+--- !u!114 &289966426094744509
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -692,11 +692,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 8070673677507829336}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df2868252ab5c4d1da357e8f11f1b524, type: 3}
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  NetworkTransformExpanded: 1
+  NetworkTransformExpanded: 0
   AutoOwnerAuthorityTickOffset: 1
   PositionInterpolationType: 0
   RotationInterpolationType: 0
@@ -707,7 +707,7 @@ MonoBehaviour:
   RotationMaxInterpolationTime: 0.1
   ScaleLerpSmoothing: 1
   ScaleMaxInterpolationTime: 0.1
-  AuthorityMode: 0
+  AuthorityMode: 1
   TickSyncChildren: 0
   UseUnreliableDeltas: 0
   SyncPositionX: 1
