@@ -61,7 +61,10 @@ public class Player : NetworkBehaviour
 	private void OnControllerColliderHit(ControllerColliderHit hit)
 	{
 		if (IsOwner && hit.gameObject.CompareTag("WaterCols"))
+		{
+			Debug.Log("Player touched water");
 			card.DamageServerRpc(999ul, Mathf.Infinity);
+		}
 	}
 
 	/// <summary>
@@ -71,6 +74,8 @@ public class Player : NetworkBehaviour
 	public void UpdateElixirServerRpc(float amount)
 	{
 		elixir.Value += amount;
+		if (amount >= 0.5)
+			Debug.Log($"Increased elixir of player {OwnerClientId} by {amount} to {elixir.Value}");
 	}
 
 	/// <returns>
@@ -96,6 +101,7 @@ public class Player : NetworkBehaviour
 	[Rpc(SendTo.Everyone)]
 	public void UpdateHealthSliderRpc(float health)
 	{
+		Debug.Log($"Updating health of player {OwnerClientId} to {health}");
 		StartCoroutine(UpdateHealthSlider(health));
 	}
 
@@ -104,6 +110,12 @@ public class Player : NetworkBehaviour
 	/// </summary>
 	private IEnumerator UpdateHealthSlider(float health)
 	{
+		if (currentHealthSlider == null)
+		{
+			Debug.LogError($"Can't update health slider of player {OwnerClientId} because currentHealthSlider is null");
+			yield break;
+		}
+
 		if (health <= 0)
 		{
 			currentHealthSlider.value = 0;
@@ -131,23 +143,28 @@ public class Player : NetworkBehaviour
 		{
 			gameManager = Instantiate(gameManager.gameObject).GetComponent<NetworkObject>();
 			gameManager.Spawn();
+			Debug.Log("Spawned GameManager");
 
 			chatNetworkHelper = Instantiate(chatNetworkHelper.gameObject).GetComponent<NetworkObject>();
 			chatNetworkHelper.Spawn();
+			Debug.Log("Spawned ChatNetworkHelper");
 
 			networkQuery = Instantiate(networkQuery.gameObject).GetComponent<NetworkObject>();
 			networkQuery.Spawn();
+			Debug.Log("Spawned NetworkQuery");
 
 			for (int i = 0; i < towers.Length; i++)
 			{
 				towers[i] = Instantiate(towers[i].gameObject).GetComponent<NetworkObject>();
 				towers[i].Spawn();
+				Debug.Log($"Spawned tower {i + 1}/{towers.Length}");
 			}
 		}
 
 		if (IsServer)
 		{
 			NetworkQuery.Instance.Register($"Get Canvas Height {OwnerClientId}", _ => model.localScale.y * 4f + 2.1f);
+			Debug.Log($"Registered \"Get Canvas Height\" for player {OwnerClientId} in NetworkQuery");
 		}
 
 		topHealthSlider.name = $"TopSlider{OwnerClientId}";
@@ -159,16 +176,45 @@ public class Player : NetworkBehaviour
 
 		chatNetworkHelper = GameObject.Find("ChatNetworkHelper(Clone)").GetComponent<NetworkObject>();
 		Chat.Get.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>(), this);
+		Debug.Log("Enabled chat networking");
 
 		LoadSettings();
 		movementController.SetResetCameraPosition();
+		Debug.Log($"Set reset camera position to {movementController.transform.position}");
 
 		sideSelection = FindFirstObjectByType<SideSelection>();
-		sideSelection.Set(this);
+		if (sideSelection != null)
+		{
+			Debug.Log("Found side selection menu");
+			sideSelection.Set(this);
+		}
+		else
+		{
+			Debug.LogError("Could not find side selection menu");
+		}
+
 		cardSelection = FindFirstObjectByType<CardSelection>();
-		cardSelection.Set(this);
+		if (sideSelection != null)
+		{
+			Debug.Log("Found side card menu");
+			cardSelection.Set(this);
+		}
+		else
+		{
+			Debug.LogError("Could not find card selection menu");
+		}
+
 		settingsMenu = FindFirstObjectByType<SettingsMenu>();
-		settingsMenu.Set(this);
+		if (sideSelection != null)
+		{
+			Debug.Log("Found side settings menu");
+			settingsMenu.Set(this);
+		}
+		else
+		{
+			Debug.LogError("Could not find side settings menu");
+		}
+
 		Destroy(topHealthSlider.gameObject);
 		Destroy(playerNameText.gameObject);
 
@@ -183,6 +229,7 @@ public class Player : NetworkBehaviour
 
 	private IEnumerator InitGameManager()
 	{
+		Debug.Log("Waiting for game manager to spawn");
 		yield return new WaitUntil(() => GameManager.Get != null);
 		GameManager.Get.Init();
 
@@ -192,15 +239,21 @@ public class Player : NetworkBehaviour
 
 	private void InitAllPlayers()
 	{
+		Debug.Log("Starting to init all players");
+
 		// Setting players' names on new player's pc
 		foreach (Player player in GameManager.Get.GetPlayers())
+		{
 			player.playerNameText.text = player.playerName.Value.ToString();
+			Debug.Log($"Set name for player {player.OwnerClientId}: {player.playerName.Value}");
+		}
 
 		// Setting other players' cards on new player's pc
 		foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
 		{
 			Card card = cardGo.GetComponent<Card>();
 			ulong cardID = card.OwnerClientId;
+			Debug.Log($"Found card of player {cardID}");
 
 			cardGo.name = $"Card{cardID}";
 			GameManager.Get.GetPlayerByID(cardID).card = card;
@@ -211,18 +264,35 @@ public class Player : NetworkBehaviour
 		foreach (GameObject topSliderGo in GameObject.FindGameObjectsWithTag("TopSlider"))
 		{
 			Player player = topSliderGo.transform.parent.parent.GetComponent<Player>();
+
+			Debug.Log($"Found canvas of player {player.OwnerClientId}");
+			if (player == this)
+				Debug.Log("This player is me, ignoring...");
+			else if (player.card == null)
+				Debug.Log("This player didn't choose a card yet, ignoring...");
+
 			if (player != this && player.card != null)
 			{
 				player.currentHealthSlider = player.topHealthSlider;
+				Debug.Log($"Set canvas of player {player.OwnerClientId}");
+
 				NetworkQuery.Instance.Request<float>($"Get Canvas Height {player.OwnerClientId}",
 					height =>
 					{
+						Debug.Log($"Set canvas height of player {player.OwnerClientId} to {height}");
 						player.currentHealthSlider.transform.parent.localPosition = new Vector3(0, height, 0);
 					});
+
 				player.currentHealthSlider.maxValue = Cards.CardParams[player.card.GetCardName()].health;
+				Debug.Log(
+					$"Set health slider max value of player {player.OwnerClientId} to {player.currentHealthSlider.maxValue}");
 				player.currentHealthSlider.value = player.card.GetHealth();
+				Debug.Log(
+					$"Set health slider value of player {player.OwnerClientId} to {player.currentHealthSlider.value}");
 			}
 		}
+
+		Debug.Log("Finished to init all players");
 	}
 
 	#endregion
@@ -238,14 +308,16 @@ public class Player : NetworkBehaviour
 	}
 
 	[ServerRpc(RequireOwnership = false)]
-	public void SetPlayerNameServerRpc(string name)
+	private void SetPlayerNameServerRpc(string name)
 	{
+		Debug.Log($"Setting name of player {OwnerClientId} to {name}");
 		playerName.Value = name;
 	}
 
 	[Rpc(SendTo.Everyone)]
-	public void UpdatePlayerNameTextRpc()
+	private void UpdatePlayerNameTextRpc()
 	{
+		Debug.Log($"Updating player {OwnerClientId} name text to {playerName.Value}");
 		playerNameText.text = playerName.Value.ToString();
 	}
 
@@ -260,8 +332,10 @@ public class Player : NetworkBehaviour
 	{
 		this.playerSettings = playerSettings;
 		movementController.UpdateSensitivity(playerSettings.mouseSensitivity);
+		Debug.Log($"Updated sensitivity of player to new settings: {playerSettings.mouseSensitivity}");
 		SetPlayerNameServerRpc(playerSettings.playerName);
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Lens.FieldOfView = playerSettings.FOV;
+		Debug.Log($"Updated FOV of player to new settings: {playerSettings.FOV}");
 	}
 
 	/// <summary>
@@ -269,12 +343,20 @@ public class Player : NetworkBehaviour
 	/// </summary>
 	private void LoadSettings()
 	{
+		Debug.Log("Loading settings");
+
 		PlayerSettings loadedSettings = new();
 		loadedSettings.playerName = PlayerPrefs.GetString("playerName", $"Player {OwnerClientId}");
 		loadedSettings.volume = PlayerPrefs.GetFloat("volume", 1);
 		loadedSettings.mouseSensitivity = PlayerPrefs.GetFloat("mouseSensitivity", 1.5f);
 		loadedSettings.quality = PlayerPrefs.GetInt("quality", 0);
 		loadedSettings.FOV = PlayerPrefs.GetFloat("FOV", 90);
+
+		Debug.Log($"Loaded player name: {loadedSettings.playerName}");
+		Debug.Log($"Loaded volume: {loadedSettings.volume}");
+		Debug.Log($"Loaded sensitivity: {loadedSettings.mouseSensitivity}");
+		Debug.Log($"Loaded quality: {loadedSettings.quality}");
+		Debug.Log($"Loaded FOV: {loadedSettings.FOV}");
 
 		UpdateGameToSettings(loadedSettings);
 	}
@@ -288,6 +370,8 @@ public class Player : NetworkBehaviour
 	/// </summary>
 	public void ChooseSide()
 	{
+		Debug.Log("Choosing side");
+
 		spawned = false;
 
 		Cursor.lockState = CursorLockMode.None;
@@ -302,6 +386,8 @@ public class Player : NetworkBehaviour
 	/// </summary>
 	public void SetSide(Side side)
 	{
+		Debug.Log($"Chose side {side}");
+
 		UpdateSideServerRpc(side);
 		RespawnRpc(false);
 	}
@@ -321,6 +407,7 @@ public class Player : NetworkBehaviour
 	private void UpdateSideServerRpc(Side side)
 	{
 		this.side.Value = side;
+		Debug.Log($"Updated side of player {OwnerClientId} to {side}");
 	}
 
 	#endregion
@@ -333,6 +420,8 @@ public class Player : NetworkBehaviour
 	[Rpc(SendTo.Owner)]
 	public void RespawnRpc(bool delay = true)
 	{
+		Debug.Log("Respawning");
+
 		spawned = false;
 
 		Cursor.lockState = CursorLockMode.None;
@@ -348,6 +437,8 @@ public class Player : NetworkBehaviour
 	[ServerRpc(RequireOwnership = false)]
 	public void ChooseCardServerRpc(string cardName)
 	{
+		Debug.Log($"Player {OwnerClientId} chose card \"{cardName}\"");
+
 		StartCoroutine(ChooseCard(cardName));
 	}
 
@@ -357,22 +448,26 @@ public class Player : NetworkBehaviour
 
 		if (card != null)
 		{
-			// DespawnCardRpc();
+			Debug.Log($"Player {OwnerClientId} already had a card");
+
 			model.GetComponent<NetworkObject>().Despawn();
 			card.GetComponent<NetworkObject>().Despawn();
 
+			Debug.Log($"Despawning player {OwnerClientId} card");
 			yield return new WaitUntil(() => card == null && model == null);
+			Debug.Log($"Player {OwnerClientId} card despawned");
 		}
 
 		movementController.TeleportRpc(new Vector3(0, 2, side.Value == Side.Blue ? -34 : 34),
 			Quaternion.Euler(0, side.Value == Side.Blue ? 0 : 180, 0));
 
-		// SpawnCardRpc(cardName);
 		GameObject cardGo = Instantiate(Cards.CardPrefabs[cardName]);
 		cardGo.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+		Debug.Log($"Spawned a new card for player {OwnerClientId}: {cardName}");
 
 		model = Instantiate(Cards.CardParams[cardName].modelPrefab).transform;
 		model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+		Debug.Log($"Spawned a new model for player {OwnerClientId}: {model.name}");
 
 		SetCardRpc();
 	}
@@ -408,13 +503,17 @@ public class Player : NetworkBehaviour
 		}
 
 		if (card == null)
-			Debug.Log($"Didn't find card of player {OwnerClientId} as {NetworkManager.LocalClientId}");
+			Debug.LogError($"Didn't find card of player {OwnerClientId} who chose a card now");
 		else
 		{
+			Debug.Log($"Found card of player {OwnerClientId} who chose a card now");
+
 			//Set the card to the matching player on each pc
 			card.gameObject.name = $"Card{OwnerClientId}";
 			this.card = card;
 			card.SetPlayerForNonServer(transform);
+
+			Debug.Log($"Set the card to player {OwnerClientId}");
 		}
 
 		SetModelRpc();
@@ -424,6 +523,7 @@ public class Player : NetworkBehaviour
 	private void SetModelRpc()
 	{
 		movementController.SetModel();
+		Debug.Log("Set model");
 		movementController.EnableColliderRpc(true);
 
 		SetHealthSliderRpc();
@@ -443,15 +543,24 @@ public class Player : NetworkBehaviour
 		{
 			//Setting health slider of the player the just chose a card on his pc
 			currentHealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
+			Debug.Log("Set my health slider to be the UI one");
 			currentHealthSlider.maxValue = Cards.CardParams[card.GetCardName()].health;
+			Debug.Log($"Set my health slider max value: {currentHealthSlider.maxValue}");
 		}
 		else
 		{
 			//Setting the player that just chose a card slider's height and max value on other players' machines'
 			currentHealthSlider = topHealthSlider;
-			NetworkQuery.Instance.Request<float>($"Get Canvas Height {OwnerClientId}",
-				height => { currentHealthSlider.transform.parent.localPosition = new Vector3(0, height, 0); });
+			Debug.Log($"Set health slider of player {OwnerClientId}");
+
+			NetworkQuery.Instance.Request<float>($"Get Canvas Height {OwnerClientId}", height =>
+			{
+				currentHealthSlider.transform.parent.localPosition = new Vector3(0, height, 0);
+				Debug.Log($"Set the canvas height of player {OwnerClientId} to {height}");
+			});
+
 			currentHealthSlider.maxValue = Cards.CardParams[card.GetCardName()].health;
+			Debug.Log($"Set health slider max value of player {OwnerClientId}: {currentHealthSlider.maxValue}");
 		}
 
 		StartCardServerRpc();
@@ -464,8 +573,11 @@ public class Player : NetworkBehaviour
 	{
 		clientReadyCounter++;
 
+		Debug.Log(
+			$"{clientReadyCounter} out of {GameManager.Get.GetPlayers().Count} players acknowledged that player {OwnerClientId} chose a card");
 		if (clientReadyCounter == GameManager.Get.GetPlayers().Count)
 		{
+			Debug.Log($"Starting player {OwnerClientId} card");
 			GameManager.Get.GetPlayerByID(OwnerClientId).card.StartCard(transform);
 			clientReadyCounter = 0;
 			SpawnedRpc();
@@ -476,6 +588,7 @@ public class Player : NetworkBehaviour
 	private void SpawnedRpc()
 	{
 		spawned = true;
+		Debug.Log($"Player {OwnerClientId} spawned and chose a card");
 	}
 
 	#endregion

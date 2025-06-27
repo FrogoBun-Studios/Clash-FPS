@@ -27,6 +27,8 @@ public abstract class Card : NetworkBehaviour
 		movementController.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
 			cardParams.colliderYOffset);
 		attackTimer = 1 / cardParams.attackRate;
+
+		Debug.Log($"Player {OwnerClientId} card started");
 	}
 
 	public void SetPlayerForNonServer(Transform player)
@@ -60,6 +62,7 @@ public abstract class Card : NetworkBehaviour
 	/// </summary>
 	protected virtual void Attack()
 	{
+		Debug.Log("Attacking");
 		movementController.SetAnimatorTriggerRpc("Attack");
 	}
 
@@ -73,6 +76,8 @@ public abstract class Card : NetworkBehaviour
 			return;
 
 		health.Value -= amount;
+		Debug.Log($"Player {OwnerClientId} damaged by {amount} to {GetHealth()}");
+
 		playerScript.UpdateHealthSliderRpc(GetHealth());
 		if (GetHealth() <= 0)
 		{
@@ -99,6 +104,7 @@ public abstract class Card : NetworkBehaviour
 	/// </summary>
 	public void OnDestroyedTower()
 	{
+		Chat.Get.KillLog(playerScript.GetPlayerName(), "tower", cardParams.cardName);
 		playerScript.UpdateElixirServerRpc(10);
 	}
 
@@ -107,6 +113,7 @@ public abstract class Card : NetworkBehaviour
 	/// </summary>
 	protected virtual void OnDeath()
 	{
+		Debug.Log($"Player {OwnerClientId} died");
 		movementController.SetAnimatorTriggerRpc("Death");
 		movementController.EnableColliderRpc(false);
 		playerScript.RespawnRpc();

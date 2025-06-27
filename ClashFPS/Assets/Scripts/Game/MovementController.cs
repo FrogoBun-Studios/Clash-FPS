@@ -42,8 +42,15 @@ public class MovementController : NetworkBehaviour
 			}
 		}
 
-		model.position = transform.position;
-		model.localEulerAngles = transform.localEulerAngles;
+		if (model != null)
+		{
+			model.position = transform.position;
+			model.localEulerAngles = transform.localEulerAngles;
+		}
+		else
+		{
+			Debug.LogError("My model is null");
+		}
 	}
 
 	private void Move(float speed)
@@ -95,6 +102,8 @@ public class MovementController : NetworkBehaviour
 		transform.position = position;
 		transform.rotation = rotation;
 		controller.enabled = true;
+
+		Debug.Log($"Teleported to {transform.position}, meant to teleport to {position}");
 	}
 
 	[Rpc(SendTo.Owner)]
@@ -103,17 +112,24 @@ public class MovementController : NetworkBehaviour
 		controller.enabled = false;
 		transform.position = position;
 		controller.enabled = true;
+
+		Debug.Log($"Teleported to {transform.position}, meant to teleport to {position}");
 	}
 
 	[Rpc(SendTo.Owner)]
 	public void SetAnimatorTriggerRpc(string triggerName)
 	{
 		animator.SetTrigger(triggerName);
+		Debug.Log($"Set animation trigger: {triggerName}");
 	}
 
 	public void Enable(bool enable)
 	{
-		movementEnabled = enable;
+		if (enable != movementEnabled)
+		{
+			movementEnabled = enable;
+			Debug.Log($"Enabled movement controller: {enable}");
+		}
 	}
 
 	public void ResetCamera()
@@ -127,6 +143,7 @@ public class MovementController : NetworkBehaviour
 	public void EnableColliderRpc(bool enable)
 	{
 		controller.enabled = enable;
+		Debug.Log($"Enabled collider of player {OwnerClientId}: {enable}");
 	}
 
 	public void SetModel()
@@ -140,6 +157,8 @@ public class MovementController : NetworkBehaviour
 				break;
 			}
 		}
+
+		Debug.Log("Found my model");
 
 		cameraFollow.localPosition =
 			new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f);
@@ -156,6 +175,9 @@ public class MovementController : NetworkBehaviour
 		controller.radius = radius;
 		controller.height = height;
 		controller.center = Vector3.up * yOffset;
+
+		Debug.Log(
+			$"Set collider size of player {OwnerClientId}: radius: {radius}, height: {height}, yOffset: {yOffset}");
 	}
 
 	public void UpdateSensitivity(float sensitivity)

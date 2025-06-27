@@ -18,6 +18,8 @@ public class SideSelection : MonoBehaviour
 
 	public IEnumerator Show()
 	{
+		Debug.Log("Side selection menu opened");
+
 		showen = true;
 
 		blueCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.GetBluePlayersCount()}/4";
@@ -44,6 +46,8 @@ public class SideSelection : MonoBehaviour
 
 	public IEnumerator Hide()
 	{
+		Debug.Log("Side selection menu closed");
+
 		showen = false;
 
 		canvasGroup.interactable = false;

@@ -43,15 +43,20 @@ public class GameManager : NetworkBehaviour
 
 	public void Init()
 	{
+		Debug.Log("Game manager init");
 		foreach (GameObject playerGo in GameObject.FindGameObjectsWithTag("Player"))
 		{
 			Player player = playerGo.GetComponent<Player>();
+			Debug.Log($"Found player {player.OwnerClientId}");
 			if (!playerIDToPlayer.ContainsKey(player.OwnerClientId))
 			{
+				Debug.Log($"Player {player.OwnerClientId} was not already in my players list, adding now...");
 				players.Add(player.GetComponent<Player>());
 				playerIDToPlayer.Add(player.GetComponent<NetworkObject>().OwnerClientId, player.GetComponent<Player>());
 			}
 		}
+
+		Debug.Log("Game manager init completed");
 	}
 
 	public Player GetPlayerByID(ulong playerID)

@@ -2,8 +2,6 @@ using System.Collections;
 
 using TMPro;
 
-using Unity.Netcode;
-
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,6 +30,8 @@ public class SettingsMenu : MonoBehaviour
 
 	public IEnumerator Show()
 	{
+		Debug.Log("Player opened settings menu");
+
 		showen = true;
 
 		Cursor.lockState = CursorLockMode.None;
@@ -59,6 +59,8 @@ public class SettingsMenu : MonoBehaviour
 
 	public IEnumerator Hide()
 	{
+		Debug.Log("Player closed settings menu");
+
 		showen = false;
 
 		Cursor.lockState = CursorLockMode.Locked;
@@ -116,21 +118,19 @@ public class SettingsMenu : MonoBehaviour
 		PlayerPrefs.SetFloat("FOV", playerSettings.FOV);
 		PlayerPrefs.Save();
 
+		Debug.Log("Saved settings");
+
 		StartCoroutine(Hide());
 	}
 
 	public void ChangeSideButton()
 	{
-		NetworkQuery.Instance.Request<int>($"Get Side {playerScript.GetComponent<NetworkObject>().OwnerClientId}",
-			side =>
-			{
-				if ((Side)side == Side.Blue)
-					GameManager.Get.UpdateBluePlayersCountRpc(-1);
-				else
-					GameManager.Get.UpdateRedPlayersCountRpc(-1);
+		if (playerScript.GetSide() == Side.Blue)
+			GameManager.Get.UpdateBluePlayersCountRpc(-1);
+		else
+			GameManager.Get.UpdateRedPlayersCountRpc(-1);
 
-				StartCoroutine(Hide());
-				playerScript.ChooseSide();
-			});
+		StartCoroutine(Hide());
+		playerScript.ChooseSide();
 	}
 }

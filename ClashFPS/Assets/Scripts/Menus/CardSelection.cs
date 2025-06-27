@@ -26,6 +26,8 @@ public class CardSelection : MonoBehaviour
 
 	public IEnumerator Show(float delay)
 	{
+		Debug.Log("Card menu opened");
+
 		showen = true;
 
 		elixirText.GetChild(0).GetComponent<TextMeshProUGUI>().text =
@@ -67,6 +69,8 @@ public class CardSelection : MonoBehaviour
 
 	public IEnumerator Hide()
 	{
+		Debug.Log("Card menu closed");
+
 		showen = false;
 
 		canvasGroup.interactable = false;
