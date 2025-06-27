@@ -2,7 +2,10 @@ using System.Collections;
 
 using TMPro;
 
+using Unity.Netcode;
+
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
@@ -132,5 +135,16 @@ public class SettingsMenu : MonoBehaviour
 
 		StartCoroutine(Hide());
 		playerScript.ChooseSide();
+	}
+
+	public void LeaveButton()
+	{
+		if (playerScript.GetSide() == Side.Blue)
+			GameManager.Get.UpdateBluePlayersCountRpc(-1);
+		else
+			GameManager.Get.UpdateRedPlayersCountRpc(-1);
+
+		NetworkManager.Singleton.Shutdown();
+		SceneManager.LoadScene("JoinMenu");
 	}
 }

@@ -63,7 +63,7 @@ public class Player : NetworkBehaviour
 		if (IsOwner && hit.gameObject.CompareTag("WaterCols"))
 		{
 			Debug.Log("Player touched water");
-			card.DamageServerRpc(999ul, Mathf.Infinity);
+			card.DamageServerRpc(Constants.nonPlayerID, Mathf.Infinity);
 		}
 	}
 
@@ -73,9 +73,12 @@ public class Player : NetworkBehaviour
 	[ServerRpc(RequireOwnership = false)]
 	public void UpdateElixirServerRpc(float amount)
 	{
-		elixir.Value += amount;
-		if (amount >= 0.5)
-			Debug.Log($"Increased elixir of player {OwnerClientId} by {amount} to {elixir.Value}");
+		if (elixir.Value < Constants.maxElixir)
+		{
+			elixir.Value += amount;
+			if (amount >= 0.5)
+				Debug.Log($"Increased elixir of player {OwnerClientId} by {amount} to {elixir.Value}");
+		}
 	}
 
 	/// <returns>
@@ -135,96 +138,124 @@ public class Player : NetworkBehaviour
 		currentHealthSlider.value = health;
 	}
 
+	private void OnConnectionEvent(NetworkManager sender, ConnectionEventData eventData)
+	{
+		if (eventData.EventType == ConnectionEvent.PeerDisconnected)
+		{
+			if (IsServer)
+			{
+				Chat.Get.Log($"{GameManager.Get.GetPlayerNameByID(eventData.ClientId)} has disconnected");
+
+				NetworkObject card = null;
+				NetworkObject model = null;
+				foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
+					if (cardGo.GetComponent<NetworkObject>().OwnerClientId == eventData.ClientId)
+					{
+						card = cardGo.GetComponent<NetworkObject>();
+						break;
+					}
+
+				foreach (GameObject modelGo in GameObject.FindGameObjectsWithTag("Model"))
+					if (modelGo.GetComponent<NetworkObject>().OwnerClientId == eventData.ClientId)
+					{
+						model = modelGo.GetComponent<NetworkObject>();
+						break;
+					}
+
+				if (card == null || model == null)
+				{
+					Debug.LogError(
+						$"Can't find player {eventData.ClientId} card and model to destroy after disconnection");
+				}
+				else
+				{
+					card.Despawn();
+					model.Despawn();
+					Debug.Log($"Destroyed player {eventData.ClientId} card and model after disconnection");
+				}
+			}
+
+			Debug.Log("Refreshing game manager after player disconnection");
+			GameManager.Get.Init();
+		}
+	}
+
+	public override void OnNetworkDespawn()
+	{
+		if (IsOwner)
+			NetworkManager.Singleton.OnConnectionEvent -= OnConnectionEvent;
+	}
+
 	#region Init
 
 	public override void OnNetworkSpawn()
 	{
-		if (IsServer && IsOwner)
-		{
-			gameManager = Instantiate(gameManager.gameObject).GetComponent<NetworkObject>();
-			gameManager.Spawn();
-			Debug.Log("Spawned GameManager");
-
-			chatNetworkHelper = Instantiate(chatNetworkHelper.gameObject).GetComponent<NetworkObject>();
-			chatNetworkHelper.Spawn();
-			Debug.Log("Spawned ChatNetworkHelper");
-
-			networkQuery = Instantiate(networkQuery.gameObject).GetComponent<NetworkObject>();
-			networkQuery.Spawn();
-			Debug.Log("Spawned NetworkQuery");
-
-			for (int i = 0; i < towers.Length; i++)
-			{
-				towers[i] = Instantiate(towers[i].gameObject).GetComponent<NetworkObject>();
-				towers[i].Spawn();
-				Debug.Log($"Spawned tower {i + 1}/{towers.Length}");
-			}
-		}
-
 		if (IsServer)
 		{
-			NetworkQuery.Instance.Register($"Get Canvas Height {OwnerClientId}", _ => model.localScale.y * 4f + 2.1f);
-			Debug.Log($"Registered \"Get Canvas Height\" for player {OwnerClientId} in NetworkQuery");
+			if (IsOwner)
+			{
+				SpawnHelpers();
+
+				for (int i = 0; i < towers.Length; i++)
+				{
+					towers[i] = Instantiate(towers[i].gameObject).GetComponent<NetworkObject>();
+					towers[i].Spawn();
+					Debug.Log($"Spawned tower {i + 1}/{towers.Length}");
+				}
+			}
+
+			registerNetworkQueries();
 		}
 
 		topHealthSlider.name = $"TopSlider{OwnerClientId}";
-		playerName.OnValueChanged += (value, newValue) => UpdatePlayerNameTextRpc();
+		playerName.OnValueChanged += (value, newValue) => UpdatePlayerNameRpc();
 		StartCoroutine(InitGameManager());
 
 		if (!IsOwner)
 			return;
 
+		Destroy(topHealthSlider.gameObject);
+		Destroy(playerNameText.gameObject);
+
 		chatNetworkHelper = GameObject.Find("ChatNetworkHelper(Clone)").GetComponent<NetworkObject>();
 		Chat.Get.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>(), this);
 		Debug.Log("Enabled chat networking");
 
-		LoadSettings();
 		movementController.SetResetCameraPosition();
 		Debug.Log($"Set reset camera position to {movementController.transform.position}");
 
-		sideSelection = FindFirstObjectByType<SideSelection>();
-		if (sideSelection != null)
-		{
-			Debug.Log("Found side selection menu");
-			sideSelection.Set(this);
-		}
-		else
-		{
-			Debug.LogError("Could not find side selection menu");
-		}
+		LoadSettings();
+		InitMenus();
 
-		cardSelection = FindFirstObjectByType<CardSelection>();
-		if (sideSelection != null)
-		{
-			Debug.Log("Found card selection menu");
-			cardSelection.Set(this);
-		}
-		else
-		{
-			Debug.LogError("Could not find card selection menu");
-		}
-
-		settingsMenu = FindFirstObjectByType<SettingsMenu>();
-		if (sideSelection != null)
-		{
-			Debug.Log("Found settings menu");
-			settingsMenu.Set(this);
-		}
-		else
-		{
-			Debug.LogError("Could not find settings menu");
-		}
-
-		Destroy(topHealthSlider.gameObject);
-		Destroy(playerNameText.gameObject);
+		NetworkManager.Singleton.OnConnectionEvent += OnConnectionEvent;
+		Application.targetFrameRate = 120;
 
 		GameObject.Find("LoadingBar").GetComponent<Slider>().value = 1;
 		Destroy(GameObject.Find("LoadingBar"), 0.25f);
-
-		Application.targetFrameRate = 120;
 		Chat.Get.Log($"Player {OwnerClientId} logged in");
 
 		ChooseSide();
+	}
+
+	private void registerNetworkQueries()
+	{
+		NetworkQuery.Instance.Register($"Get Canvas Height {OwnerClientId}", _ => model.localScale.y * 4f + 2.1f);
+		Debug.Log($"Registered \"Get Canvas Height\" for player {OwnerClientId} in NetworkQuery");
+	}
+
+	private void SpawnHelpers()
+	{
+		gameManager = Instantiate(gameManager.gameObject).GetComponent<NetworkObject>();
+		gameManager.Spawn();
+		Debug.Log("Spawned GameManager");
+
+		chatNetworkHelper = Instantiate(chatNetworkHelper.gameObject).GetComponent<NetworkObject>();
+		chatNetworkHelper.Spawn();
+		Debug.Log("Spawned ChatNetworkHelper");
+
+		networkQuery = Instantiate(networkQuery.gameObject).GetComponent<NetworkObject>();
+		networkQuery.Spawn();
+		Debug.Log("Spawned NetworkQuery");
 	}
 
 	private IEnumerator InitGameManager()
@@ -235,6 +266,36 @@ public class Player : NetworkBehaviour
 
 		if (IsOwner)
 			InitAllPlayers();
+	}
+
+	private void InitMenus()
+	{
+		sideSelection = FindFirstObjectByType<SideSelection>();
+		if (sideSelection != null)
+		{
+			Debug.Log("Found side selection menu");
+			sideSelection.Set(this);
+		}
+		else
+			Debug.LogError("Could not find side selection menu");
+
+		cardSelection = FindFirstObjectByType<CardSelection>();
+		if (sideSelection != null)
+		{
+			Debug.Log("Found card selection menu");
+			cardSelection.Set(this);
+		}
+		else
+			Debug.LogError("Could not find card selection menu");
+
+		settingsMenu = FindFirstObjectByType<SettingsMenu>();
+		if (sideSelection != null)
+		{
+			Debug.Log("Found settings menu");
+			settingsMenu.Set(this);
+		}
+		else
+			Debug.LogError("Could not find settings menu");
 	}
 
 	private void InitAllPlayers()
@@ -315,10 +376,11 @@ public class Player : NetworkBehaviour
 	}
 
 	[Rpc(SendTo.Everyone)]
-	private void UpdatePlayerNameTextRpc()
+	private void UpdatePlayerNameRpc()
 	{
-		Debug.Log($"Updating player {OwnerClientId} name text to {playerName.Value}");
+		Debug.Log($"Updating player {OwnerClientId} name to {playerName.Value}");
 		playerNameText.text = playerName.Value.ToString();
+		GameManager.Get.UpdatePlayerNameInDict(OwnerClientId, playerName.Value.ToString());
 	}
 
 	#endregion

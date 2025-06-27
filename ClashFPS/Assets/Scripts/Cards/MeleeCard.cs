@@ -40,7 +40,7 @@ public class MeleeCard : Card
 			{
 				if (col.GetComponent<Player>().GetSide() != playerScript.GetSide())
 				{
-					playerScript.UpdateElixirServerRpc(cardParams.damage * 0.005f);
+					playerScript.UpdateElixirServerRpc(cardParams.damage * Constants.elixirPerDamage);
 					col.GetComponent<Player>().GetCard().DamageServerRpc(OwnerClientId, cardParams.damage);
 				}
 			}

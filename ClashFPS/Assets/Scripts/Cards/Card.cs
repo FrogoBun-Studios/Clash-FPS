@@ -46,7 +46,7 @@ public abstract class Card : NetworkBehaviour
 		if (GetHealth() <= 0)
 			return;
 
-		playerScript.UpdateElixirServerRpc(Time.deltaTime * 0.25f);
+		playerScript.UpdateElixirServerRpc(Time.deltaTime * Constants.elixirPerSecond);
 
 		movementController.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
 		attackTimer -= Time.deltaTime;
@@ -81,7 +81,7 @@ public abstract class Card : NetworkBehaviour
 		playerScript.UpdateHealthSliderRpc(GetHealth());
 		if (GetHealth() <= 0)
 		{
-			if (sourcePlayerID != 999ul)
+			if (sourcePlayerID != Constants.nonPlayerID)
 				GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard()
 					.OnKilledPlayerServerRpc(playerScript.OwnerClientId);
 			OnDeath();
@@ -95,7 +95,7 @@ public abstract class Card : NetworkBehaviour
 	protected void OnKilledPlayerServerRpc(ulong killedPlayerID)
 	{
 		Player killedPlayer = GameManager.Get.GetPlayerByID(killedPlayerID);
-		killedPlayer.UpdateElixirServerRpc(3);
+		killedPlayer.UpdateElixirServerRpc(Constants.elixirPerKill);
 		Chat.Get.KillLog(playerScript.GetPlayerName(), killedPlayer.GetPlayerName(), cardParams.cardName);
 	}
 
@@ -105,7 +105,7 @@ public abstract class Card : NetworkBehaviour
 	public void OnDestroyedTower()
 	{
 		Chat.Get.KillLog(playerScript.GetPlayerName(), "tower", cardParams.cardName);
-		playerScript.UpdateElixirServerRpc(10);
+		playerScript.UpdateElixirServerRpc(Constants.elixirPerTower);
 	}
 
 	/// <summary>
