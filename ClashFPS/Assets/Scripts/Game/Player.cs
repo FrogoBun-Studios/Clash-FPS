@@ -69,6 +69,9 @@ public class Player : NetworkBehaviour
 	[ServerRpc(RequireOwnership = false)]
 	public void UpdateElixirServerRpc(float amount)
 	{
+		if (amount > 0)
+			GameManager.Get.UpdateScore(OwnerClientId, amount);
+
 		if (data.Value.elixir < Constants.maxElixir)
 		{
 			data.Value = GetPlayerData().PlusElixir(amount);
@@ -184,9 +187,13 @@ public class Player : NetworkBehaviour
 	public void LeaveGame()
 	{
 		NetworkManager.Singleton.Shutdown();
+
 		Destroy(NetworkManager.Singleton.gameObject);
+		Destroy(GameManager.Get.gameObject);
+
 		Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
+
 		SceneManager.LoadScene(0);
 	}
 
@@ -217,7 +224,7 @@ public class Player : NetworkBehaviour
 				for (int i = 0; i < towers.Length; i++)
 				{
 					towers[i] = Instantiate(towers[i].gameObject).GetComponent<NetworkObject>();
-					towers[i].Spawn();
+					towers[i].Spawn(true);
 					Debug.Log($"Spawned tower {i + 1}/{towers.Length}");
 				}
 			}
@@ -270,15 +277,15 @@ public class Player : NetworkBehaviour
 	private void SpawnHelpers()
 	{
 		gameManager = Instantiate(gameManager.gameObject).GetComponent<NetworkObject>();
-		gameManager.Spawn();
+		gameManager.Spawn(true);
 		Debug.Log("Spawned GameManager");
 
 		chatNetworkHelper = Instantiate(chatNetworkHelper.gameObject).GetComponent<NetworkObject>();
-		chatNetworkHelper.Spawn();
+		chatNetworkHelper.Spawn(true);
 		Debug.Log("Spawned ChatNetworkHelper");
 
 		networkQuery = Instantiate(networkQuery.gameObject).GetComponent<NetworkObject>();
-		networkQuery.Spawn();
+		networkQuery.Spawn(true);
 		Debug.Log("Spawned NetworkQuery");
 	}
 

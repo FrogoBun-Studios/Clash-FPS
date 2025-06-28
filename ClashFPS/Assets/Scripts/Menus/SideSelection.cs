@@ -22,8 +22,10 @@ public class SideSelection : MonoBehaviour
 
 		showen = true;
 
-		blueCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.GetBluePlayersCount()}/4";
-		redCount.GetComponent<TextMeshProUGUI>().text = $"{GameManager.Get.GetRedPlayersCount()}/4";
+		blueCount.GetComponent<TextMeshProUGUI>().text =
+			$"{GameManager.Get.GetBluePlayersCount()}/{Constants.maxPlayers / 2}";
+		redCount.GetComponent<TextMeshProUGUI>().text =
+			$"{GameManager.Get.GetRedPlayersCount()}/{Constants.maxPlayers / 2}";
 
 		canvasGroup.interactable = false;
 		canvasGroup.blocksRaycasts = false;
@@ -70,6 +72,19 @@ public class SideSelection : MonoBehaviour
 	public void Set(Player playerScript)
 	{
 		this.playerScript = playerScript;
+	}
+
+	private void Update()
+	{
+		if (IsShowen())
+		{
+			blueCount.GetComponent<TextMeshProUGUI>().text =
+				$"{GameManager.Get.GetBluePlayersCount()}/{Constants.maxPlayers / 2}";
+			redCount.GetComponent<TextMeshProUGUI>().text =
+				$"{GameManager.Get.GetRedPlayersCount()}/{Constants.maxPlayers / 2}";
+			blueSide.interactable = GameManager.Get.GetBluePlayersCount() < Constants.maxPlayers;
+			redSide.interactable = GameManager.Get.GetRedPlayersCount() < Constants.maxPlayers;
+		}
 	}
 
 	public void BlueSide()

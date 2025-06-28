@@ -30,7 +30,6 @@ public class RelayManager : MonoBehaviour
 
 		DontDestroyOnLoad(this);
 
-		Debug.Log($"{GetInstanceID()}, {ready}");
 		if (!IsReady())
 		{
 			await UnityServices.InitializeAsync();
@@ -50,7 +49,7 @@ public class RelayManager : MonoBehaviour
 	{
 		try
 		{
-			Allocation allocation = await RelayService.Instance.CreateAllocationAsync(7); //for 8 players
+			Allocation allocation = await RelayService.Instance.CreateAllocationAsync(Constants.maxPlayers - 1);
 			string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 			Chat.Get.Log($"Creating relay with code {joinCode.ToUpper()}");
 			GUIUtility.systemCopyBuffer = joinCode.ToUpper();

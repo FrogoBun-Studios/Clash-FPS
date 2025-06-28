@@ -282,7 +282,6 @@ MonoBehaviour:
   hostBtn: {fileID: 1426989964}
   joinBtn: {fileID: 1851309996}
   joinField: {fileID: 871400328}
-  relayManager: {fileID: 118080046}
 --- !u!1 &332852294
 GameObject:
   m_ObjectHideFlags: 0
