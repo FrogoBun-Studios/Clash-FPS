@@ -75,7 +75,7 @@ public class Chat : MonoBehaviour
 	{
 		Show();
 		if (chatNetworkHelper is not null)
-			AddMessage($"[{playerScript.GetPlayerName()}'s System]: {string.Join(' ', message)}");
+			AddMessage($"[{playerScript.GetPlayerData().name}'s System]: {string.Join(' ', message)}");
 		else
 			AddMessage($"[System]: {string.Join(' ', message)}");
 	}
@@ -83,7 +83,7 @@ public class Chat : MonoBehaviour
 	public void PlayerWrite(string message)
 	{
 		Show();
-		AddMessage($"[{playerScript.GetPlayerName()}]: {message}");
+		AddMessage($"[{playerScript.GetPlayerData().name}]: {message}");
 	}
 
 	public void KillLog(string killer, string killed, string killerCard)

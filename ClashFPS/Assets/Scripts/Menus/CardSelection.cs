@@ -31,9 +31,9 @@ public class CardSelection : MonoBehaviour
 		showen = true;
 
 		elixirText.GetChild(0).GetComponent<TextMeshProUGUI>().text =
-			Mathf.FloorToInt(playerScript.GetElixir()).ToString();
+			Mathf.FloorToInt(playerScript.GetPlayerData().elixir).ToString();
 		elixirText.GetChild(1).GetComponent<TextMeshProUGUI>().text =
-			Mathf.FloorToInt(playerScript.GetElixir()).ToString();
+			Mathf.FloorToInt(playerScript.GetPlayerData().elixir).ToString();
 
 		PutCards();
 
@@ -62,9 +62,9 @@ public class CardSelection : MonoBehaviour
 		canvasGroup.interactable = true;
 		canvasGroup.blocksRaycasts = true;
 
-		leftCardButton.interactable = Cards.CardParams[leftCardName].elixir <= playerScript.GetElixir();
-		middleCardButton.interactable = Cards.CardParams[middleCardName].elixir <= playerScript.GetElixir();
-		rightCardButton.interactable = Cards.CardParams[rightCardName].elixir <= playerScript.GetElixir();
+		leftCardButton.interactable = Cards.CardParams[leftCardName].elixir <= playerScript.GetPlayerData().elixir;
+		middleCardButton.interactable = Cards.CardParams[middleCardName].elixir <= playerScript.GetPlayerData().elixir;
+		rightCardButton.interactable = Cards.CardParams[rightCardName].elixir <= playerScript.GetPlayerData().elixir;
 	}
 
 	public IEnumerator Hide()

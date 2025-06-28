@@ -45,7 +45,7 @@ public class ShooterCard : Card
 				GetParamsAsShooter().bulletSpeed,
 				GetParamsAsShooter().damage,
 				GetParamsAsShooter().bulletPiercing,
-				playerScript.GetSide(),
+				playerScript.GetPlayerData().side,
 				bulletDir,
 				amount => playerScript.UpdateElixirServerRpc(amount), playerScript
 			);

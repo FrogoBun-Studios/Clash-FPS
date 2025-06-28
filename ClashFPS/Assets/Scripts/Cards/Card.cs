@@ -96,7 +96,8 @@ public abstract class Card : NetworkBehaviour
 	{
 		Player killedPlayer = GameManager.Get.GetPlayerByID(killedPlayerID);
 		killedPlayer.UpdateElixirServerRpc(Constants.elixirPerKill);
-		Chat.Get.KillLog(playerScript.GetPlayerName(), killedPlayer.GetPlayerName(), cardParams.cardName);
+		Chat.Get.KillLog(playerScript.GetPlayerData().name.ToString(), killedPlayer.GetPlayerData().name.ToString(),
+			cardParams.cardName);
 	}
 
 	/// <summary>
@@ -104,7 +105,7 @@ public abstract class Card : NetworkBehaviour
 	/// </summary>
 	public void OnDestroyedTower()
 	{
-		Chat.Get.KillLog(playerScript.GetPlayerName(), "tower", cardParams.cardName);
+		Chat.Get.KillLog(playerScript.GetPlayerData().name.ToString(), "tower", cardParams.cardName);
 		playerScript.UpdateElixirServerRpc(Constants.elixirPerTower);
 	}
 

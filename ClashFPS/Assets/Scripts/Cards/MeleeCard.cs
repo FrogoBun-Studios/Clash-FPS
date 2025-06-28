@@ -38,7 +38,7 @@ public class MeleeCard : Card
 		{
 			if (col.CompareTag("Player"))
 			{
-				if (col.GetComponent<Player>().GetSide() != playerScript.GetSide())
+				if (col.GetComponent<Player>().GetPlayerData().side != playerScript.GetPlayerData().side)
 				{
 					playerScript.UpdateElixirServerRpc(cardParams.damage * Constants.elixirPerDamage);
 					col.GetComponent<Player>().GetCard().DamageServerRpc(OwnerClientId, cardParams.damage);
@@ -46,7 +46,7 @@ public class MeleeCard : Card
 			}
 
 			if (col.gameObject.CompareTag("Tower"))
-				if (col.gameObject.GetComponent<Tower>().GetSide() != playerScript.GetSide())
+				if (col.gameObject.GetComponent<Tower>().GetSide() != playerScript.GetPlayerData().side)
 					col.gameObject.GetComponent<Tower>().DamageServerRpc(OwnerClientId, cardParams.damage);
 
 			// if (col.CompareTag("Tower"))

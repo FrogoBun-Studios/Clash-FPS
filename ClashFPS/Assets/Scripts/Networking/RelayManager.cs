@@ -13,16 +13,40 @@ using UnityEngine;
 
 public class RelayManager : MonoBehaviour
 {
-	public async Task StartManager()
+	private bool ready;
+	private static RelayManager instance;
+
+	private async void Start()
 	{
-		await UnityServices.InitializeAsync();
+		if (instance == null)
+		{
+			instance = this;
+		}
+		else if (instance != this)
+		{
+			Destroy(gameObject);
+			return;
+		}
 
-		AuthenticationService.Instance.SignedIn += () => { };
+		DontDestroyOnLoad(this);
 
-		await AuthenticationService.Instance.SignInAnonymouslyAsync();
+		Debug.Log($"{GetInstanceID()}, {ready}");
+		if (!IsReady())
+		{
+			await UnityServices.InitializeAsync();
+			AuthenticationService.Instance.SignedIn += () => { Debug.Log("Signed In"); };
+			await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+			ready = true;
+		}
 	}
 
-	public async void CreateRelay()
+	public bool IsReady()
+	{
+		return ready;
+	}
+
+	public async Task CreateRelay()
 	{
 		try
 		{
@@ -42,7 +66,7 @@ public class RelayManager : MonoBehaviour
 		}
 	}
 
-	public async void JoinRelay(string joinCode)
+	public async Task JoinRelay(string joinCode)
 	{
 		try
 		{

@@ -11,7 +11,7 @@ public class GameManager : NetworkBehaviour
 	private readonly NetworkVariable<int> redPlayersCount = new();
 	private readonly Dictionary<ulong, Player> playerIDToPlayer = new();
 	private readonly List<Player> players = new();
-	private readonly Dictionary<ulong, string> playerIDToName = new();
+	private readonly Dictionary<ulong, PlayerData> playerIDToData = new();
 
 	public static GameManager Get { get; private set; }
 
@@ -42,13 +42,13 @@ public class GameManager : NetworkBehaviour
 		return bluePlayersCount.Value;
 	}
 
-	public void Init()
+	public void Refresh()
 	{
-		Debug.Log("Game manager init");
+		Debug.Log("Game manager refresh");
 
 		playerIDToPlayer.Clear();
 		players.Clear();
-		playerIDToName.Clear();
+		playerIDToData.Clear();
 		Debug.Log("Cleared game manager lists");
 
 		foreach (GameObject playerGo in GameObject.FindGameObjectsWithTag("Player"))
@@ -56,12 +56,12 @@ public class GameManager : NetworkBehaviour
 			Player player = playerGo.GetComponent<Player>();
 			players.Add(player);
 			playerIDToPlayer.Add(player.OwnerClientId, player);
-			playerIDToName.Add(player.OwnerClientId, player.GetPlayerName());
+			playerIDToData.Add(player.OwnerClientId, player.GetPlayerData());
 
 			Debug.Log($"Found player {player.OwnerClientId}, added to game manager lists...");
 		}
 
-		Debug.Log("Game manager init completed");
+		Debug.Log("Game manager refresh completed");
 	}
 
 	public Player GetPlayerByID(ulong playerID)
@@ -74,13 +74,13 @@ public class GameManager : NetworkBehaviour
 		return players;
 	}
 
-	public string GetPlayerNameByID(ulong playerID)
+	public PlayerData GetPlayerDataByID(ulong playerID)
 	{
-		return playerIDToName[playerID];
+		return playerIDToData[playerID];
 	}
 
-	public void UpdatePlayerNameInDict(ulong playerID, string name)
+	public void UpdatePlayerData(ulong playerID, PlayerData data)
 	{
-		playerIDToName[playerID] = name;
+		playerIDToData[playerID] = data;
 	}
 }

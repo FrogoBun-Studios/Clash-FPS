@@ -3,10 +3,10 @@ using System.Collections;
 using TMPro;
 
 using Unity.Cinemachine;
-using Unity.Collections;
 using Unity.Netcode;
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
@@ -21,12 +21,8 @@ public class Player : NetworkBehaviour
 	[SerializeField] private MovementController movementController;
 	[SerializeField] private NetworkObject[] towers;
 
-	private readonly NetworkVariable<Side> side = new();
+	private readonly NetworkVariable<PlayerData> data = new(new PlayerData(Side.Blue, "", 5));
 	private Card card;
-
-	private readonly NetworkVariable<FixedString32Bytes> playerName = new();
-
-	private readonly NetworkVariable<float> elixir = new(5);
 
 	private SideSelection sideSelection;
 	private CardSelection cardSelection;
@@ -73,20 +69,17 @@ public class Player : NetworkBehaviour
 	[ServerRpc(RequireOwnership = false)]
 	public void UpdateElixirServerRpc(float amount)
 	{
-		if (elixir.Value < Constants.maxElixir)
+		if (data.Value.elixir < Constants.maxElixir)
 		{
-			elixir.Value += amount;
+			data.Value = GetPlayerData().PlusElixir(amount);
 			if (amount >= 0.5)
-				Debug.Log($"Increased elixir of player {OwnerClientId} by {amount} to {elixir.Value}");
+				Debug.Log($"Increased elixir of player {OwnerClientId} by {amount} to {data.Value.elixir}");
 		}
 	}
 
-	/// <returns>
-	///     Returns the elixir this player has, works on EVERYONE
-	/// </returns>
-	public float GetElixir()
+	public PlayerData GetPlayerData()
 	{
-		return elixir.Value;
+		return data.Value;
 	}
 
 	/// <returns>
@@ -144,19 +137,25 @@ public class Player : NetworkBehaviour
 		{
 			if (IsServer)
 			{
-				Chat.Get.Log($"{GameManager.Get.GetPlayerNameByID(eventData.ClientId)} has disconnected");
+				PlayerData data = GameManager.Get.GetPlayerDataByID(eventData.ClientId);
+				Chat.Get.Log($"{data.name} has disconnected");
+
+				if (data.side == Side.Blue)
+					GameManager.Get.UpdateBluePlayersCountRpc(-1);
+				else
+					GameManager.Get.UpdateRedPlayersCountRpc(-1);
 
 				NetworkObject card = null;
 				NetworkObject model = null;
 				foreach (GameObject cardGo in GameObject.FindGameObjectsWithTag("Card"))
-					if (cardGo.GetComponent<NetworkObject>().OwnerClientId == eventData.ClientId)
+					if (cardGo.name == "Card" + eventData.ClientId)
 					{
 						card = cardGo.GetComponent<NetworkObject>();
 						break;
 					}
 
 				foreach (GameObject modelGo in GameObject.FindGameObjectsWithTag("Model"))
-					if (modelGo.GetComponent<NetworkObject>().OwnerClientId == eventData.ClientId)
+					if (modelGo.name == "Model" + eventData.ClientId)
 					{
 						model = modelGo.GetComponent<NetworkObject>();
 						break;
@@ -175,9 +174,28 @@ public class Player : NetworkBehaviour
 				}
 			}
 
-			Debug.Log("Refreshing game manager after player disconnection");
-			GameManager.Get.Init();
+			StartCoroutine(RefreshGameManagerAfterPlayerDisconnection(GameManager.Get.GetPlayers().Count - 1));
 		}
+		else if (eventData.EventType == ConnectionEvent.ClientDisconnected &&
+		         eventData.ClientId == NetworkManager.Singleton.LocalClientId)
+			LeaveGame();
+	}
+
+	public void LeaveGame()
+	{
+		NetworkManager.Singleton.Shutdown();
+		Destroy(NetworkManager.Singleton.gameObject);
+		Cursor.lockState = CursorLockMode.None;
+		Cursor.visible = true;
+		SceneManager.LoadScene(0);
+	}
+
+	private IEnumerator RefreshGameManagerAfterPlayerDisconnection(int expectedPlayerCount)
+	{
+		yield return new WaitUntil(() => GameObject.FindGameObjectsWithTag("Player").Length <= expectedPlayerCount);
+
+		Debug.Log("Refreshing game manager after player disconnection");
+		GameManager.Get.Refresh();
 	}
 
 	public override void OnNetworkDespawn()
@@ -207,8 +225,14 @@ public class Player : NetworkBehaviour
 			registerNetworkQueries();
 		}
 
+		data.OnValueChanged += (value, newValue) =>
+		{
+			GameManager.Get.UpdatePlayerData(OwnerClientId, newValue);
+			if (newValue.name != value.name)
+				UpdatePlayerName();
+		};
+
 		topHealthSlider.name = $"TopSlider{OwnerClientId}";
-		playerName.OnValueChanged += (value, newValue) => UpdatePlayerNameRpc();
 		StartCoroutine(InitGameManager());
 
 		if (!IsOwner)
@@ -262,7 +286,7 @@ public class Player : NetworkBehaviour
 	{
 		Debug.Log("Waiting for game manager to spawn");
 		yield return new WaitUntil(() => GameManager.Get != null);
-		GameManager.Get.Init();
+		GameManager.Get.Refresh();
 
 		if (IsOwner)
 			InitAllPlayers();
@@ -305,8 +329,8 @@ public class Player : NetworkBehaviour
 		// Setting players' names on new player's pc
 		foreach (Player player in GameManager.Get.GetPlayers())
 		{
-			player.playerNameText.text = player.playerName.Value.ToString();
-			Debug.Log($"Set name for player {player.OwnerClientId}: {player.playerName.Value}");
+			player.playerNameText.text = player.data.Value.name.ToString();
+			Debug.Log($"Set name for player {player.OwnerClientId}: {player.data.Value.name}");
 		}
 
 		// Setting other players' cards on new player's pc
@@ -360,27 +384,18 @@ public class Player : NetworkBehaviour
 
 	#region Name
 
-	/// <returns>
-	///     Returns the name of the player on EVERYONE.
-	/// </returns>
-	public string GetPlayerName()
-	{
-		return playerName.Value.ToString();
-	}
-
 	[ServerRpc(RequireOwnership = false)]
 	private void SetPlayerNameServerRpc(string name)
 	{
 		Debug.Log($"Setting name of player {OwnerClientId} to {name}");
-		playerName.Value = name;
+		data.Value = GetPlayerData().WithName(name);
 	}
 
-	[Rpc(SendTo.Everyone)]
-	private void UpdatePlayerNameRpc()
+	// [Rpc(SendTo.Everyone)]
+	private void UpdatePlayerName()
 	{
-		Debug.Log($"Updating player {OwnerClientId} name to {playerName.Value}");
-		playerNameText.text = playerName.Value.ToString();
-		GameManager.Get.UpdatePlayerNameInDict(OwnerClientId, playerName.Value.ToString());
+		Debug.Log($"Updating player {OwnerClientId} name to {data.Value.name}");
+		playerNameText.text = data.Value.name.ToString();
 	}
 
 	#endregion
@@ -454,21 +469,13 @@ public class Player : NetworkBehaviour
 		RespawnRpc(false);
 	}
 
-	/// <returns>
-	///     Returns the side (blue/red) of this player. Works on EVERYONE.
-	/// </returns>
-	public Side GetSide()
-	{
-		return side.Value;
-	}
-
 	/// <summary>
 	///     Updates side of player on SERVER.
 	/// </summary>
 	[ServerRpc(RequireOwnership = false)]
 	private void UpdateSideServerRpc(Side side)
 	{
-		this.side.Value = side;
+		data.Value = GetPlayerData().WithSide(side);
 		Debug.Log($"Updated side of player {OwnerClientId} to {side}");
 	}
 
@@ -520,8 +527,8 @@ public class Player : NetworkBehaviour
 			Debug.Log($"Player {OwnerClientId} card despawned");
 		}
 
-		movementController.TeleportRpc(new Vector3(0, 2, side.Value == Side.Blue ? -34 : 34),
-			Quaternion.Euler(0, side.Value == Side.Blue ? 0 : 180, 0));
+		movementController.TeleportRpc(new Vector3(0, 2, data.Value.side == Side.Blue ? -34 : 34),
+			Quaternion.Euler(0, data.Value.side == Side.Blue ? 0 : 180, 0));
 
 		GameObject cardGo = Instantiate(Cards.CardPrefabs[cardName]);
 		cardGo.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
@@ -529,6 +536,7 @@ public class Player : NetworkBehaviour
 
 		model = Instantiate(Cards.CardParams[cardName].modelPrefab).transform;
 		model.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
+		model.gameObject.name = $"Model{OwnerClientId}";
 		Debug.Log($"Spawned a new model for player {OwnerClientId}: {model.name}");
 
 		SetCardRpc();

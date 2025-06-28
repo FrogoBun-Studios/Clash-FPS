@@ -36,7 +36,7 @@ public class Bullet : NetworkBehaviour
 		foreach (Collider col in cols)
 		{
 			if (col.gameObject.CompareTag("Player"))
-				if (col.gameObject.GetComponent<Player>().GetSide() != side)
+				if (col.gameObject.GetComponent<Player>().GetPlayerData().side != side)
 				{
 					earnElixir(damage * Constants.elixirPerDamage);
 					col.gameObject.GetComponent<Player>().GetCard().DamageServerRpc(OwnerClientId, damage);
