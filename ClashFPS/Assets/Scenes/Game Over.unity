@@ -1021,6 +1021,7 @@ MonoBehaviour:
   playerNamesGroup: {fileID: 711307727}
   playerScoreTemplate: {fileID: 1186002426}
   playerScoresGroup: {fileID: 864945359}
+  playAgainButton: {fileID: 1200212388}
 --- !u!1 &1186002424
 GameObject:
   m_ObjectHideFlags: 0

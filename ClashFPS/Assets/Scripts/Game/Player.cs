@@ -144,9 +144,9 @@ public class Player : NetworkBehaviour
 				Chat.Get.Log($"{data.name} has disconnected");
 
 				if (data.side == Side.Blue)
-					GameManager.Get.UpdateBluePlayersCountRpc(-1);
+					GameManager.Get.UpdateBluePlayersCountServerRpc(-1);
 				else
-					GameManager.Get.UpdateRedPlayersCountRpc(-1);
+					GameManager.Get.UpdateRedPlayersCountServerRpc(-1);
 
 				NetworkObject card = null;
 				NetworkObject model = null;
@@ -223,9 +223,12 @@ public class Player : NetworkBehaviour
 
 				for (int i = 0; i < towers.Length; i++)
 				{
-					towers[i] = Instantiate(towers[i].gameObject).GetComponent<NetworkObject>();
-					towers[i].Spawn(true);
-					Debug.Log($"Spawned tower {i + 1}/{towers.Length}");
+					if (!towers[i].IsSpawned)
+					{
+						towers[i] = Instantiate(towers[i].gameObject).GetComponent<NetworkObject>();
+						towers[i].Spawn();
+						Debug.Log($"Spawned tower {i + 1}/{towers.Length}");
+					}
 				}
 			}
 
@@ -239,14 +242,17 @@ public class Player : NetworkBehaviour
 				UpdatePlayerName();
 		};
 
-		topHealthSlider.name = $"TopSlider{OwnerClientId}";
+		if (topHealthSlider != null)
+			topHealthSlider.name = $"TopSlider{OwnerClientId}";
 		StartCoroutine(InitGameManager());
 
 		if (!IsOwner)
 			return;
 
-		Destroy(topHealthSlider.gameObject);
-		Destroy(playerNameText.gameObject);
+		if (topHealthSlider != null)
+			Destroy(topHealthSlider.gameObject);
+		if (playerNameText != null)
+			Destroy(playerNameText.gameObject);
 
 		chatNetworkHelper = GameObject.Find("ChatNetworkHelper(Clone)").GetComponent<NetworkObject>();
 		Chat.Get.EnableChatNetworking(chatNetworkHelper.GetComponent<ChatNetworkHelper>(), this);
@@ -276,17 +282,26 @@ public class Player : NetworkBehaviour
 
 	private void SpawnHelpers()
 	{
-		gameManager = Instantiate(gameManager.gameObject).GetComponent<NetworkObject>();
-		gameManager.Spawn(true);
-		Debug.Log("Spawned GameManager");
+		if (GameManager.Get == null)
+		{
+			gameManager = Instantiate(gameManager.gameObject).GetComponent<NetworkObject>();
+			gameManager.Spawn();
+			Debug.Log("Spawned GameManager");
+		}
 
-		chatNetworkHelper = Instantiate(chatNetworkHelper.gameObject).GetComponent<NetworkObject>();
-		chatNetworkHelper.Spawn(true);
-		Debug.Log("Spawned ChatNetworkHelper");
+		if (!chatNetworkHelper.IsSpawned)
+		{
+			chatNetworkHelper = Instantiate(chatNetworkHelper.gameObject).GetComponent<NetworkObject>();
+			chatNetworkHelper.Spawn();
+			Debug.Log("Spawned ChatNetworkHelper");
+		}
 
-		networkQuery = Instantiate(networkQuery.gameObject).GetComponent<NetworkObject>();
-		networkQuery.Spawn(true);
-		Debug.Log("Spawned NetworkQuery");
+		if (!networkQuery.IsSpawned)
+		{
+			networkQuery = Instantiate(networkQuery.gameObject).GetComponent<NetworkObject>();
+			networkQuery.Spawn();
+			Debug.Log("Spawned NetworkQuery");
+		}
 	}
 
 	private IEnumerator InitGameManager()

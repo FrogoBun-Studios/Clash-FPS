@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using TMPro;
+
 using Unity.Collections;
 using Unity.Netcode;
 
@@ -15,8 +17,9 @@ public class GameManager : NetworkBehaviour
 	private readonly Dictionary<ulong, Player> playerIDToPlayer = new();
 	private readonly List<Player> players = new();
 	private readonly Dictionary<ulong, PlayerData> playerIDToData = new();
-	private float gameTime;
+	private readonly NetworkVariable<float> gameTime = new();
 	private readonly Dictionary<ulong, float> scores = new();
+	private TextMeshProUGUI timerText;
 
 	public static GameManager Get { get; private set; }
 
@@ -24,29 +27,49 @@ public class GameManager : NetworkBehaviour
 	{
 		Get = this;
 		DontDestroyOnLoad(gameObject);
+		timerText = GameObject.Find("GameTime").GetComponent<TextMeshProUGUI>();
 	}
 
 	private void Update()
 	{
-		if (!IsServer)
-			return;
-
-		gameTime += Time.deltaTime;
-		if (gameTime >= Constants.gameLength)
+		if (IsServer)
 		{
-			List<FixedString32Bytes> names = new();
-			List<float> scores = new();
-
-			foreach (ulong playerID in this.scores.Keys)
+			gameTime.Value += Time.deltaTime;
+			if (gameTime.Value >= Constants.gameLength)
 			{
-				names.Add(playerIDToData[playerID].name);
-				scores.Add(this.scores[playerID]);
-			}
+				List<FixedString32Bytes> names = new();
+				List<float> scores = new();
 
-			SetOnEndGameSceneLoadedRpc(names.ToArray(), scores.ToArray());
-			NetworkManager.Singleton.SceneManager.LoadScene("Game Over", LoadSceneMode.Single);
-			gameTime = Mathf.NegativeInfinity;
+				foreach (ulong playerID in this.scores.Keys)
+				{
+					names.Add(playerIDToData[playerID].name);
+					scores.Add(this.scores[playerID]);
+				}
+
+				SetOnEndGameSceneLoadedRpc(names.ToArray(), scores.ToArray());
+				NetworkManager.Singleton.SceneManager.LoadScene("Game Over", LoadSceneMode.Single);
+				gameTime.Value = Mathf.NegativeInfinity;
+			}
 		}
+
+		float time = Constants.gameLength - gameTime.Value;
+		if (time >= 0)
+		{
+			int minutes = (int)(time / 60);
+			int secs = (int)(time % 60f);
+
+			string minutesStr = minutes.ToString("00");
+			string secsStr = secs.ToString("00");
+
+			timerText.text = $"{minutesStr}:{secsStr}";
+		}
+		else
+		{
+			timerText.text = "00:00";
+		}
+
+		if (time <= Constants.gameTimeRedThreshold)
+			timerText.color = Color.red;
 	}
 
 	[Rpc(SendTo.Everyone)]
@@ -66,14 +89,36 @@ public class GameManager : NetworkBehaviour
 		};
 	}
 
-	[Rpc(SendTo.Server)]
-	public void UpdateBluePlayersCountRpc(int amount)
+	private int playAgainCounter;
+
+	[ServerRpc(RequireOwnership = false)]
+	public void PlayAgainServerRpc()
+	{
+		playAgainCounter++;
+
+		if (playAgainCounter == players.Count)
+		{
+			NetworkManager.Singleton.SceneManager.LoadScene("Game", LoadSceneMode.Single);
+
+			foreach (Player player in players)
+			{
+				ulong id = player.OwnerClientId;
+				player.GetComponent<NetworkObject>().Despawn();
+				player.GetComponent<NetworkObject>().SpawnAsPlayerObject(id);
+			}
+
+			playAgainCounter = 0;
+		}
+	}
+
+	[ServerRpc(RequireOwnership = false)]
+	public void UpdateBluePlayersCountServerRpc(int amount)
 	{
 		bluePlayersCount.Value += amount;
 	}
 
-	[Rpc(SendTo.Server)]
-	public void UpdateRedPlayersCountRpc(int amount)
+	[ServerRpc(RequireOwnership = false)]
+	public void UpdateRedPlayersCountServerRpc(int amount)
 	{
 		redPlayersCount.Value += amount;
 	}

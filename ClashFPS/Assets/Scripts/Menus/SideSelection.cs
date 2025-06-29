@@ -90,14 +90,14 @@ public class SideSelection : MonoBehaviour
 	public void BlueSide()
 	{
 		playerScript.SetSide(Side.Blue);
-		GameManager.Get.UpdateBluePlayersCountRpc(1);
+		GameManager.Get.UpdateBluePlayersCountServerRpc(1);
 		StartCoroutine(Hide());
 	}
 
 	public void RedSide()
 	{
 		playerScript.SetSide(Side.Red);
-		GameManager.Get.UpdateRedPlayersCountRpc(1);
+		GameManager.Get.UpdateRedPlayersCountServerRpc(1);
 		StartCoroutine(Hide());
 	}
 }

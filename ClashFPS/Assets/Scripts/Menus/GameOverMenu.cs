@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class GameOverMenu : MonoBehaviour
@@ -11,6 +12,7 @@ public class GameOverMenu : MonoBehaviour
 	[SerializeField] private Transform playerNamesGroup;
 	[SerializeField] private TextMeshProUGUI playerScoreTemplate;
 	[SerializeField] private Transform playerScoresGroup;
+	[SerializeField] private Button playAgainButton;
 
 	public void ShowScores(Dictionary<string, float> scores)
 	{
@@ -36,6 +38,8 @@ public class GameOverMenu : MonoBehaviour
 
 	public void PlayAgain()
 	{
+		GameManager.Get.PlayAgainServerRpc();
+		playAgainButton.interactable = false;
 	}
 
 	public void Leave()
