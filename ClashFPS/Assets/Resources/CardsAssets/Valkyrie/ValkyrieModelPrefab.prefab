@@ -50,7 +50,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 105828854fbd860459425195f392caac, type: 3}
       propertyPath: m_Name
-      value: ModelPrefab
+      value: ValkyrieModelPrefab
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 105828854fbd860459425195f392caac, type: 3}
       propertyPath: m_TagString
@@ -92,10 +92,10 @@ PrefabInstance:
       addedObject: {fileID: 1993910812539068294}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 105828854fbd860459425195f392caac, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8554158522129099470}
+      addedObject: {fileID: 4138944984730711113}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 105828854fbd860459425195f392caac, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3606579398201761489}
+      addedObject: {fileID: -6439185001984767407}
   m_SourcePrefab: {fileID: 100100000, guid: 105828854fbd860459425195f392caac, type: 3}
 --- !u!95 &2444067054991288841 stripped
 Animator:
@@ -124,8 +124,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3767076517
+  GlobalObjectIdHash: 1757873066
   InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -133,7 +135,9 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &8554158522129099470
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &4138944984730711113
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -142,9 +146,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 8953418230797445833}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df2868252ab5c4d1da357e8f11f1b524, type: 3}
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkTransformExpanded: 0
+  AutoOwnerAuthorityTickOffset: 1
+  PositionInterpolationType: 0
+  RotationInterpolationType: 0
+  ScaleInterpolationType: 0
+  PositionLerpSmoothing: 1
+  PositionMaxInterpolationTime: 0.1
+  RotationLerpSmoothing: 1
+  RotationMaxInterpolationTime: 0.1
+  ScaleLerpSmoothing: 1
+  ScaleMaxInterpolationTime: 0.1
+  AuthorityMode: 1
+  TickSyncChildren: 0
   UseUnreliableDeltas: 0
   SyncPositionX: 1
   SyncPositionY: 1
@@ -162,9 +180,10 @@ MonoBehaviour:
   UseQuaternionCompression: 0
   UseHalfFloatPrecision: 0
   InLocalSpace: 0
+  SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &3606579398201761489
+--- !u!114 &-6439185001984767407
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -173,9 +192,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8953418230797445833}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad8deae8091111f4eb30a56c1f4e0d3e, type: 3}
+  m_Script: {fileID: 11500000, guid: e8d0727d5ae3244e3b569694d3912374, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ShowTopMostFoldoutHeaderGroup: 1
   TransitionStateInfoList:
   - IsCrossFadeExit: 0
     Layer: 0
