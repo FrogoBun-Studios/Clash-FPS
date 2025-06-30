@@ -15,6 +15,7 @@ public class CardParams : ScriptableObject
 	public float colliderRadius;
 	public float colliderHeight;
 	public float colliderYOffset;
+	public Vector3 customCameraOffset;
 	public GameObject modelPrefab;
 	public Texture cardImage;
 }

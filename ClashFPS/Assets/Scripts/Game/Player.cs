@@ -29,6 +29,7 @@ public class Player : NetworkBehaviour
 	private SettingsMenu settingsMenu;
 
 	private bool spawned;
+	private readonly bool enableCardControl = true;
 	public PlayerSettings playerSettings;
 	private Transform model;
 	private Slider currentHealthSlider;
@@ -46,9 +47,9 @@ public class Player : NetworkBehaviour
 				StartCoroutine(settingsMenu.Show());
 		}
 
-		movementController.Enable(spawned && !settingsMenu.IsShowen());
+		movementController.Enable(spawned && !settingsMenu.IsShowen() && enableCardControl);
 		if (card != null && spawned)
-			card.UpdateCard(settingsMenu.IsShowen());
+			card.UpdateCard(!settingsMenu.IsShowen() && enableCardControl);
 	}
 
 	/// <summary>
@@ -209,6 +210,11 @@ public class Player : NetworkBehaviour
 	{
 		if (IsOwner)
 			NetworkManager.Singleton.OnConnectionEvent -= OnConnectionEvent;
+	}
+
+	public Transform GetModel()
+	{
+		return model;
 	}
 
 	#region Init
@@ -390,7 +396,7 @@ public class Player : NetworkBehaviour
 						player.currentHealthSlider.transform.parent.localPosition = new Vector3(0, height, 0);
 					});
 
-				player.currentHealthSlider.maxValue = Cards.CardParams[player.card.GetCardName()].health;
+				player.currentHealthSlider.maxValue = player.card.GetParams().health;
 				Debug.Log(
 					$"Set health slider max value of player {player.OwnerClientId} to {player.currentHealthSlider.maxValue}");
 				player.currentHealthSlider.value = player.card.GetHealth();
@@ -567,7 +573,8 @@ public class Player : NetworkBehaviour
 	[Rpc(SendTo.Owner)]
 	private void SetCameraOnCardCreationRpc()
 	{
-		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = movementController.GetCameraTransform();
+		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow =
+			movementController.GetCameraFollowTransform();
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
 	}
@@ -614,7 +621,7 @@ public class Player : NetworkBehaviour
 
 	private void SetModel()
 	{
-		movementController.SetModel();
+		movementController.SetModel(card.GetParams().customCameraOffset);
 		Debug.Log("Set model");
 		movementController.EnableColliderRpc(true);
 
@@ -636,7 +643,7 @@ public class Player : NetworkBehaviour
 			//Setting health slider of the player the just chose a card on his pc
 			currentHealthSlider = GameObject.Find("HealthSliderUI").GetComponent<Slider>();
 			Debug.Log("Set my health slider to be the UI one");
-			currentHealthSlider.maxValue = Cards.CardParams[card.GetCardName()].health;
+			currentHealthSlider.maxValue = card.GetParams().health;
 			Debug.Log($"Set my health slider max value: {currentHealthSlider.maxValue}");
 		}
 		else
@@ -651,7 +658,7 @@ public class Player : NetworkBehaviour
 				Debug.Log($"Set the canvas height of player {OwnerClientId} to {height}");
 			});
 
-			currentHealthSlider.maxValue = Cards.CardParams[card.GetCardName()].health;
+			currentHealthSlider.maxValue = card.GetParams().health;
 			Debug.Log($"Set health slider max value of player {OwnerClientId}: {currentHealthSlider.maxValue}");
 		}
 

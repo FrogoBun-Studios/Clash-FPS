@@ -170,8 +170,8 @@ public class CardCreator : EditorWindow
 		cardPrefab.AddComponent<NetworkObject>();
 		cardPrefab.tag = "Card";
 
-		this.cardPrefab = PrefabUtility.SaveAsPrefabAsset(cardPrefab,
-			AssetDatabase.GenerateUniqueAssetPath($"Assets/Resources/CardsPrefabs/{cardName}/{cardName}.prefab"));
+		this.cardPrefab =
+			PrefabUtility.SaveAsPrefabAsset(cardPrefab, $"Assets/Resources/CardsPrefabs/{cardName}.prefab");
 		Debug.Log($"Card Creator: {cardName}Card.prefab created.");
 
 		Undo.DestroyObjectImmediate(cardPrefab);
@@ -220,12 +220,12 @@ public class CardCreator : EditorWindow
 
 	private void RemoveCardPrefab()
 	{
-		if (AssetDatabase.DeleteAsset($"Assets/Resources/CardsPrefabs/{cardName}/{cardName}.prefab"))
+		if (AssetDatabase.DeleteAsset($"Assets/Resources/CardsPrefabs/{cardName}.prefab"))
 			Debug.Log("Card Creator: Card prefab successfully deleted.");
 		else
 			Debug.LogWarning("Card Creator: Failed to delete card prefab.");
 
-		if (AssetDatabase.DeleteAsset($"Assets/Resources/CardsPrefabs/{cardName}/{cardName}Params.asset"))
+		if (AssetDatabase.DeleteAsset($"Assets/Resources/CardsPrefabs/{cardName}Params.asset"))
 			Debug.Log("Card Creator: Card params successfully deleted.");
 		else
 			Debug.LogWarning("Card Creator: Failed to delete card params.");

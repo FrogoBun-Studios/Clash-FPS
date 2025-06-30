@@ -14,7 +14,7 @@ public class ShooterCard : Card
 
 		Gizmos.color = Color.red;
 		Gizmos.DrawRay(player.position + player.forward * 0.5f + player.up * 2f,
-			movementController.GetCameraTransform().forward);
+			movementController.GetCameraFollowTransform().forward);
 	}
 
 	protected override void Attack()
@@ -26,25 +26,25 @@ public class ShooterCard : Card
 	[ServerRpc(RequireOwnership = false)]
 	private void SpawnBulletServerRpc(Vector3 fwd, Vector3 up, Vector3 right)
 	{
-		for (int i = 0; i < GetParamsAsShooter().bulletAmount; i++)
+		for (int i = 0; i < GetParams().bulletAmount; i++)
 		{
-			float randomRight = Random.Range(-GetParamsAsShooter().bulletSpread, GetParamsAsShooter().bulletSpread);
-			float randomUp = Random.Range(-GetParamsAsShooter().bulletSpread, GetParamsAsShooter().bulletSpread);
+			float randomRight = Random.Range(-GetParams().bulletSpread, GetParams().bulletSpread);
+			float randomUp = Random.Range(-GetParams().bulletSpread, GetParams().bulletSpread);
 			Vector3 bulletPos = player.position + fwd * 0.5f + up * 2f;
 			bulletPos = bulletPos + right * randomRight + up * randomUp;
 			Vector3 bulletDir = (fwd + right * randomRight + up * randomUp).normalized;
 
 			Bullet bullet = Instantiate(
-				GetParamsAsShooter().bulletPrefab,
+				GetParams().bulletPrefab,
 				bulletPos,
 				Quaternion.Euler(fwd), player
 			).GetComponent<Bullet>();
 			bullet.GetComponent<NetworkObject>().SpawnWithOwnership(OwnerClientId, true);
 
 			bullet.Enable(
-				GetParamsAsShooter().bulletSpeed,
-				GetParamsAsShooter().damage,
-				GetParamsAsShooter().bulletPiercing,
+				GetParams().bulletSpeed,
+				GetParams().damage,
+				GetParams().bulletPiercing,
 				playerScript.GetPlayerData().side,
 				bulletDir,
 				amount => playerScript.UpdateElixirServerRpc(amount), playerScript
@@ -58,9 +58,9 @@ public class ShooterCard : Card
 	{
 		yield return new WaitForSeconds(0.25f);
 
-		SpawnBulletServerRpc(movementController.GetCameraTransform().forward,
-			movementController.GetCameraTransform().up,
-			movementController.GetCameraTransform().right);
+		SpawnBulletServerRpc(movementController.GetCameraFollowTransform().forward,
+			movementController.GetCameraFollowTransform().up,
+			movementController.GetCameraFollowTransform().right);
 	}
 
 	private IEnumerator DestroyBullet(NetworkObject bullet)
@@ -71,7 +71,7 @@ public class ShooterCard : Card
 			bullet.Despawn();
 	}
 
-	protected ShooterCardParams GetParamsAsShooter()
+	protected ShooterCardParams GetParams()
 	{
 		return (ShooterCardParams)cardParams;
 	}

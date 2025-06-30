@@ -146,7 +146,7 @@ public class MovementController : NetworkBehaviour
 		Debug.Log($"Enabled collider of player {OwnerClientId}: {enable}");
 	}
 
-	public void SetModel()
+	public void SetModel(Vector3 customCameraOffset)
 	{
 		foreach (GameObject m in GameObject.FindGameObjectsWithTag("Model"))
 		{
@@ -160,13 +160,21 @@ public class MovementController : NetworkBehaviour
 
 		Debug.Log("Found my model");
 
-		cameraFollow.localPosition =
-			new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f);
+		if (customCameraOffset == new Vector3())
+			cameraFollow.localPosition =
+				new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f);
+		else
+			cameraFollow.localPosition = customCameraOffset;
+	}
+
+	public Transform GetCameraFollowTransform()
+	{
+		return cameraFollow;
 	}
 
 	public Transform GetCameraTransform()
 	{
-		return cameraFollow;
+		return GameObject.Find("CineCam").transform;
 	}
 
 	[Rpc(SendTo.Everyone)]

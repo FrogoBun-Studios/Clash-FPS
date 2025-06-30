@@ -5,17 +5,17 @@ using UnityEngine;
 
 public class MeleeCard : Card
 {
-	private void OnDrawGizmos()
+	protected void OnDrawGizmos()
 	{
 		// if (!IsOwner)
 		// 	return;
 
 		Gizmos.color = Color.red;
 		Gizmos.DrawWireCube(player.position
-		                    + player.right * GetParamsAsMelee().attackZone.center.x
-		                    + player.up * GetParamsAsMelee().attackZone.center.y
-		                    + player.forward * GetParamsAsMelee().attackZone.center.z,
-			GetParamsAsMelee().attackZone.size);
+		                    + player.right * GetParams().attackZone.center.x
+		                    + player.up * GetParams().attackZone.center.y
+		                    + player.forward * GetParams().attackZone.center.z,
+			GetParams().attackZone.size);
 	}
 
 	protected override void Attack()
@@ -28,11 +28,11 @@ public class MeleeCard : Card
 	private void AttackServerRpc()
 	{
 		Vector3 attackPos = player.position
-		                    + player.right * GetParamsAsMelee().attackZone.center.x
-		                    + player.up * GetParamsAsMelee().attackZone.center.y
-		                    + player.forward * GetParamsAsMelee().attackZone.center.z;
+		                    + player.right * GetParams().attackZone.center.x
+		                    + player.up * GetParams().attackZone.center.y
+		                    + player.forward * GetParams().attackZone.center.z;
 
-		Collider[] colliders = Physics.OverlapBox(attackPos, GetParamsAsMelee().attackZone.size / 2);
+		Collider[] colliders = Physics.OverlapBox(attackPos, GetParams().attackZone.size / 2);
 
 		foreach (Collider col in colliders)
 		{
@@ -54,7 +54,7 @@ public class MeleeCard : Card
 		}
 	}
 
-	private MeleeCardParams GetParamsAsMelee()
+	protected MeleeCardParams GetParams()
 	{
 		return (MeleeCardParams)cardParams;
 	}

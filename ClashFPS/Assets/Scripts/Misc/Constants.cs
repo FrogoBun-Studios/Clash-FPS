@@ -7,6 +7,6 @@ public class Constants
 	public const ulong nonPlayerID = 999ul;
 	public const float maxElixir = 9;
 	public const int maxPlayers = 8;
-	public const float gameLength = 0.25f * 60;
+	public const float gameLength = 20 * 60;
 	public const float gameTimeRedThreshold = 60;
 }

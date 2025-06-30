@@ -26,7 +26,6 @@ public abstract class Card : NetworkBehaviour
 		playerScript.UpdateHealthSliderRpc(health.Value);
 		movementController.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
 			cardParams.colliderYOffset);
-		attackTimer = 1 / cardParams.attackRate;
 
 		Debug.Log($"Player {OwnerClientId} card started");
 	}
@@ -41,7 +40,7 @@ public abstract class Card : NetworkBehaviour
 	/// <summary>
 	///     This card updates and moves on OWNER
 	/// </summary>
-	public virtual void UpdateCard(bool settingsOpened)
+	public virtual void UpdateCard(bool enableCardControl)
 	{
 		if (GetHealth() <= 0)
 			return;
@@ -50,7 +49,7 @@ public abstract class Card : NetworkBehaviour
 
 		movementController.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
 		attackTimer -= Time.deltaTime;
-		if (!settingsOpened && Input.GetButtonDown("Fire") && attackTimer <= 0)
+		if (enableCardControl && Input.GetButtonDown("Fire") && attackTimer <= 0)
 		{
 			attackTimer = 1 / cardParams.attackRate;
 			Attack();
@@ -131,8 +130,8 @@ public abstract class Card : NetworkBehaviour
 	/// <returns>
 	///     Returns the name of the card (Wizard, Giant...), works on EVERYONE
 	/// </returns>
-	public string GetCardName()
+	public CardParams GetParams()
 	{
-		return cardParams.cardName;
+		return cardParams;
 	}
 }
