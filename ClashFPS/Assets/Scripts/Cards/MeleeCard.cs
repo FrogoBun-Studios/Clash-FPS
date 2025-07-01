@@ -21,11 +21,11 @@ public class MeleeCard : Card
 	protected override void Attack()
 	{
 		base.Attack();
-		AttackServerRpc();
+		AttackServerRpc(cardParams.damage);
 	}
 
 	[ServerRpc(RequireOwnership = false)]
-	private void AttackServerRpc()
+	protected void AttackServerRpc(float damage)
 	{
 		Vector3 attackPos = player.position
 		                    + player.right * GetParams().attackZone.center.x
@@ -40,17 +40,14 @@ public class MeleeCard : Card
 			{
 				if (col.GetComponent<Player>().GetPlayerData().side != playerScript.GetPlayerData().side)
 				{
-					playerScript.UpdateElixirServerRpc(cardParams.damage * Constants.elixirPerDamage);
-					col.GetComponent<Player>().GetCard().DamageServerRpc(OwnerClientId, cardParams.damage);
+					playerScript.UpdateElixirServerRpc(damage * Constants.elixirPerDamage);
+					col.GetComponent<Player>().GetCard().DamageServerRpc(OwnerClientId, damage);
 				}
 			}
 
 			if (col.gameObject.CompareTag("Tower"))
 				if (col.gameObject.GetComponent<Tower>().GetSide() != playerScript.GetPlayerData().side)
-					col.gameObject.GetComponent<Tower>().DamageServerRpc(OwnerClientId, cardParams.damage);
-
-			// if (col.CompareTag("Tower"))
-			// 	DamageTowerRpc(col.name);
+					col.gameObject.GetComponent<Tower>().DamageServerRpc(OwnerClientId, damage);
 		}
 	}
 
