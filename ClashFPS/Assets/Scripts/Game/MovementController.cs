@@ -132,6 +132,11 @@ public class MovementController : NetworkBehaviour
 		}
 	}
 
+	public void EnableController(bool enable)
+	{
+		controller.enabled = enable;
+	}
+
 	public void ResetCamera()
 	{
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = null;

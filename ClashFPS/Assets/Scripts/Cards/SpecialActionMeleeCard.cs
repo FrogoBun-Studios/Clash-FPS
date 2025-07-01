@@ -1,3 +1,5 @@
+using System;
+
 using UnityEngine;
 
 
@@ -5,6 +7,7 @@ public abstract class SpecialActionMeleeCard : MeleeCard
 {
 	private float specialAttackTimer;
 	private Player selectedPlayer;
+	private Color[] selectedPlayerColors;
 
 	private new void OnDrawGizmos()
 	{
@@ -62,17 +65,28 @@ public abstract class SpecialActionMeleeCard : MeleeCard
 				if (hit.transform == player)
 					continue;
 
+				if (playerScript.GetPlayerData().side == hit.transform.GetComponent<Player>().GetPlayerData().side)
+					continue;
+
 				if (Vector3.Distance(player.position, hit.transform.position) <
 				    GetParams().specialActionPlayerMinDistance)
 					continue;
 
-				selectedPlayer = hit.transform.GetComponent<Player>();
-				SkinnedMeshRenderer renderer =
-					GetActualModelChild(selectedPlayer.GetModel()).GetComponent<SkinnedMeshRenderer>();
-				GlowPlayer(renderer, GetParams().specialActionPlayerGlowColor,
-					GetParams().specialActionPlayerGlowIntensity, GetParams().specialActionPlayerGlowiness);
-				hitPlayer = true;
+				if (selectedPlayer == null)
+				{
+					selectedPlayer = hit.transform.GetComponent<Player>();
+					SkinnedMeshRenderer renderer =
+						GetActualModelChild(selectedPlayer.GetModel()).GetComponent<SkinnedMeshRenderer>();
 
+					selectedPlayerColors = new Color[renderer.materials.Length];
+					for (int i = 0; i < renderer.materials.Length; i++)
+						selectedPlayerColors[i] = renderer.materials[i].color;
+
+					GlowPlayer(renderer, GetParams().specialActionPlayerGlowColor,
+						GetParams().specialActionPlayerGlowIntensity, GetParams().specialActionPlayerGlowiness);
+				}
+
+				hitPlayer = true;
 				break;
 			}
 
@@ -81,6 +95,7 @@ public abstract class SpecialActionMeleeCard : MeleeCard
 				SkinnedMeshRenderer renderer =
 					GetActualModelChild(selectedPlayer.GetModel()).GetComponent<SkinnedMeshRenderer>();
 				UnglowPlayer(renderer);
+				selectedPlayerColors = Array.Empty<Color>();
 				selectedPlayer = null;
 			}
 		}
@@ -123,12 +138,19 @@ public abstract class SpecialActionMeleeCard : MeleeCard
 			mat.SetFloat("_EmissiveIntensity", intensity);
 			mat.SetFloat("_EmissiveExposureWeight", glowiness);
 			mat.EnableKeyword("_EMISSIVE_COLOR_MAP");
+
+			mat.SetColor("_BaseColor", color);
 		}
 	}
 
 	protected void UnglowPlayer(SkinnedMeshRenderer modelRenderer)
 	{
-		foreach (Material mat in modelRenderer.materials) mat.DisableKeyword("_EMISSIVE_COLOR_MAP");
+		for (int i = 0; i < modelRenderer.materials.Length; i++)
+		{
+			modelRenderer.materials[i].SetColor("_BaseColor", selectedPlayerColors[i]);
+			modelRenderer.materials[i].SetColor("_EmissiveColor", Color.black);
+			modelRenderer.materials[i].DisableKeyword("_EMISSIVE_COLOR_MAP");
+		}
 	}
 
 	protected abstract void specialAction(ulong selectedPlayerID);

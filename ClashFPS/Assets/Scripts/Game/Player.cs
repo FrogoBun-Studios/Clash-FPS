@@ -29,7 +29,7 @@ public class Player : NetworkBehaviour
 	private SettingsMenu settingsMenu;
 
 	private bool spawned;
-	private readonly bool enableCardControl = true;
+	private bool enableCardControl = true;
 	public PlayerSettings playerSettings;
 	private Transform model;
 	private Slider currentHealthSlider;
@@ -93,6 +93,11 @@ public class Player : NetworkBehaviour
 	public Card GetCard()
 	{
 		return card;
+	}
+
+	public void EnableCardControl(bool enable)
+	{
+		enableCardControl = enable;
 	}
 
 	/// <summary>
