@@ -378,6 +378,17 @@ public class Player : NetworkBehaviour
 			card.SetPlayerForNonServer(GameManager.Get.GetPlayerByID(cardID).transform);
 		}
 
+		foreach (GameObject m in GameObject.FindGameObjectsWithTag("Model"))
+		{
+			Player player = GameManager.Get.GetPlayerByID(m.GetComponent<NetworkObject>().OwnerClientId);
+			player.model = m.transform;
+			player.movementController.SetModel(model, Vector3.zero);
+
+			Debug.Log($"Set player {OwnerClientId} model");
+		}
+
+		Debug.Log("Set player models");
+
 		// Setting other players' sliders' height and max value on new player's pc (only if the other player chose a card already) 
 		foreach (GameObject topSliderGo in GameObject.FindGameObjectsWithTag("TopSlider"))
 		{
@@ -620,17 +631,26 @@ public class Player : NetworkBehaviour
 			Debug.Log($"Set the card to player {OwnerClientId}");
 		}
 
-		if (IsOwner)
-			SetModel();
+		SetModel();
 	}
 
 	private void SetModel()
 	{
-		movementController.SetModel(card.GetParams().customCameraOffset);
-		Debug.Log("Set model");
-		movementController.EnableColliderRpc(true);
+		foreach (GameObject m in GameObject.FindGameObjectsWithTag("Model"))
+			if (m.GetComponent<NetworkObject>().OwnerClientId == OwnerClientId)
+			{
+				model = m.transform;
+				break;
+			}
 
-		SetHealthSliderRpc();
+		Debug.Log($"Found my model of player {OwnerClientId}");
+
+		movementController.SetModel(model, card.GetParams().customCameraOffset);
+		Debug.Log($"Set model of player {OwnerClientId}");
+
+		movementController.EnableControllerRpc(true);
+
+		SetHealthSlider();
 	}
 
 	/// <summary>
@@ -640,8 +660,7 @@ public class Player : NetworkBehaviour
 	///     <br />and set his own health slider on his machine to be the ui one instead of the top one.
 	///     <br />Every other player will do the same.
 	/// </summary>
-	[Rpc(SendTo.Everyone)]
-	private void SetHealthSliderRpc()
+	private void SetHealthSlider()
 	{
 		if (IsOwner)
 		{

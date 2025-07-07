@@ -115,7 +115,7 @@ public abstract class Card : NetworkBehaviour
 	{
 		Debug.Log($"Player {OwnerClientId} died");
 		movementController.SetAnimatorTriggerRpc("Death");
-		movementController.EnableColliderRpc(false);
+		movementController.EnableControllerRpc(false);
 		playerScript.RespawnRpc();
 	}
 

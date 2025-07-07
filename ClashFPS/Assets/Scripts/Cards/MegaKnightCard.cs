@@ -7,8 +7,6 @@ public class MegaKnightCard : SpecialActionMeleeCard
 {
 	protected override void specialAction(ulong selectedPlayerID)
 	{
-		Debug.Log(selectedPlayerID);
-
 		StartCoroutine(Jump(GameManager.Get.GetPlayerByID(selectedPlayerID)));
 	}
 
@@ -18,7 +16,7 @@ public class MegaKnightCard : SpecialActionMeleeCard
 		Vector3 endPos = target.transform.position;
 		float dist = Vector2.Distance(new Vector2(startPos.x, startPos.z), new Vector2(endPos.x, endPos.z));
 		Vector3 dir = (new Vector3(endPos.x, 0, endPos.z) - new Vector3(startPos.x, 0, startPos.z)).normalized;
-		float jumpHeight = 7.5f;
+		float jumpHeight = 10f;
 
 		float f(float x)
 		{
@@ -27,12 +25,12 @@ public class MegaKnightCard : SpecialActionMeleeCard
 			return a * (x - 0) * (x - dist);
 		}
 
-		float stepSize = 0.1f;
-		float wait = 0.1f / (dist / stepSize);
+		float stepSize = 0.75f;
+		float wait = 1f / (dist / stepSize);
 
 		playerScript.EnableCardControl(false);
-		movementController.EnableController(false);
-		movementController.SetAnimatorTriggerRpc("Jump");
+		movementController.EnableControllerRpc(false);
+		movementController.SetAnimatorTriggerRpc("SpecialJump");
 
 		for (float v = 0; v < dist; v += stepSize)
 		{
@@ -44,6 +42,6 @@ public class MegaKnightCard : SpecialActionMeleeCard
 
 		player.position = endPos;
 		playerScript.EnableCardControl(true);
-		movementController.EnableController(true);
+		movementController.EnableControllerRpc(true);
 	}
 }

@@ -941,7 +941,7 @@ GameObject:
   - component: {fileID: 5866666021909216657}
   - component: {fileID: -2522777265967444301}
   - component: {fileID: -7552294727889832756}
-  - component: {fileID: 8106406118913658442}
+  - component: {fileID: -3234381792374831576}
   m_Layer: 0
   m_Name: GiantModelPrefab
   m_TagString: Model
@@ -1059,7 +1059,7 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &8106406118913658442
+--- !u!114 &-3234381792374831576
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1068,7 +1068,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 919132149155446097}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8d0727d5ae3244e3b569694d3912374, type: 3}
+  m_Script: {fileID: 11500000, guid: ad8deae8091111f4eb30a56c1f4e0d3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1

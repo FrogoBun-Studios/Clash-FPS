@@ -26,19 +26,22 @@ public class MovementController : NetworkBehaviour
 
 	public void ControlCharacter(float speed, int jumps, float jumpStrength)
 	{
-		Move(speed);
-		Look();
-
-		if (movementEnabled && Input.GetButtonDown("Jump"))
+		if (controller.enabled)
 		{
-			if (controller.isGrounded)
-				jumpsLeft = jumps;
+			Move(speed);
+			Look();
 
-			if (jumpsLeft > 0)
+			if (movementEnabled && Input.GetButtonDown("Jump"))
 			{
-				yVelocity = jumpStrength;
-				SetAnimatorTriggerRpc("Jump");
-				jumpsLeft--;
+				if (controller.isGrounded)
+					jumpsLeft = jumps;
+
+				if (jumpsLeft > 0)
+				{
+					yVelocity = jumpStrength;
+					SetAnimatorTriggerRpc("Jump");
+					jumpsLeft--;
+				}
 			}
 		}
 
@@ -48,9 +51,7 @@ public class MovementController : NetworkBehaviour
 			model.localEulerAngles = transform.localEulerAngles;
 		}
 		else
-		{
 			Debug.LogError("My model is null");
-		}
 	}
 
 	private void Move(float speed)
@@ -58,7 +59,6 @@ public class MovementController : NetworkBehaviour
 		Vector3 movementDir = new();
 		if (movementEnabled)
 			movementDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
-
 
 		float xMove = movementDir.x * speed * Time.deltaTime;
 		yVelocity += Physics.gravity.y * Time.deltaTime;
@@ -132,11 +132,6 @@ public class MovementController : NetworkBehaviour
 		}
 	}
 
-	public void EnableController(bool enable)
-	{
-		controller.enabled = enable;
-	}
-
 	public void ResetCamera()
 	{
 		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Follow = null;
@@ -145,31 +140,26 @@ public class MovementController : NetworkBehaviour
 	}
 
 	[Rpc(SendTo.Everyone)]
-	public void EnableColliderRpc(bool enable)
+	public void EnableControllerRpc(bool enable)
 	{
 		controller.enabled = enable;
-		Debug.Log($"Enabled collider of player {OwnerClientId}: {enable}");
+		Debug.Log($"Enabled character controller and collider of player {OwnerClientId}: {enable}");
 	}
 
-	public void SetModel(Vector3 customCameraOffset)
+	public void SetModel(Transform model, Vector3 customCameraOffset)
 	{
-		foreach (GameObject m in GameObject.FindGameObjectsWithTag("Model"))
+		this.model = model;
+
+		if (IsOwner)
 		{
-			if (m.GetComponent<NetworkObject>().OwnerClientId == OwnerClientId)
-			{
-				model = m.transform;
-				animator = model.gameObject.GetComponent<Animator>();
-				break;
-			}
+			animator = model.GetComponent<Animator>();
+
+			if (customCameraOffset == new Vector3())
+				cameraFollow.localPosition =
+					new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f);
+			else
+				cameraFollow.localPosition = customCameraOffset;
 		}
-
-		Debug.Log("Found my model");
-
-		if (customCameraOffset == new Vector3())
-			cameraFollow.localPosition =
-				new Vector3(0, 4.625f * model.localScale.y - 2.375f, -2.5f * model.localScale.y + 2.5f);
-		else
-			cameraFollow.localPosition = customCameraOffset;
 	}
 
 	public Transform GetCameraFollowTransform()

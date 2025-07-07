@@ -3,6 +3,7 @@
 using System.IO;
 using System.Linq;
 
+using Unity.Multiplayer.Samples.Utilities.ClientAuthority;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 
@@ -155,7 +156,8 @@ public class CardCreator : EditorWindow
 		modelPrefab.GetComponent<NetworkTransform>().SyncScaleX = false;
 		modelPrefab.GetComponent<NetworkTransform>().SyncScaleY = false;
 		modelPrefab.GetComponent<NetworkTransform>().SyncScaleZ = false;
-		modelPrefab.AddComponent<NetworkAnimator>().Animator = modelPrefab.GetComponent<Animator>();
+		modelPrefab.GetComponent<NetworkTransform>().AuthorityMode = NetworkTransform.AuthorityModes.Owner;
+		modelPrefab.AddComponent<ClientNetworkAnimator>().Animator = modelPrefab.GetComponent<Animator>();
 		modelPrefab.tag = "Model";
 
 		AssetDatabase.SaveAssets();

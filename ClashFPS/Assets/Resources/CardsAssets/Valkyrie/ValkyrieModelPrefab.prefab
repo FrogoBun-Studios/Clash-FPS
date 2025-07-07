@@ -95,7 +95,7 @@ PrefabInstance:
       addedObject: {fileID: 4138944984730711113}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 105828854fbd860459425195f392caac, type: 3}
       insertIndex: -1
-      addedObject: {fileID: -6439185001984767407}
+      addedObject: {fileID: -1443277751711107876}
   m_SourcePrefab: {fileID: 100100000, guid: 105828854fbd860459425195f392caac, type: 3}
 --- !u!95 &2444067054991288841 stripped
 Animator:
@@ -183,7 +183,7 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &-6439185001984767407
+--- !u!114 &-1443277751711107876
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -192,7 +192,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8953418230797445833}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8d0727d5ae3244e3b569694d3912374, type: 3}
+  m_Script: {fileID: 11500000, guid: ad8deae8091111f4eb30a56c1f4e0d3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
