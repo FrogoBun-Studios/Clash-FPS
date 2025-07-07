@@ -26,12 +26,12 @@ public class GameOverMenu : MonoBehaviour
 			if (winner == Side.Blue)
 			{
 				winnerText.text = "Blu Side Won!";
-				winnerText.color = new Color(48, 48, 192);
+				winnerText.color = new Color(48 / 255f, 48 / 255f, 192 / 255f);
 			}
 			else
 			{
 				winnerText.text = "Red Side Won!";
-				winnerText.color = new Color(192, 48, 48);
+				winnerText.color = new Color(192 / 255f, 48 / 255f, 48 / 255f);
 			}
 		}
 

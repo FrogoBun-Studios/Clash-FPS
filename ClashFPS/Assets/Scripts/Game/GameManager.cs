@@ -22,6 +22,8 @@ public class GameManager : NetworkBehaviour
 	private readonly NetworkVariable<float> gameTime = new();
 	private readonly Dictionary<ulong, float> scores = new();
 	private TextMeshProUGUI timerText;
+	private bool suddenDeath;
+	private bool gameEnded;
 
 	private int blueTeamScore;
 	private int redTeamScore;
@@ -37,18 +39,38 @@ public class GameManager : NetworkBehaviour
 
 	private void Update()
 	{
+		if (gameEnded)
+			return;
+
 		if (IsServer)
 		{
 			gameTime.Value += Time.deltaTime;
-			if (gameTime.Value >= Constants.gameLength)
-				EndGame();
+
+			if (!suddenDeath)
+			{
+				if (gameTime.Value >= Constants.gameLength)
+				{
+					suddenDeath = true;
+					gameTime.Value = 0;
+				}
+			}
+			else
+			{
+				if (gameTime.Value >= Constants.suddenDeathTime || blueTeamScore > 0 || redTeamScore > 0)
+					EndGame();
+			}
 		}
 
-		float time = Constants.gameLength - gameTime.Value;
-		if (time >= 0)
+		float timeLeft;
+		if (!suddenDeath)
+			timeLeft = Constants.gameLength - gameTime.Value;
+		else
+			timeLeft = Constants.suddenDeathTime - gameTime.Value;
+
+		if (timeLeft >= 0)
 		{
-			int minutes = (int)(time / 60);
-			int secs = (int)(time % 60f);
+			int minutes = (int)(timeLeft / 60);
+			int secs = (int)(timeLeft % 60f);
 
 			string minutesStr = minutes.ToString("00");
 			string secsStr = secs.ToString("00");
@@ -58,12 +80,14 @@ public class GameManager : NetworkBehaviour
 		else
 			timerText.text = "00:00";
 
-		if (time <= Constants.gameTimeRedThreshold)
+		if (suddenDeath)
 			timerText.color = Color.red;
 	}
 
 	private void EndGame()
 	{
+		gameEnded = true;
+
 		List<FixedString32Bytes> names = new();
 		List<float> scores = new();
 
@@ -76,7 +100,6 @@ public class GameManager : NetworkBehaviour
 		SetOnEndGameSceneLoadedRpc(names.ToArray(), scores.ToArray(),
 			blueTeamScore > redTeamScore ? Side.Blue : Side.Red, blueTeamScore == redTeamScore);
 		NetworkManager.Singleton.SceneManager.LoadScene("Game Over", LoadSceneMode.Single);
-		gameTime.Value = Mathf.NegativeInfinity;
 	}
 
 	[Rpc(SendTo.Everyone)]
@@ -219,16 +242,11 @@ public class GameManager : NetworkBehaviour
 		Debug.Log($"On {side} tower destroy");
 
 		if (side == Side.Blue)
-		{
 			redTeamScore++;
-			if (redTeamScore >= 2)
-				EndGame();
-		}
 		else
-		{
 			blueTeamScore++;
-			if (blueTeamScore >= 2)
-				EndGame();
-		}
+
+		if (blueTeamScore >= 2 || redTeamScore >= 2)
+			EndGame();
 	}
 }

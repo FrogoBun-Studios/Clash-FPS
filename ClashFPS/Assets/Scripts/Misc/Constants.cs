@@ -8,6 +8,6 @@ public class Constants
 
 	public const int maxPlayers = 8;
 	public const ulong nonPlayerID = 999ul;
-	public const float gameLength = 20 * 60;
-	public const float gameTimeRedThreshold = 60;
+	public const float gameLength = 3 * 60;
+	public const float suddenDeathTime = 0.5f * 60;
 }
