@@ -13,11 +13,29 @@ public class GameOverMenu : MonoBehaviour
 	[SerializeField] private TextMeshProUGUI playerScoreTemplate;
 	[SerializeField] private Transform playerScoresGroup;
 	[SerializeField] private Button playAgainButton;
+	[SerializeField] private TextMeshProUGUI winnerText;
 
-	public void ShowScores(Dictionary<string, float> scores)
+	public void Show(Dictionary<string, float> scores, Side winner, bool tie)
 	{
-		int i = 0;
+		if (tie)
+		{
+			winnerText.text = "Tie!";
+		}
+		else
+		{
+			if (winner == Side.Blue)
+			{
+				winnerText.text = "Blu Side Won!";
+				winnerText.color = new Color(48, 48, 192);
+			}
+			else
+			{
+				winnerText.text = "Red Side Won!";
+				winnerText.color = new Color(192, 48, 48);
+			}
+		}
 
+		int i = 0;
 		foreach (string name in scores.Keys)
 		{
 			TextMeshProUGUI playerName = Instantiate(playerNameTemplate, playerNamesGroup);

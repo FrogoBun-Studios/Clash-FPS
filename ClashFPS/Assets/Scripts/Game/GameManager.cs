@@ -14,12 +14,17 @@ public class GameManager : NetworkBehaviour
 {
 	private readonly NetworkVariable<int> bluePlayersCount = new();
 	private readonly NetworkVariable<int> redPlayersCount = new();
+
 	private readonly Dictionary<ulong, Player> playerIDToPlayer = new();
 	private readonly List<Player> players = new();
 	private readonly Dictionary<ulong, PlayerData> playerIDToData = new();
+
 	private readonly NetworkVariable<float> gameTime = new();
 	private readonly Dictionary<ulong, float> scores = new();
 	private TextMeshProUGUI timerText;
+
+	private int blueTeamScore;
+	private int redTeamScore;
 
 	public static GameManager Get { get; private set; }
 
@@ -36,20 +41,7 @@ public class GameManager : NetworkBehaviour
 		{
 			gameTime.Value += Time.deltaTime;
 			if (gameTime.Value >= Constants.gameLength)
-			{
-				List<FixedString32Bytes> names = new();
-				List<float> scores = new();
-
-				foreach (ulong playerID in this.scores.Keys)
-				{
-					names.Add(playerIDToData[playerID].name);
-					scores.Add(this.scores[playerID]);
-				}
-
-				SetOnEndGameSceneLoadedRpc(names.ToArray(), scores.ToArray());
-				NetworkManager.Singleton.SceneManager.LoadScene("Game Over", LoadSceneMode.Single);
-				gameTime.Value = Mathf.NegativeInfinity;
-			}
+				EndGame();
 		}
 
 		float time = Constants.gameLength - gameTime.Value;
@@ -64,16 +56,31 @@ public class GameManager : NetworkBehaviour
 			timerText.text = $"{minutesStr}:{secsStr}";
 		}
 		else
-		{
 			timerText.text = "00:00";
-		}
 
 		if (time <= Constants.gameTimeRedThreshold)
 			timerText.color = Color.red;
 	}
 
+	private void EndGame()
+	{
+		List<FixedString32Bytes> names = new();
+		List<float> scores = new();
+
+		foreach (ulong playerID in this.scores.Keys)
+		{
+			names.Add(playerIDToData[playerID].name);
+			scores.Add(this.scores[playerID]);
+		}
+
+		SetOnEndGameSceneLoadedRpc(names.ToArray(), scores.ToArray(),
+			blueTeamScore > redTeamScore ? Side.Blue : Side.Red, blueTeamScore == redTeamScore);
+		NetworkManager.Singleton.SceneManager.LoadScene("Game Over", LoadSceneMode.Single);
+		gameTime.Value = Mathf.NegativeInfinity;
+	}
+
 	[Rpc(SendTo.Everyone)]
-	private void SetOnEndGameSceneLoadedRpc(FixedString32Bytes[] names, float[] scores)
+	private void SetOnEndGameSceneLoadedRpc(FixedString32Bytes[] names, float[] scores, Side winner, bool tie)
 	{
 		NetworkManager.Singleton.SceneManager.OnLoadComplete += (id, sceneName, mode) =>
 		{
@@ -85,7 +92,7 @@ public class GameManager : NetworkBehaviour
 			Cursor.visible = true;
 
 			GameOverMenu menu = GameObject.Find("Game Over Menu").GetComponent<GameOverMenu>();
-			menu.ShowScores(scoresDict);
+			menu.Show(scoresDict, winner, tie);
 		};
 	}
 
@@ -191,5 +198,37 @@ public class GameManager : NetworkBehaviour
 	public Player GetThisPlayer()
 	{
 		return GetPlayerByID(OwnerClientId);
+	}
+
+	public void OnTowerDestroy(Side side, bool isKing)
+	{
+		if (isKing)
+		{
+			Debug.Log($"On {side} king tower destroy");
+
+			if (side == Side.Blue)
+				redTeamScore = int.MaxValue;
+			else
+				blueTeamScore = int.MaxValue;
+
+			EndGame();
+
+			return;
+		}
+
+		Debug.Log($"On {side} tower destroy");
+
+		if (side == Side.Blue)
+		{
+			redTeamScore++;
+			if (redTeamScore >= 2)
+				EndGame();
+		}
+		else
+		{
+			blueTeamScore++;
+			if (blueTeamScore >= 2)
+				EndGame();
+		}
 	}
 }

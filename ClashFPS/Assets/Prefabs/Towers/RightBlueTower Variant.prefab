@@ -25,6 +25,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 3876573667421007689}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
+      propertyPath: startingHealth
+      value: 3000
+      objectReference: {fileID: 0}
+    - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: pose.position.x
       value: 32
       objectReference: {fileID: 0}

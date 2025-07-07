@@ -635,7 +635,7 @@ GameObject:
   - component: {fileID: 705919908}
   - component: {fileID: 705919907}
   m_Layer: 5
-  m_Name: Game Over
+  m_Name: Winner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -680,7 +680,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Game Over
+  m_text: Blu Side Won!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 19621b54a70a60a4bab3e600b737b617, type: 2}
   m_sharedMaterial: {fileID: -2463774480918789572, guid: 19621b54a70a60a4bab3e600b737b617, type: 2}
@@ -689,8 +689,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4290785328
+  m_fontColor: {r: 0.1882353, g: 0.1882353, b: 0.7529412, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -707,8 +707,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
-  m_fontSizeBase: 30
+  m_fontSize: 48
+  m_fontSizeBase: 48
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1022,6 +1022,7 @@ MonoBehaviour:
   playerScoreTemplate: {fileID: 1186002426}
   playerScoresGroup: {fileID: 864945359}
   playAgainButton: {fileID: 1200212388}
+  winnerText: {fileID: 705919907}
 --- !u!1 &1186002424
 GameObject:
   m_ObjectHideFlags: 0

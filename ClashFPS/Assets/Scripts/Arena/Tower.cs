@@ -30,7 +30,7 @@ public class Tower : NetworkBehaviour
 		UpdateSliderRpc();
 	}
 
-	[ServerRpc]
+	[ServerRpc(RequireOwnership = false)]
 	public void DamageServerRpc(ulong sourcePlayerID, float amount)
 	{
 		health.Value -= amount;
@@ -38,6 +38,7 @@ public class Tower : NetworkBehaviour
 		if (health.Value <= 0)
 		{
 			GameManager.Get.GetPlayerByID(sourcePlayerID).GetCard().OnDestroyedTower();
+			GameManager.Get.OnTowerDestroy(side, isKing);
 
 			deathPrefab =
 				Instantiate(deathPrefab.gameObject, transform.position + Vector3.down * (isKing ? 8.3f : 5.8f),

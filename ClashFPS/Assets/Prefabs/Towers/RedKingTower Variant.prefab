@@ -42,7 +42,7 @@ PrefabInstance:
       objectReference: {fileID: -31894456212431492, guid: 240593499ce482a4890968a7286cb44d, type: 3}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: startingHealth
-      value: 4000
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -2415417726479158838, guid: ec61ecb68034e1e40b9c7142ad8faaf7, type: 3}
       propertyPath: pose.position.y
