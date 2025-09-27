@@ -94,7 +94,9 @@ public abstract class Card : NetworkBehaviour
 	protected void OnKilledPlayerServerRpc(ulong killedPlayerID)
 	{
 		Player killedPlayer = GameManager.Get.GetPlayerByID(killedPlayerID);
-		killedPlayer.UpdateElixirServerRpc(Constants.elixirPerKill);
+
+		// killedPlayer.UpdateElixirServerRpc(Constants.elixirPerKill);
+		playerScript.UpdateElixirServerRpc(Constants.elixirPerKill);
 		Chat.Get.KillLog(playerScript.GetPlayerData().name.ToString(), killedPlayer.GetPlayerData().name.ToString(),
 			cardParams.cardName);
 	}

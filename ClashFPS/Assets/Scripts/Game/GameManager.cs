@@ -105,8 +105,10 @@ public class GameManager : NetworkBehaviour
 	[Rpc(SendTo.Everyone)]
 	private void SetOnEndGameSceneLoadedRpc(FixedString32Bytes[] names, float[] scores, Side winner, bool tie)
 	{
-		NetworkManager.Singleton.SceneManager.OnLoadComplete += (id, sceneName, mode) =>
+		void OnSceneLoaded(ulong id, string sceneName, LoadSceneMode mode)
 		{
+			NetworkManager.Singleton.SceneManager.OnLoadComplete -= OnSceneLoaded;
+
 			Dictionary<string, float> scoresDict = new();
 			for (int i = 0; i < scores.Length; i++)
 				scoresDict.Add(names[i].ToString(), scores[i]);
@@ -116,7 +118,9 @@ public class GameManager : NetworkBehaviour
 
 			GameOverMenu menu = GameObject.Find("Game Over Menu").GetComponent<GameOverMenu>();
 			menu.Show(scoresDict, winner, tie);
-		};
+		}
+
+		NetworkManager.Singleton.SceneManager.OnLoadComplete += OnSceneLoaded;
 	}
 
 	private int playAgainCounter;

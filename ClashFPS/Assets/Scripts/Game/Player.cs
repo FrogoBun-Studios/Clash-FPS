@@ -71,14 +71,16 @@ public class Player : NetworkBehaviour
 	public void UpdateElixirServerRpc(float amount)
 	{
 		if (amount > 0)
-			GameManager.Get.UpdateScore(OwnerClientId, amount);
-
-		if (data.Value.elixir < Constants.maxElixir)
 		{
-			data.Value = GetPlayerData().PlusElixir(amount);
-			if (amount >= 0.5)
-				Debug.Log($"Increased elixir of player {OwnerClientId} by {amount} to {data.Value.elixir}");
+			GameManager.Get.UpdateScore(OwnerClientId, amount);
+			amount = Mathf.Min(amount, Constants.maxElixir - data.Value.elixir);
 		}
+		else
+			amount = Mathf.Max(amount, 0 - data.Value.elixir);
+
+		data.Value = GetPlayerData().PlusElixir(amount);
+		if (Mathf.Abs(amount) >= 0.5)
+			Debug.Log($"Updated elixir of player {OwnerClientId} by {amount} to {data.Value.elixir}");
 	}
 
 	public PlayerData GetPlayerData()
