@@ -29,7 +29,7 @@ public class MegaKnightCard : SpecialActionMeleeCard
 		float wait = 1f / (dist / stepSize);
 
 		playerScript.EnableCardControl(false);
-		movementController.EnableControllerRpc(false);
+		movementController.SetEnabledColliderAndMovementRpc(false);
 		movementController.SetAnimatorTriggerRpc("SpecialJump");
 
 		for (float v = 0; v < dist; v += stepSize)
@@ -42,6 +42,6 @@ public class MegaKnightCard : SpecialActionMeleeCard
 
 		player.position = endPos;
 		playerScript.EnableCardControl(true);
-		movementController.EnableControllerRpc(true);
+		movementController.SetEnabledColliderAndMovementRpc(true);
 	}
 }

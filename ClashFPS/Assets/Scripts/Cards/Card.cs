@@ -26,6 +26,7 @@ public abstract class Card : NetworkBehaviour
 		playerScript.UpdateHealthSliderRpc(health.Value);
 		movementController.SetColliderSizeRpc(cardParams.colliderRadius, cardParams.colliderHeight,
 			cardParams.colliderYOffset);
+		movementController.SetupCardParams(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
 
 		Debug.Log($"Player {OwnerClientId} card started");
 	}
@@ -47,7 +48,7 @@ public abstract class Card : NetworkBehaviour
 
 		playerScript.UpdateElixirServerRpc(Time.deltaTime * Constants.elixirPerSecond);
 
-		movementController.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
+		// movementController.ControlCharacter(cardParams.speed, cardParams.jumps, cardParams.jumpStrength);
 		attackTimer -= Time.deltaTime;
 		if (enableCardControl && Input.GetButtonDown("Fire") && attackTimer <= 0)
 		{
@@ -117,7 +118,7 @@ public abstract class Card : NetworkBehaviour
 	{
 		Debug.Log($"Player {OwnerClientId} died");
 		movementController.SetAnimatorTriggerRpc("Death");
-		movementController.EnableControllerRpc(false);
+		movementController.SetEnabledColliderAndMovementRpc(false);
 		playerScript.RespawnRpc();
 	}
 

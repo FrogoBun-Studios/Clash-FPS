@@ -47,7 +47,12 @@ public class Player : NetworkBehaviour
 				StartCoroutine(settingsMenu.Show());
 		}
 
-		movementController.Enable(spawned && !settingsMenu.IsShowen() && enableCardControl);
+		movementController.SetEnabled(
+			spawned
+			&& !settingsMenu.IsShowen()
+			&& enableCardControl
+			&& card.GetHealth() > 0
+		);
 		if (card != null && spawned)
 			card.UpdateCard(!settingsMenu.IsShowen() && enableCardControl);
 	}
@@ -454,11 +459,10 @@ public class Player : NetworkBehaviour
 	public void UpdateGameToSettings(PlayerSettings playerSettings)
 	{
 		this.playerSettings = playerSettings;
-		movementController.UpdateSensitivity(playerSettings.mouseSensitivity);
+		movementController.SettingsUpdated(playerSettings.mouseSensitivity, playerSettings.FOV);
 		Debug.Log($"Updated sensitivity of player to new settings: {playerSettings.mouseSensitivity}");
-		SetPlayerNameServerRpc(playerSettings.playerName);
-		GameObject.Find("CineCam").GetComponent<CinemachineCamera>().Lens.FieldOfView = playerSettings.FOV;
 		Debug.Log($"Updated FOV of player to new settings: {playerSettings.FOV}");
+		SetPlayerNameServerRpc(playerSettings.playerName);
 	}
 
 	/// <summary>
@@ -650,7 +654,7 @@ public class Player : NetworkBehaviour
 		movementController.SetModel(model, card.GetParams().customCameraOffset);
 		Debug.Log($"Set model of player {OwnerClientId}");
 
-		movementController.EnableControllerRpc(true);
+		movementController.SetEnabledColliderAndMovementRpc(true);
 
 		SetHealthSlider();
 	}
